@@ -6,7 +6,7 @@ url: https://xgeniousllc.github.io
 baseurl: /xgpagebuilder
 
 # Color scheme
-color_scheme: dark
+color_scheme: light
 
 # Enable color scheme toggle button (requires v0.10.0+)
 color_scheme_supports_mode_toggle: true
