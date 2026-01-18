@@ -1,6 +1,7 @@
 ---
-layout: post
+layout: default
 title: Widget Development
+nav_order: 4
 ---
 
 # Widget Development Guide
