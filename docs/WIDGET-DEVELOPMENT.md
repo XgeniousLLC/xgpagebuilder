@@ -16,89 +16,169 @@ Learn how to create custom widgets for XgPageBuilder and migrate legacy addons.
 
 ## Creating Custom Widgets
 
-### Basic Widget Structure
+### Real-World Example: Hero Section Widget
 
-Create a new widget class that extends `BaseWidget`:
+Here's a complete example of a production-ready hero section widget with background image, trusted users, and call-to-action buttons:
 
 ```php
-// app/Widgets/CallToActionWidget.php
-namespace App\Widgets;
+// Plugins/PageBuilder/Widgets/HeroSectionWidget.php
+namespace Plugins\PageBuilder\Widgets;
 
 use Xgenious\PageBuilder\Core\BaseWidget;
 use Xgenious\PageBuilder\Core\ControlManager;
 use Xgenious\PageBuilder\Core\FieldManager;
+use Plugins\PageBuilder\Traits\ExtractsImageIds;
 
-class CallToActionWidget extends BaseWidget
+class HeroSectionWidget extends BaseWidget
 {
-    protected string $addon_name = 'call-to-action';
-    protected string $addon_title = 'Call to Action';
-    protected string $addon_description = 'A call to action section with button';
-    protected string $icon = 'la-bullhorn';
-    protected string $category = 'marketing';
+    use ExtractsImageIds;
+    
+    protected function getWidgetType(): string
+    {
+        return 'hero-section';
+    }
+
+    protected function getWidgetName(): string
+    {
+        return 'Hero Section';
+    }
+
+    protected function getWidgetDescription(): string
+    {
+        return 'Create an impactful hero section with title, subtitle, trusted users, and call-to-action buttons';
+    }
+
+    protected function getCategory(): string
+    {
+        return 'theme';
+    }
+
+    protected function getWidgetIcon(): string
+    {
+        return 'las la-rocket';
+    }
 
     public function getGeneralFields(): array
     {
         $control = new ControlManager();
-        
-        $control->addGroup('content', 'Content')
-            ->registerField('title', FieldManager::TEXT()
-                ->setLabel('Title')
-                ->setPlaceholder('Enter title')
-                ->setDefault('Get Started Today')
-            )
-            ->registerField('description', FieldManager::TEXTAREA()
-                ->setLabel('Description')
-                ->setPlaceholder('Enter description')
-            )
-            ->registerField('button_text', FieldManager::TEXT()
-                ->setLabel('Button Text')
-                ->setDefault('Sign Up')
-            )
-            ->registerField('button_url', FieldManager::TEXT()
-                ->setLabel('Button URL')
-                ->setPlaceholder('https://example.com')
-            )
-            ->endGroup();
-        
-        return $control->getFields();
-    }
 
-    public function getStyleFields(): array
-    {
-        $control = new ControlManager();
-        
-        $control->addGroup('colors', 'Colors')
-            ->registerField('background_color', FieldManager::COLOR()
-                ->setLabel('Background Color')
-                ->setDefault('#f8f9fa')
-            )
-            ->registerField('text_color', FieldManager::COLOR()
-                ->setLabel('Text Color')
-                ->setDefault('#212529')
+        // Background Section
+        $control->addGroup('background', 'Background')
+            ->registerField(
+                'background_image',
+                FieldManager::IMAGE()
+                    ->setLabel('Background Image')
+                    ->setDescription('Recommended: 1905x820')
             )
             ->endGroup();
-        
+
+        // Trusted Users Section
+        $control->addGroup('trusted', 'Trusted Section')
+            ->registerField(
+                'trusted_text',
+                FieldManager::TEXT()
+                    ->setLabel('Trusted Text')
+                    ->setDefault('Trusted by 20k users')
+            )
+            ->registerField(
+                'trusted_images',
+                FieldManager::REPEATER()
+                    ->setLabel('Trusted User Images')
+                    ->setAddButtonText('Add Image')
+                    ->setFields([
+                        'image' => FieldManager::IMAGE()->setLabel('User Image'),
+                    ])
+            )
+            ->endGroup();
+
+        // Hero Content
+        $control->addGroup('content', 'Hero Content')
+            ->registerField(
+                'title',
+                FieldManager::TEXT()
+                    ->setLabel('Main Title')
+                    ->setDefault('Transform Customer Support with Intelligent AI')
+            )
+            ->registerField(
+                'subtitle',
+                FieldManager::TEXTAREA()
+                    ->setLabel('Subtitle / Description')
+                    ->setRows(3)
+                    ->setDefault('Provide instant accurate and personalized support smarter faster and always available')
+            )
+            ->endGroup();
+
+        // Call-to-Action Buttons
+        $control->addGroup('buttons', 'Buttons')
+            ->registerField(
+                'button_title_one',
+                FieldManager::TEXT()
+                    ->setLabel('Button One Title')
+                    ->setDefault('Explore Demos')
+            )
+            ->registerField(
+                'button_link_one',
+                FieldManager::URL()
+                    ->setLabel('Button One Link')
+                    ->setDefault('#')
+            )
+            ->registerField(
+                'button_title_two',
+                FieldManager::TEXT()
+                    ->setLabel('Button Two Title')
+                    ->setDefault('Get Started')
+            )
+            ->registerField(
+                'button_link_two',
+                FieldManager::URL()
+                    ->setLabel('Button Two Link')
+                    ->setDefault('#')
+            )
+            ->endGroup();
+
+        // Banner Image
+        $control->addGroup('banner', 'Banner Image')
+            ->registerField(
+                'banner_image',
+                FieldManager::IMAGE()
+                    ->setLabel('Hero Banner Image')
+                    ->setDescription('Recommended: 500x550')
+            )
+            ->endGroup();
+
         return $control->getFields();
     }
 
     public function render(array $settings = []): string
     {
-        $title = $settings['general']['content']['title'] ?? 'Get Started Today';
-        $description = $settings['general']['content']['description'] ?? '';
-        $buttonText = $settings['general']['content']['button_text'] ?? 'Sign Up';
-        $buttonUrl = $settings['general']['content']['button_url'] ?? '#';
-        
-        $bgColor = $settings['style']['colors']['background_color'] ?? '#f8f9fa';
-        $textColor = $settings['style']['colors']['text_color'] ?? '#212529';
-        
-        return view('widgets.call-to-action', compact(
-            'title', 
-            'description', 
-            'buttonText', 
-            'buttonUrl',
-            'bgColor',
-            'textColor'
-        ))->render();
+        $general = $settings['general'] ?? [];
+
+        $background = $general['background'] ?? [];
+        $trusted = $general['trusted'] ?? [];
+        $content = $general['content'] ?? [];
+        $buttons = $general['buttons'] ?? [];
+        $banner = $general['banner'] ?? [];
+
+        // Transform trusted_images repeater to match blade view format
+        $trustedImages = ['image_' => []];
+        if (!empty($trusted['trusted_images']) && is_array($trusted['trusted_images'])) {
+            foreach ($trusted['trusted_images'] as $item) {
+                $trustedImages['image_'][] = $this->extractImageId($item['image'] ?? '');
+            }
+        }
+
+        return view('pagebuilder::home.hero-section', [
+            'background_image' => $this->extractImageId($background['background_image'] ?? ''),
+            'banner_image' => $this->extractImageId($banner['banner_image'] ?? ''),
+            'title' => $content['title'] ?? '',
+            'subtitle' => $content['subtitle'] ?? '',
+            'button_title_one' => $buttons['button_title_one'] ?? '',
+            'button_link_one' => $this->extractUrl($buttons['button_link_one'] ?? '#'),
+            'button_title_two' => $buttons['button_title_two'] ?? '',
+            'button_link_two' => $this->extractUrl($buttons['button_link_two'] ?? '#'),
+            'trusted_text' => $trusted['trusted_text'] ?? '',
+            'trusted_images' => $trustedImages,
+        ])->render();
     }
 }
 ```
@@ -106,14 +186,51 @@ class CallToActionWidget extends BaseWidget
 ### Create Widget View
 
 ```blade
-{{-- resources/views/widgets/call-to-action.blade.php --}}
-<div class="cta-section" style="background-color: {{ $bgColor }}; color: {{ $textColor }};">
-    <div class="container">
-        <h2>{{ $title }}</h2>
-        <p>{{ $description }}</p>
-        <a href="{{ $buttonUrl }}" class="btn btn-primary">{{ $buttonText }}</a>
+{{-- core/plugins/PageBuilder/views/home/hero-section.blade.php --}}
+@php
+    $img_tag = render_image_markup_by_attachment_id($background_image, '', 'thumb');
+    preg_match('/src="([^"]+)"/', $img_tag, $matches);
+    $background_image_url = $matches[1];
+@endphp
+
+<section class="banner-section" style="background-image: url('{{ $background_image_url }}');">
+    <div class="header-cover"></div>
+    <div class="custom-container">
+        <div class="hero-area">
+            <div class="hero-content-part text-center">
+                <div class="trusted-users flex-center">
+                    <div class="images">
+                        @foreach ($trusted_images['image_'] as $key => $data)
+                            <div class="img rounded-image base-20">
+                                {!! render_image_markup_by_attachment_id($data) !!}
+                            </div>
+                        @endforeach
+                    </div>
+                    <div class="text">
+                        <span>{{ $trusted_text ?? 'Trusted by 20k users' }}</span>
+                    </div>
+                </div>
+                <h1 class="main-title white-text">
+                    {{ $title ?? __('Transform Customer Support with Intelligent AI') }}
+                </h1>
+                <p class="hero-para">
+                    {{ $subtitle ?? __('Provide instant accurate and personalized support smarter faster and always available') }}
+                </p>
+                <div class="btn-wrapper d-flex justify-content-center gap-4">
+                    <a href="{{ $button_link_one }}" class="cmn-btn white-btn-outline">
+                        {{ $button_title_one ?? __('Explore Demos') }}
+                    </a>
+                    <a href="{{ $button_link_two }}" class="cmn-btn white-btn">
+                        {{ $button_title_two ?? __('Get Started') }}
+                    </a>
+                </div>
+            </div>
+            <div class="hero-img">
+                {!! render_image_markup_by_attachment_id($banner_image) !!}
+            </div>
+        </div>
     </div>
-</div>
+</section>
 ```
 
 ### Register Widget
@@ -122,7 +239,7 @@ Add to `config/xgpagebuilder.php`:
 
 ```php
 'custom_widgets' => [
-    \App\Widgets\CallToActionWidget::class,
+    \Plugins\PageBuilder\Widgets\HeroSectionWidget::class,
 ],
 ```
 
@@ -374,7 +491,7 @@ class HeroSection extends PageBuilderBase
 #### After (New Widget)
 
 ```php
-namespace App\Widgets;
+namespace Plugins\PageBuilder\Widgets;
 
 use Xgenious\PageBuilder\Core\BaseWidget;
 use Xgenious\PageBuilder\Core\ControlManager;
@@ -411,7 +528,7 @@ class HeroSectionWidget extends BaseWidget
         $title = $settings['general']['content']['title'] ?? '';
         $description = $settings['general']['content']['description'] ?? '';
         
-        return view('widgets.hero-section', compact('title', 'description'))->render();
+        return view('pagebuilder::widgets.hero-section', compact('title', 'description'))->render();
     }
 }
 ```
@@ -510,7 +627,7 @@ public function render(array $settings = []): string
     $title = e($settings['general']['content']['title'] ?? ''); // Escape HTML
     $description = strip_tags($settings['general']['content']['description'] ?? ''); // Remove tags
     
-    return view('widgets.my-widget', compact('title', 'description'))->render();
+    return view('pagebuilder::widgets.my-widget', compact('title', 'description'))->render();
 }
 ```
 
@@ -527,7 +644,7 @@ $title = $settings['general']['content']['title'];
 ### 7. Use Blade Components
 
 ```blade
-{{-- resources/views/widgets/call-to-action.blade.php --}}
+{{-- core/plugins/PageBuilder/views/widgets/call-to-action.blade.php --}}
 <div class="cta-section">
     <div class="container">
         <h2>{{ $title }}</h2>
@@ -587,8 +704,8 @@ echo $service->renderPage($page);
 Here's a complete example of a feature grid widget:
 
 ```php
-// app/Widgets/FeatureGridWidget.php
-namespace App\Widgets;
+// Plugins/PageBuilder/Widgets/FeatureGridWidget.php
+namespace Plugins\PageBuilder\Widgets;
 
 use Xgenious\PageBuilder\Core\BaseWidget;
 use Xgenious\PageBuilder\Core\ControlManager;
@@ -662,7 +779,7 @@ class FeatureGridWidget extends BaseWidget
         $headingColor = $settings['style']['colors']['heading_color'] ?? '#212529';
         $iconColor = $settings['style']['colors']['icon_color'] ?? '#007bff';
         
-        return view('widgets.feature-grid', compact(
+        return view('pagebuilder::widgets.feature-grid', compact(
             'heading',
             'features',
             'columns',
@@ -674,7 +791,7 @@ class FeatureGridWidget extends BaseWidget
 ```
 
 ```blade
-{{-- resources/views/widgets/feature-grid.blade.php --}}
+{{-- core/plugins/PageBuilder/views/widgets/feature-grid.blade.php --}}
 <div class="feature-grid">
     <h2 style="color: {{ $headingColor }};">{{ $heading }}</h2>
     

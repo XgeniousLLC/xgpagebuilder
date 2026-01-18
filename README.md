@@ -7,7 +7,8 @@
 
 A powerful, self-contained page builder package for Laravel with a modern React/Inertia frontend. Build beautiful pages with drag-and-drop widgets, extensible architecture, and zero conflicts with your existing application.
 
-![XgPageBuilder Demo](https://via.placeholder.com/800x400/4A90E2/FFFFFF?text=XgPageBuilder+Demo)
+📘 [XgPageBuilder Documentation](https://xgeniousllc.github.io/xgpagebuilder/)
+
 
 ---
 
@@ -108,7 +109,7 @@ return [
 
     // Register custom widgets
     'custom_widgets' => [
-        \App\Widgets\MyCustomWidget::class,
+        \Plugins\PageBuilder\Widgets\HeroSectionWidget::class,
     ],
 ];
 ```
@@ -164,7 +165,7 @@ Display in your Blade view:
 Create a widget class:
 
 ```php
-namespace App\Widgets;
+namespace Plugins\PageBuilder\Widgets;
 
 use Xgenious\PageBuilder\Core\BaseWidget;
 use Xgenious\PageBuilder\Core\ControlManager;
@@ -199,7 +200,7 @@ class CallToActionWidget extends BaseWidget
         $title = $settings['general']['content']['title'] ?? '';
         $buttonText = $settings['general']['content']['button_text'] ?? '';
         
-        return view('widgets.cta', compact('title', 'buttonText'))->render();
+        return view('pagebuilder::widgets.cta', compact('title', 'buttonText'))->render();
     }
 }
 ```
@@ -208,7 +209,7 @@ Register in config:
 
 ```php
 'custom_widgets' => [
-    \App\Widgets\CallToActionWidget::class,
+    \Plugins\PageBuilder\Widgets\HeroSectionWidget::class,
 ],
 ```
 
@@ -234,7 +235,7 @@ See [Widget Development Guide](docs/WIDGET-DEVELOPMENT.md) for detailed examples
 
 - **[Complete Documentation](docs/DOCUMENTATION.md)** - Installation, configuration, and integration guide
 - **[Widget Development Guide](docs/WIDGET-DEVELOPMENT.md)** - Create custom widgets and migrate legacy addons
-- **[Online Documentation](https://xgenious.github.io/xgpagebuilder/)** - Full documentation website
+- **[Online Documentation](https://xgeniousllc.github.io/xgpagebuilder/)** - Full documentation website
 
 ---
 
@@ -341,7 +342,7 @@ This package is open-sourced software licensed under the [MIT license](LICENSE).
 
 - **Email:** support@xgenious.com
 - **Documentation:** [docs/DOCUMENTATION.md](docs/DOCUMENTATION.md)
-- **Issues:** [GitHub Issues](https://github.com/xgenious/xgpagebuilder/issues)
+- **Issues:** [GitHub Issues](https://github.com/XgeniousLLC/xgpagebuilder/issues)
 
 ---
 

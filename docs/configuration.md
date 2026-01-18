@@ -1,7 +1,5 @@
 ---
-layout: default
 title: Configuration
-nav_order: 3
 ---
 
 # Configuration Guide
@@ -116,8 +114,8 @@ Register your custom widget classes:
 
 ```php
 'custom_widgets' => [
-    \App\Widgets\MyCustomWidget::class,
-    \App\Widgets\CallToActionWidget::class,
+    \Plugins\PageBuilder\Widgets\HeroSectionWidget::class,
+    \Plugins\PageBuilder\Widgets\FeatureGridWidget::class,
 ],
 ```
 

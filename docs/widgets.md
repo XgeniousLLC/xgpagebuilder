@@ -1,7 +1,5 @@
 ---
-layout: default
 title: Widget Development
-nav_order: 4
 ---
 
 # Widget Development Guide
@@ -15,8 +13,8 @@ Learn how to create custom widgets for XgPageBuilder.
 Create a widget class that extends `BaseWidget`:
 
 ```php
-// app/Widgets/CallToActionWidget.php
-namespace App\Widgets;
+// Plugins/PageBuilder/Widgets/CallToActionWidget.php
+namespace Plugins\PageBuilder\Widgets;
 
 use Xgenious\PageBuilder\Core\BaseWidget;
 use Xgenious\PageBuilder\Core\ControlManager;
@@ -57,7 +55,7 @@ class CallToActionWidget extends BaseWidget
         $buttonText = $settings['general']['content']['button_text'] ?? '';
         $buttonUrl = $settings['general']['content']['button_url'] ?? '#';
         
-        return view('widgets.cta', compact('title', 'buttonText', 'buttonUrl'))->render();
+        return view('pagebuilder::widgets.cta', compact('title', 'buttonText', 'buttonUrl'))->render();
     }
 }
 ```
@@ -67,7 +65,7 @@ class CallToActionWidget extends BaseWidget
 ## Create Widget View
 
 ```blade
-{{-- resources/views/widgets/cta.blade.php --}}
+{{-- core/plugins/PageBuilder/views/widgets/cta.blade.php --}}
 <div class="cta-section">
     <div class="container">
         <h2>{{ $title }}</h2>
@@ -84,7 +82,7 @@ Add to `config/xgpagebuilder.php`:
 
 ```php
 'custom_widgets' => [
-    \App\Widgets\CallToActionWidget::class,
+    \Plugins\PageBuilder\Widgets\CallToActionWidget::class,
 ],
 ```
 
@@ -289,7 +287,7 @@ $title = e($settings['general']['content']['title'] ?? '');
 ## Complete Example
 
 ```php
-namespace App\Widgets;
+namespace Plugins\PageBuilder\Widgets;
 
 use Xgenious\PageBuilder\Core\BaseWidget;
 use Xgenious\PageBuilder\Core\ControlManager;
@@ -329,7 +327,7 @@ class FeatureGridWidget extends BaseWidget
         $heading = $settings['general']['content']['heading'] ?? 'Our Features';
         $features = $settings['general']['content']['features'] ?? [];
         
-        return view('widgets.feature-grid', compact('heading', 'features'))->render();
+        return view('pagebuilder::widgets.feature-grid', compact('heading', 'features'))->render();
     }
 }
 ```

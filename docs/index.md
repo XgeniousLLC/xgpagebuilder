@@ -1,17 +1,13 @@
 ---
-layout: default
 title: Home
-nav_order: 1
 ---
 
 # XgPageBuilder
 
 A powerful, self-contained page builder package for Laravel with a modern React/Inertia frontend.
 
-{: .fs-6 .fw-300 }
-
-[Get Started](#quick-start){: .btn .btn-primary .fs-5 .mb-4 .mb-md-0 .mr-2 }
-[View on GitHub](https://github.com/xgenious/xgpagebuilder){: .btn .fs-5 .mb-4 .mb-md-0 }
+[Get Started](installation.html){: .btn .btn-primary}
+[View on GitHub](https://github.com/XgeniousLLC/xgpagebuilder){: .btn}
 
 ---
 
@@ -70,14 +66,14 @@ php artisan config:clear
 - [Installation Guide](installation.html) - Detailed installation instructions
 - [Configuration](configuration.html) - Configure the package for your app
 - [Widget Development](widgets.html) - Create custom widgets
-- [GitHub Repository](https://github.com/xgenious/xgpagebuilder) - View source code
+- [GitHub Repository](https://github.com/XgeniousLLC/xgpagebuilder) - View source code
 
 ---
 
 ## Support
 
 - **Email:** support@xgenious.com
-- **Issues:** [GitHub Issues](https://github.com/xgenious/xgpagebuilder/issues)
+- **Issues:** [GitHub Issues](https://github.com/XgeniousLLC/xgpagebuilder/issues)
 
 ---
 
