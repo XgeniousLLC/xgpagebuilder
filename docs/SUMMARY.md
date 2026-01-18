@@ -1,4 +1,4 @@
-# Table of contents
+# Summary
 
 * [Home](index.md)
 * [Installation](installation.md)
