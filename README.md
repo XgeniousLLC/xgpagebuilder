@@ -1,131 +1,167 @@
-# XgPageBuilder - Laravel Page Builder Package
+# XgPageBuilder
 
-A powerful, self-contained page builder package for Laravel with React/Inertia frontend. Features drag-and-drop interface, extensible widgets.
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/xgenious/xgpagebuilder.svg?style=flat-square)](https://packagist.org/packages/xgenious/xgpagebuilder)
+[![Total Downloads](https://img.shields.io/packagist/dt/xgenious/xgpagebuilder.svg?style=flat-square)](https://packagist.org/packages/xgenious/xgpagebuilder)
+[![License](https://img.shields.io/packagist/l/xgenious/xgpagebuilder.svg?style=flat-square)](https://packagist.org/packages/xgenious/xgpagebuilder)
+[![PHP Version](https://img.shields.io/packagist/php-v/xgenious/xgpagebuilder.svg?style=flat-square)](https://packagist.org/packages/xgenious/xgpagebuilder)
+
+A powerful, self-contained page builder package for Laravel with a modern React/Inertia frontend. Build beautiful pages with drag-and-drop widgets, extensible architecture, and zero conflicts with your existing application.
+
+![XgPageBuilder Demo](https://via.placeholder.com/800x400/4A90E2/FFFFFF?text=XgPageBuilder+Demo)
+
+---
 
 ## ✨ Features
 
--   🎨 **Visual Page Builder** - Modern React-based drag-and-drop interface with Inertia.js
--   🧩 **Extensible Widget System** - 9+ built-in widgets with easy custom widget creation
--   🎯 **Advanced Styling** - Comprehensive style controls for every element
--   📱 **Responsive Design** - Mobile-first responsive controls
--   🔧 **Highly Configurable** - Works with existing Laravel apps without conflicts
--   🚀 **Performance Optimized** - Efficient CSS generation and caching
--   🔒 **Secure** - XSS protection and input sanitization
--   📦 **Self-Contained Assets** - Package builds its own NPM/React assets independently
--   🏗️ **No Host App Dependencies** - Host app doesn't need Node.js or frontend tooling
+- 🎨 **Visual Page Builder** - Modern React-based drag-and-drop interface powered by Inertia.js
+- 🧩 **Extensible Widget System** - 9+ built-in widgets with easy custom widget creation
+- 🎯 **Advanced Styling** - Comprehensive style controls for every element
+- 📱 **Responsive Design** - Mobile-first responsive controls
+- 🔧 **Highly Configurable** - Works seamlessly with existing Laravel apps
+- 🚀 **Performance Optimized** - Efficient CSS generation and caching
+- 🔒 **Secure** - XSS protection and input sanitization
+- 📦 **Self-Contained Assets** - Package builds its own NPM/React assets independently
+- 🏗️ **No Host App Dependencies** - Host app doesn't need Node.js or frontend tooling
 
-## Requirements
+---
 
--   PHP 8.2 or higher
--   Laravel 11.0 or 12.0
--   MySQL 5.7+ or PostgreSQL 10+
+## 📋 Requirements
 
-## Installation
+- **PHP:** 8.2 or higher
+- **Laravel:** 11.0 or 12.0
+- **Database:** MySQL 5.7+ or PostgreSQL 10+
 
-### Step 1: Install via Composer
+---
+
+## 🚀 Installation
+
+Install the package via Composer:
 
 ```bash
 composer require xgenious/xgpagebuilder
 ```
 
-### Step 2: Publish Configuration
+Publish the configuration file:
 
 ```bash
-php artisan vendor:publish --provider="Xgenious\PageBuilder\PageBuilderServiceProvider" --tag="page-builder-config"
+php artisan vendor:publish --tag=page-builder-config
 ```
 
-### Step 3: Run Migrations
+Run migrations:
 
 ```bash
 php artisan migrate
 ```
 
-### Step 4: Publish Assets (Optional)
-
-Publish views for customization:
+Clear caches:
 
 ```bash
-php artisan vendor:publish --tag="page-builder-views"
+php artisan config:clear
 ```
 
-Publish frontend assets:
+**That's it!** Your page builder is ready to use.
 
-```bash
-php artisan vendor:publish --tag="page-builder-assets"
-```
+---
 
 ## ⚙️ Configuration
 
-After publishing the configuration file, customize in `config/page-builder.php`:
+Configure the package in `config/xgpagebuilder.php`:
 
 ```php
 return [
     // Route configuration
     'route_prefix' => 'page-builder',
-    'route_middleware' => ['web', 'auth'],
+    'route_middleware' => ['web', 'auth:admin'],
 
-    // Host app models (prevents conflicts)
+    // Point to your app's models
     'models' => [
         'page' => \App\Models\Backend\Page::class,
-        'admin' => \App\Models\Admin::class,
+        'admin' => \App\Models\Backend\Admin::class,
     ],
 
-    // Legacy addon support
-    'enable_legacy_addons' => true,
-    'legacy_addon_paths' => [
-        base_path('plugins/PageBuilder/Addons'),
+    // Frontend CSS files for editor
+    'editor_frontend_css' => [
+        'assets/frontend/css/bootstrap.css',
+        'assets/frontend/css/your-styles.css',
     ],
 
-    // Enable/disable specific widgets
+    // Frontend JS files
+    'editor_frontend_js' => [
+        'assets/frontend/js/your-app.js',
+    ],
+
+    // Media upload integration
+    'media' => [
+        'upload_route' => 'admin.upload.media.file',
+        'library_route' => 'admin.upload.media.file.all',
+    ],
+
+    // Enable/disable widgets
     'widgets' => [
         'header' => true,
         'features' => true,
         'testimonial' => true,
+        'image' => true,
+        'video' => true,
         // ... more widgets
     ],
 
-    // Custom widgets
+    // Register custom widgets
     'custom_widgets' => [
-        \App\Widgets\CustomFeatureWidget::class,
-    ],
-
-    // Database table names
-    'tables' => [
-        'content' => 'page_builder_content',
-        'widgets' => 'page_builder_widgets',
-        'editing_sessions' => 'page_editing_sessions',
+        \App\Widgets\MyCustomWidget::class,
     ],
 ];
 ```
 
-## 🚀 Quick Start
+See [Configuration Guide](docs/DOCUMENTATION.md#configuration) for all options.
 
-### For Package Developers
-
-```bash
-# Navigate to package directory
-cd packages/xgenious/xgpagebuilder
-
-# Install dependencies
-npm install
-
-# Build assets
-npm run build
-```
-
-### For End Users
-
-The package is ready to use! Pages with `use_page_builder` enabled will automatically render using the new system.
+---
 
 ## 📖 Usage
 
-### Basic Usage
+### Basic Integration
 
-**The package automatically integrates with your existing pages!** No manual rendering needed if you follow the setup in `COMPLETE-GUIDE.md`.
+Update your Page model:
 
-### Creating Widgets
+```php
+// app/Models/Backend/Page.php
+public function pageBuilderContent()
+{
+    return $this->hasOne(\Xgenious\PageBuilder\Models\PageBuilderContent::class, 'page_id');
+}
+```
 
-#### Modern Widget (Recommended)
+Render page builder content in your controller:
+
+```php
+use Xgenious\PageBuilder\Services\PageBuilderRenderService;
+
+public function show($slug)
+{
+    $page = Page::where('slug', $slug)->firstOrFail();
+    
+    if ($page->use_page_builder) {
+        $pageBuilderService = app(PageBuilderRenderService::class);
+        $page->rendered_content = $pageBuilderService->renderPage($page);
+    }
+    
+    return view('frontend.pages.show', compact('page'));
+}
+```
+
+Display in your Blade view:
+
+```blade
+@if(isset($page->rendered_content))
+    {!! $page->rendered_content !!}
+@else
+    {!! $page->content !!}
+@endif
+```
+
+### Creating Custom Widgets
+
+Create a widget class:
 
 ```php
 namespace App\Widgets;
@@ -134,24 +170,25 @@ use Xgenious\PageBuilder\Core\BaseWidget;
 use Xgenious\PageBuilder\Core\ControlManager;
 use Xgenious\PageBuilder\Core\FieldManager;
 
-class MyWidget extends BaseWidget
+class CallToActionWidget extends BaseWidget
 {
-    protected function getWidgetType(): string
-    {
-        return 'my-widget';
-    }
-
-    protected function getWidgetName(): string
-    {
-        return 'My Widget';
-    }
+    protected string $addon_name = 'call-to-action';
+    protected string $addon_title = 'Call to Action';
+    protected string $icon = 'la-bullhorn';
+    protected string $category = 'marketing';
 
     public function getGeneralFields(): array
     {
         $control = new ControlManager();
         
         $control->addGroup('content', 'Content')
-            ->registerField('title', FieldManager::TEXT()->setLabel('Title'))
+            ->registerField('title', FieldManager::TEXT()
+                ->setLabel('Title')
+                ->setDefault('Get Started Today')
+            )
+            ->registerField('button_text', FieldManager::TEXT()
+                ->setLabel('Button Text')
+            )
             ->endGroup();
         
         return $control->getFields();
@@ -160,215 +197,85 @@ class MyWidget extends BaseWidget
     public function render(array $settings = []): string
     {
         $title = $settings['general']['content']['title'] ?? '';
-        return "<h1>{$title}</h1>";
+        $buttonText = $settings['general']['content']['button_text'] ?? '';
+        
+        return view('widgets.cta', compact('title', 'buttonText'))->render();
     }
 }
 ```
 
-#### Migrating Legacy Addons
-
-Simply change the base class:
-
-```php
-// Before
-use plugins\PageBuilder\PageBuilderBase;
-class MyAddon extends PageBuilderBase { }
-
-// After
-use Xgenious\PageBuilder\Core\LegacyAddonAdapter;
-class MyAddon extends LegacyAddonAdapter {
-    // Add getGeneralFields() method
-    // Keep frontend_render() as-is
-}
-```
-
-**Legacy addons are automatically discovered and registered!**
-
-### Frontend Rendering (Already Configured)
-
-The package integrates with `FrontendController`:
-
-```php
-// Automatically renders pages with page builder
-if ($page_post->use_page_builder) {
-    $pageBuilderService = app(\Xgenious\PageBuilder\Services\PageBuilderRenderService::class);
-    $page_post->rendered_content = $pageBuilderService->renderPage($page_post);
-}
-```
-
-View template handles new/old/regular content automatically.
-
-## Available Widgets
-
-### Built-in Widgets
-
--   **Header Widget** - Hero sections with titles, subtitles, and CTAs
--   **Features Widget** - Feature grids with icons and descriptions
--   **Testimonial Widget** - Customer testimonials and reviews
--   **Image Widget** - Responsive images with captions
--   **Image Gallery Widget** - Photo galleries with lightbox
--   **Video Widget** - Embedded videos (YouTube, Vimeo, self-hosted)
--   **Icon Widget** - Icon displays with customization
--   **Tabs Widget** - Tabbed content sections
--   **Code Widget** - Syntax-highlighted code blocks
-
-### Creating Custom Widgets
-
-Create a new widget class:
-
-```php
-namespace App\Widgets;
-
-use Xgenious\PageBuilder\Core\BaseWidget;
-
-class MyCustomWidget extends BaseWidget
-{
-    public function getName(): string
-    {
-        return 'my-custom-widget';
-    }
-
-    public function getTitle(): string
-    {
-        return 'My Custom Widget';
-    }
-
-    public function getGeneralFields(): array
-    {
-        return [
-            'title' => [
-                'type' => 'text',
-                'label' => 'Title',
-                'default' => 'Default Title'
-            ]
-        ];
-    }
-
-    public function render(array $settings): string
-    {
-        return view('widgets.my-custom-widget', compact('settings'))->render();
-    }
-}
-```
-
-Register your widget in `config/page-builder.php`:
+Register in config:
 
 ```php
 'custom_widgets' => [
-    \App\Widgets\MyCustomWidget::class,
+    \App\Widgets\CallToActionWidget::class,
 ],
 ```
 
-## API Routes
+See [Widget Development Guide](docs/WIDGET-DEVELOPMENT.md) for detailed examples.
 
-The package registers the following API routes (prefixed with your configured route prefix):
+---
 
--   `GET /api/page-builder/pages/{pageId}/content` - Get page content
--   `POST /api/page-builder/save` - Save page content
--   `POST /api/page-builder/publish` - Publish page
--   `POST /api/page-builder/unpublish` - Unpublish page
--   `POST /api/page-builder/css/generate` - Generate CSS
--   ... and more
+## 🧩 Built-in Widgets
 
-## Publishing Options
+- **Header Widget** - Hero sections with titles, subtitles, and CTAs
+- **Features Widget** - Feature grids with icons and descriptions
+- **Testimonial Widget** - Customer testimonials and reviews
+- **Image Widget** - Responsive images with captions
+- **Image Gallery Widget** - Photo galleries with lightbox
+- **Video Widget** - Embedded videos (YouTube, Vimeo, self-hosted)
+- **Icon Widget** - Icon displays with customization
+- **Tabs Widget** - Tabbed content sections
+- **Code Widget** - Syntax-highlighted code blocks
 
-### Publish Everything
+---
+
+## 📚 Documentation
+
+- **[Complete Documentation](docs/DOCUMENTATION.md)** - Installation, configuration, and integration guide
+- **[Widget Development Guide](docs/WIDGET-DEVELOPMENT.md)** - Create custom widgets and migrate legacy addons
+- **[Online Documentation](https://xgenious.github.io/xgpagebuilder/)** - Full documentation website
+
+---
+
+## 🎯 Quick Links
+
+- **Editor URL:** `/page-builder/edit/{pageId}`
+- **API Endpoints:** `/api/page-builder/*`
+- **Configuration:** `config/xgpagebuilder.php`
+
+---
+
+## 🔧 Publishing Options
+
+Publish everything:
 
 ```bash
 php artisan vendor:publish --provider="Xgenious\PageBuilder\PageBuilderServiceProvider"
 ```
 
-### Publish Specific Assets
+Publish specific assets:
 
 ```bash
 # Configuration only
-php artisan vendor:publish --tag="page-builder-config"
+php artisan vendor:publish --tag=page-builder-config
 
 # Views only
-php artisan vendor:publish --tag="page-builder-views"
+php artisan vendor:publish --tag=page-builder-views
 
 # Migrations only
-php artisan vendor:publish --tag="page-builder-migrations"
+php artisan vendor:publish --tag=page-builder-migrations
 
 # Frontend assets only
-php artisan vendor:publish --tag="page-builder-assets"
+php artisan vendor:publish --tag=page-builder-assets
 ```
 
-## Advanced Configuration
-
-### Custom Middleware
-
-Add custom middleware to page builder routes:
-
-```php
-'route_middleware' => ['web', 'auth', 'can:edit-pages'],
-```
-
-### Disable Specific Widgets
-
-```php
-'widgets' => [
-    'code' => false, // Disable code widget
-    'video' => false, // Disable video widget
-],
-```
-
-### Custom Table Names
-
-```php
-'tables' => [
-    'content' => 'custom_page_content',
-    'widgets' => 'custom_page_widgets',
-],
-```
-
-## Troubleshooting
-
-### CSS Not Applying
-
-Make sure you're outputting the CSS in your layout:
-
-```blade
-<style>{!! $css !!}</style>
-```
-
-### Widgets Not Appearing
-
-Check that widgets are enabled in `config/page-builder.php` and clear config cache:
-
-```bash
-php artisan config:clear
-```
-
-### Route Conflicts
-
-Adjust the `route_prefix` in config to avoid conflicts with existing routes.
-
-## Contributing
-
-Contributions are welcome! Please submit pull requests to the main repository.
-
-## License
-
-This package is open-sourced software licensed under the [MIT license](LICENSE).
-
-## 📚 Documentation
-
-- **[COMPLETE-GUIDE.md](COMPLETE-GUIDE.md)** - Comprehensive implementation guide
-- **[QUICKSTART-ADDON-CREATION.md](QUICKSTART-ADDON-CREATION.md)** - 5-minute addon creation tutorial
-- **[MIGRATION.md](MIGRATION.md)** - Legacy system migration guide
-- **[PACKAGE-STRATEGY.md](PACKAGE-STRATEGY.md)** - Package architecture decisions
+---
 
 ## 🏗️ Architecture Highlights
 
 ### No Model Conflicts
 The package uses your host application's `Page` and `Admin` models via configuration. No conflicts with existing models!
-
-### Legacy Addon Bridge
-The `LegacyAddonAdapter` class provides a seamless bridge for old addons:
-- Automatically discovers addons in configured paths
-- Converts old field definitions to new format
-- Maintains backward compatibility with existing Blade views
 
 ### Self-Contained Assets
 Package builds its own React/Vite assets:
@@ -382,12 +289,66 @@ Old and new page builders work side-by-side:
 - Gradual migration at your pace
 - Per-page builder selection
 
+---
+
+## 🐛 Troubleshooting
+
+### CSS Not Loading in Editor
+
+```bash
+php artisan vendor:publish --tag=page-builder-views --force
+php artisan view:clear
+php artisan config:clear
+```
+
+### Widgets Not Appearing
+
+```bash
+php artisan config:clear
+```
+
+### Route Conflicts
+
+Adjust the `route_prefix` in `config/xgpagebuilder.php`:
+
+```php
+'route_prefix' => 'admin/page-builder',
+```
+
+See [Troubleshooting Guide](docs/DOCUMENTATION.md#troubleshooting) for more solutions.
+
+---
+
 ## 🤝 Contributing
 
-Contributions are welcome! For major changes, please open an issue first.
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+---
+
+## 📄 License
+
+This package is open-sourced software licensed under the [MIT license](LICENSE).
+
+---
 
 ## 📞 Support
 
-- Email: support@xgenious.com
-- Documentation: See `COMPLETE-GUIDE.md`
-- Issues: GitHub Issues
+- **Email:** support@xgenious.com
+- **Documentation:** [docs/DOCUMENTATION.md](docs/DOCUMENTATION.md)
+- **Issues:** [GitHub Issues](https://github.com/xgenious/xgpagebuilder/issues)
+
+---
+
+## 🙏 Credits
+
+Developed and maintained by [Xgenious](https://xgenious.com).
+
+---
+
+**Made with ❤️ by Xgenious**

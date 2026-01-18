@@ -25,7 +25,6 @@ laradumps.yaml
 .DS_Store
 bootstrap/cache/*
 bootstrap/cache
-/docs/*
 .DS_Store
 !.gitignore
 /.sass-cache
