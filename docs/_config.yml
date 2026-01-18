@@ -2,7 +2,8 @@ remote_theme: sighingnow/jekyll-gitbook
 
 title: XgPageBuilder
 description: A powerful page builder package for Laravel
-url: https://xgeniousllc.github.io/xgpagebuilder/
+url: https://xgeniousllc.github.io
+baseurl: /xgpagebuilder
 
 # Author
 author: Xgenious
