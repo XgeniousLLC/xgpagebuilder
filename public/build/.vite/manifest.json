@@ -1,0 +1,62 @@
+{
+  "_underline.js": {
+    "file": "assets/underline.js",
+    "name": "underline",
+    "imports": [
+      "resources/js/page-builder-standalone.jsx"
+    ]
+  },
+  "resources/js/Components/PageBuilder/Fields/EnhancedColorPicker.jsx": {
+    "file": "assets/EnhancedColorPicker.js",
+    "name": "EnhancedColorPicker",
+    "src": "resources/js/Components/PageBuilder/Fields/EnhancedColorPicker.jsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/page-builder-standalone.jsx"
+    ]
+  },
+  "resources/js/Components/PageBuilder/Fields/EnhancedLinkPicker.jsx": {
+    "file": "assets/EnhancedLinkPicker.js",
+    "name": "EnhancedLinkPicker",
+    "src": "resources/js/Components/PageBuilder/Fields/EnhancedLinkPicker.jsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/page-builder-standalone.jsx"
+    ]
+  },
+  "resources/js/Components/PageBuilder/Fields/EnhancedTypographyPicker.jsx": {
+    "file": "assets/EnhancedTypographyPicker.js",
+    "name": "EnhancedTypographyPicker",
+    "src": "resources/js/Components/PageBuilder/Fields/EnhancedTypographyPicker.jsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/page-builder-standalone.jsx",
+      "_underline.js"
+    ]
+  },
+  "resources/js/Components/PageBuilder/Fields/WysiwygEditor.jsx": {
+    "file": "assets/WysiwygEditor.js",
+    "name": "WysiwygEditor",
+    "src": "resources/js/Components/PageBuilder/Fields/WysiwygEditor.jsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/page-builder-standalone.jsx",
+      "_underline.js"
+    ]
+  },
+  "resources/js/page-builder-standalone.jsx": {
+    "file": "assets/page-builder.js",
+    "name": "page-builder",
+    "src": "resources/js/page-builder-standalone.jsx",
+    "isEntry": true,
+    "dynamicImports": [
+      "resources/js/Components/PageBuilder/Fields/WysiwygEditor.jsx",
+      "resources/js/Components/PageBuilder/Fields/EnhancedTypographyPicker.jsx",
+      "resources/js/Components/PageBuilder/Fields/EnhancedColorPicker.jsx",
+      "resources/js/Components/PageBuilder/Fields/EnhancedLinkPicker.jsx"
+    ],
+    "css": [
+      "assets/page-builder.css"
+    ]
+  }
+}

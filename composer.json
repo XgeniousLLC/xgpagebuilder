@@ -1,0 +1,54 @@
+{
+    "name": "xgenious/xgpagebuilder",
+    "description": "A powerful and flexible page builder package for Laravel applications",
+    "type": "library",
+    "keywords": [
+        "laravel",
+        "page-builder",
+        "cms",
+        "visual-editor",
+        "widgets",
+        "xgenious"
+    ],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Xgenious",
+            "email": "info@xgenious.com"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "illuminate/support": "^11.0|^12.0",
+        "illuminate/database": "^11.0|^12.0",
+        "illuminate/http": "^11.0|^12.0",
+        "illuminate/routing": "^11.0|^12.0",
+        "illuminate/view": "^11.0|^12.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^9.0",
+        "phpunit/phpunit": "^11.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Xgenious\\PageBuilder\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Xgenious\\PageBuilder\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Xgenious\\PageBuilder\\PageBuilderServiceProvider"
+            ],
+            "aliases": {
+                "PageBuilder": "Xgenious\\PageBuilder\\Facades\\PageBuilder"
+            }
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
