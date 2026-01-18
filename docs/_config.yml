@@ -5,6 +5,12 @@ description: A powerful page builder package for Laravel
 url: https://xgeniousllc.github.io
 baseurl: /xgpagebuilder
 
+# Plugins
+plugins:
+  - jekyll-remote-theme
+  - jekyll-feed
+  - jekyll-seo-tag
+
 # Author
 author: Xgenious
 
