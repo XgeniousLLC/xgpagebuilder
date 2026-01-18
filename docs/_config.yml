@@ -8,6 +8,9 @@ baseurl: /xgpagebuilder
 # Color scheme
 color_scheme: dark
 
+# Enable color scheme toggle button
+color_scheme_supports_mode_toggle: true
+
 # Logo (optional - you can add later)
 # logo: "/assets/images/logo.png"
 
@@ -21,7 +24,7 @@ aux_links:
 aux_links_new_tab: true
 
 # Footer
-footer_content: 'Copyright &copy; 2024 Xgenious. Distributed under the <a href="https://github.com/XgeniousLLC/xgpagebuilder/blob/main/LICENSE">MIT License</a>.'
+footer_content: 'Copyright &copy; {{ "now" | date: "%Y" }} Xgenious. Distributed under the <a href="https://github.com/XgeniousLLC/xgpagebuilder/blob/main/LICENSE">MIT License</a>.'
 
 # Back to top link
 back_to_top: true
