@@ -167,7 +167,7 @@
             content: @json($content ?? ['containers' => []]),
             contentId: {{ $contentId ?? 'null' }},
             apiUrl: "{{ $apiUrl ?? url('/api/page-builder') }}",
-            csrfToken: "{{ csrf_token() }}",
+            routes: @json($routes ?? ['preview' => '/', 'backToPages' => '/admin']),
             config: {
                 media: @json($mediaConfig)
             }

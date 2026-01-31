@@ -31,6 +31,44 @@ Configure route prefix and middleware:
 
 ---
 
+## Navigation Routes
+
+Configure route names for navigation buttons in the page builder editor. These routes must exist in your application.
+
+### Setup Steps
+
+1. Define these routes in your `routes/web.php` and `routes/admin.php` files
+2. Update the route names below to match your actual route names  
+3. Test navigation buttons in the page builder editor
+
+### Example Routes
+
+```php
+// Frontend preview route (accepts slug parameter)
+Route::get('/{slug}', [PageController::class, 'show'])->name('page.show');
+
+// Admin pages list route  
+Route::get('/admin/pages', [PageController::class, 'index'])
+    ->name('admin.pages.index')
+    ->middleware(['auth:admin']);
+```
+
+### Configuration
+
+```php
+'routes' => [
+    // Route name for previewing pages (should accept slug parameter)
+    // Update this to match your actual frontend page route name
+    'preview' => env('PAGE_BUILDER_PREVIEW_ROUTE', 'page.show'),
+
+    // Route name for returning to pages list
+    // Update this to match your actual admin pages list route name  
+    'back_to_pages' => env('PAGE_BUILDER_BACK_ROUTE', 'admin.pages.index'),
+],
+```
+
+---
+
 ## Model Configuration
 
 Point to your application's models:
@@ -205,6 +243,10 @@ PAGE_BUILDER_ROUTE_PREFIX=page-builder
 PAGE_BUILDER_MINIFY_CSS=true
 PAGE_BUILDER_CACHE_CSS=true
 PAGE_BUILDER_LEGACY_ADDONS=false
+
+# Navigation Routes (optional)
+PAGE_BUILDER_PREVIEW_ROUTE=page.show
+PAGE_BUILDER_BACK_ROUTE=admin.pages.index
 ```
 
 ---

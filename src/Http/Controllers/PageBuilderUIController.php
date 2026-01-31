@@ -36,10 +36,11 @@ class PageBuilderUIController extends Controller
             ]);
         }
         
-        Log::info("Opening page builder for page: {$pageId}", [
-            'page_title' => $page->title,
-            'content_id' => $content->id ?? null,
-        ]);
+        // Resolve routes dynamically from config to make package reusable
+        $routes = [
+            'preview' => $this->resolvePreviewRoute($page),
+            'backToPages' => $this->resolveBackRoute(),
+        ];
         
         // Return page builder view
         return view('page-builder::editor', [
@@ -52,6 +53,67 @@ class PageBuilderUIController extends Controller
             'content' => $content->getCompleteContent(),
             'contentId' => $content->id,
             'apiUrl' => url('/api/page-builder'),
+            'routes' => $routes,
         ]);
+    }
+    
+    /**
+     * Resolve preview route for the page
+     * 
+     * @param mixed $page
+     * @return string
+     */
+    private function resolvePreviewRoute($page): string
+    {
+        // Get preview route config
+        $previewRouteName = config('xgpagebuilder.routes.preview', 'page.show');
+        
+        // Try to generate route, fallback to direct URL construction
+        try {
+            if (\Route::has($previewRouteName)) {
+                return route($previewRouteName, $page->slug);
+            }
+        } catch (\Exception $e) {
+            Log::warning("Preview route '{$previewRouteName}' not found", ['page_id' => $page->id]);
+        }
+        
+        // Fallback: construct URL from slug
+        return url('/' . $page->slug);
+    }
+    
+    /**
+     * Resolve back to pages list route
+     * 
+     * @return string
+     */
+    private function resolveBackRoute(): string
+    {
+        // Get back route config
+        $backRouteName = config('xgpagebuilder.routes.back_to_pages', 'admin.pages.index');
+        
+        // Try to generate route, fallback to referrer or dashboard
+        try {
+            $route = route($backRouteName);
+            return $route;
+        } catch (\Exception $e) {
+            Log::warning("Back route '{$backRouteName}' not found: " . $e->getMessage());
+            
+            // Try Route::has as fallback
+            if (\Route::has($backRouteName)) {
+                $route = route($backRouteName);
+                Log::info("Route resolved via Route::has: {$route}");
+                return $route;
+            }
+        }
+        
+        // Try direct URL from config
+        $directUrl = config('xgpagebuilder.routes.back_to_pages_url');
+        if ($directUrl) {
+            return url($directUrl);
+        }
+        
+        // Fallback: use referrer or admin dashboard
+        $fallback = url()->previous() ?: url('/admin');
+        return $fallback;
     }
 }

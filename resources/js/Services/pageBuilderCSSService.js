@@ -9,6 +9,7 @@ class PageBuilderCSSService {
   constructor() {
     this.injectedStyles = new Map();
     this.styleSheet = null;
+    this.isEditorMode = true; // Editor mode by default (frontend rendering sets this to false)
     this.init();
   }
 
@@ -25,6 +26,14 @@ class PageBuilderCSSService {
       document.head.appendChild(sheet);
     }
     this.styleSheet = sheet;
+  }
+
+  /**
+   * Set the rendering context (editor or frontend)
+   * @param {boolean} isEditor - true for editor mode, false for frontend rendering
+   */
+  setEditorMode(isEditor) {
+    this.isEditorMode = isEditor;
   }
 
   /**
@@ -482,16 +491,20 @@ class PageBuilderCSSService {
     }
 
     // Device-specific visibility - check both new and legacy formats
-    const visibility = responsiveSettings.visibility || {};
+    // IMPORTANT: Only apply visibility CSS in frontend rendering mode
+    // In editor mode, widgets must always remain visible for editing
+    if (!this.isEditorMode) {
+      const visibility = responsiveSettings.visibility || {};
 
-    if (visibility.hideOnDesktop || responsiveSettings.hideOnDesktop) {
-      css.push(`@media (min-width: 1025px) {\n${selector} { display: none !important; }\n}`);
-    }
-    if (visibility.hideOnTablet || responsiveSettings.hideOnTablet) {
-      css.push(`@media (min-width: 769px) and (max-width: 1024px) {\n${selector} { display: none !important; }\n}`);
-    }
-    if (visibility.hideOnMobile || responsiveSettings.hideOnMobile) {
-      css.push(`@media (max-width: 768px) {\n${selector} { display: none !important; }\n}`);
+      if (visibility.hideOnDesktop || responsiveSettings.hideOnDesktop) {
+        css.push(`@media (min-width: 1025px) {\n${selector} { display: none !important; }\n}`);
+      }
+      if (visibility.hideOnTablet || responsiveSettings.hideOnTablet) {
+        css.push(`@media (min-width: 769px) and (max-width: 1024px) {\n${selector} { display: none !important; }\n}`);
+      }
+      if (visibility.hideOnMobile || responsiveSettings.hideOnMobile) {
+        css.push(`@media (max-width: 768px) {\n${selector} { display: none !important; }\n}`);
+      }
     }
 
     return css.join('\n');

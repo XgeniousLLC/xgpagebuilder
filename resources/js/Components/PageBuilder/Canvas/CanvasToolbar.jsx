@@ -48,8 +48,6 @@ const CanvasToolbar = ({ page }) => {
   const handleSave = async () => {
     try {
       await savePage(page.id);
-      // Show success message (could use a toast library)
-      console.log('Page saved successfully');
     } catch (error) {
       console.error('Save failed:', error);
       // Show error message (could use a toast library)
@@ -63,7 +61,6 @@ const CanvasToolbar = ({ page }) => {
       await savePage(page.id);
       // Then publish
       await publishPage(page.id);
-      console.log('Page published successfully');
       alert('Page published successfully!');
     } catch (error) {
       console.error('Publish failed:', error);
@@ -72,18 +69,15 @@ const CanvasToolbar = ({ page }) => {
   };
 
   const handlePreview = () => {
-    // Open preview in new tab
-    window.open(route('page.show', page.slug), '_blank');
+    // Open preview in new tab using dynamically resolved route
+    const previewUrl = window.pageBuilderData?.routes?.preview || `/${page.slug}`;
+    window.open(previewUrl, '_blank');
   };
 
   const handleUndo = () => {
-    // TODO: Implement undo functionality
-    console.log('Undo functionality to be implemented');
   };
 
   const handleRedo = () => {
-    // TODO: Implement redo functionality
-    console.log('Redo functionality to be implemented');
   };
 
   return (
@@ -94,7 +88,10 @@ const CanvasToolbar = ({ page }) => {
         <div className="flex items-center space-x-4">
           {/* Back Button */}
           <button
-            onClick={() => window.location.href = route('admin.pages.index')}
+            onClick={() => {
+              const backUrl = window.pageBuilderData?.routes?.backToPages || '/admin';
+              window.location.href = backUrl;
+            }}
             className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors"
             title="Back to Pages"
           >
