@@ -251,6 +251,67 @@ PAGE_BUILDER_BACK_ROUTE=admin.pages.index
 
 ---
 
+## Built-in Traits
+
+XgPageBuilder provides useful traits that you can use in your custom widgets.
+
+### ExtractsFieldValues Trait
+
+This trait provides helper methods for extracting values from complex field types like IMAGE and URL fields that can return either simple values or structured objects.
+
+**Usage:**
+
+```php
+<?php
+
+namespace App\PageBuilder\Widgets;
+
+use Xgenious\XgPageBuilder\Core\BaseWidget;
+use Xgenious\XgPageBuilder\Core\Traits\ExtractsFieldValues;
+
+class MyCustomWidget extends BaseWidget
+{
+    use ExtractsFieldValues;
+
+    public function render(array $data): string
+    {
+        // Extract image ID from IMAGE field
+        $imageId = $this->extractImageId($data['background_image']);
+        
+        // Extract URL from URL field
+        $buttonUrl = $this->extractUrl($data['button_link']);
+        $buttonTarget = $this->extractUrlTarget($data['button_link']);
+        
+        // Extract image IDs from repeater field
+        $galleryIds = $this->extractRepeaterImageIds($data['gallery_items'], 'image');
+        
+        // ...
+    }
+}
+```
+
+**Available Methods:**
+
+| Method | Description |
+|--------|-------------|
+| `extractImageId($imageValue)` | Extract numeric ID from IMAGE field value |
+| `extractImageUrl($imageValue)` | Extract URL string from IMAGE field value |
+| `extractImageAlt($imageValue, $fallback)` | Extract alt text from IMAGE field value |
+| `extractUrl($urlValue)` | Extract URL string from URL field value |
+| `extractUrlTarget($urlValue)` | Extract target attribute from URL field value |
+| `extractRepeaterImageIds($items, $fieldName)` | Extract image IDs from repeater items |
+| `extractRepeaterMultipleImageIds($items, $fieldNames)` | Extract multiple image IDs from repeater items |
+
+**Why use this trait?**
+
+IMAGE and URL fields can return different formats:
+- **Legacy format:** Simple numeric ID or string URL
+- **New format:** Array/Object with additional metadata like `{id, url, alt, title, ...}`
+
+This trait handles both formats automatically, ensuring backward compatibility.
+
+---
+
 ## Next Steps
 
 - [Widget Development](widgets.html) - Create custom widgets
