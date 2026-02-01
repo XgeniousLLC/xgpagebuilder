@@ -266,8 +266,8 @@ This trait provides helper methods for extracting values from complex field type
 
 namespace App\PageBuilder\Widgets;
 
-use Xgenious\XgPageBuilder\Core\BaseWidget;
-use Xgenious\XgPageBuilder\Core\Traits\ExtractsFieldValues;
+use Xgenious\PageBuilder\Core\BaseWidget;
+use Xgenious\PageBuilder\Core\Traits\ExtractsFieldValues;
 
 class MyCustomWidget extends BaseWidget
 {

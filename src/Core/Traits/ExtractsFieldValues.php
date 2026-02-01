@@ -1,6 +1,6 @@
 <?php
 
-namespace Xgenious\XgPageBuilder\Core\Traits;
+namespace Xgenious\PageBuilder\Core\Traits;
 
 /**
  * Trait ExtractsFieldValues
@@ -8,7 +8,7 @@ namespace Xgenious\XgPageBuilder\Core\Traits;
  * Provides helper methods for extracting values from complex field types
  * like IMAGE and URL fields that can return either simple values or structured objects.
  * 
- * @package Xgenious\XgPageBuilder\Core\Traits
+ * @package Xgenious\PageBuilder\Core\Traits
  */
 trait ExtractsFieldValues
 {

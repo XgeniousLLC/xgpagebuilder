@@ -16,6 +16,30 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Navigation Routes
+    |--------------------------------------------------------------------------
+    |
+    | Configure route names for navigation buttons in the page builder editor.
+    | These routes must exist in your host application.
+    | The package will fallback gracefully if routes are not found.
+    |
+    */
+
+    'routes' => [
+        // Route name for previewing pages (should accept slug parameter)
+        // Example: Route::get('/{slug}', [PageController::class, 'show'])->name('page.show');
+        'preview' => env('PAGE_BUILDER_PREVIEW_ROUTE', 'page.show'),
+
+        // Route name for returning to pages list
+        // Example: Route::get('/admin/pages', [PageController::class, 'index'])->name('admin.pages.index');
+        'back_to_pages' => env('PAGE_BUILDER_BACK_ROUTE', 'admin.pages.index'),
+
+        // Direct URL fallback (if route resolution fails)
+        'back_to_pages_url' => env('PAGE_BUILDER_BACK_URL', '/admin/dynamic-page/all'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Model Configuration
     |--------------------------------------------------------------------------
     |
