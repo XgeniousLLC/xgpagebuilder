@@ -12,25 +12,25 @@ use Xgenious\PageBuilder\Core\FieldTypes\FieldInterface;
  * and building the final field configuration for widgets. Supports conditional fields,
  * validation, and CSS selector management for style fields.
  * 
- * @package Plugins\Pagebuilder\Core
+ * @package plugins\Pagebuilder\Core
  */
 class ControlManager
 {
     /** @var array<string, mixed> */
     private array $fields = [];
-    
+
     /** @var array<string, mixed> */
     private array $groups = [];
-    
+
     /** @var array<string, mixed> */
     private array $tabs = [];
-    
+
     /** @var string|null */
     private ?string $currentGroup = null;
-    
+
     /** @var string|null */
     private ?string $currentTab = null;
-    
+
     /** @var array<string, mixed> */
     private array $structure = [];
 
@@ -142,7 +142,7 @@ class ControlManager
             'border' => true,
             'description' => null
         ], $options);
-        
+
         return $this;
     }
 
@@ -173,7 +173,7 @@ class ControlManager
             'icon' => null,
             'active' => false
         ], $options);
-        
+
         return $this;
     }
 
@@ -210,9 +210,11 @@ class ControlManager
     public function addHeading(string $title, string $size = 'h3'): self
     {
         $id = 'heading_' . uniqid();
-        return $this->registerField($id, FieldManager::HEADING()
-            ->setLabel($title)
-            ->setSize($size)
+        return $this->registerField(
+            $id,
+            FieldManager::HEADING()
+                ->setLabel($title)
+                ->setSize($size)
         );
     }
 
@@ -269,16 +271,16 @@ class ControlManager
         if ($this->currentTab !== null) {
             throw new \InvalidArgumentException(
                 "Widget field structure error: Tab '{$this->currentTab}' was opened but never closed. " .
-                "Make sure to call endTab() after adding fields to a tab. " .
-                "Example: \$control->addTab('normal', 'Normal')->registerField(...)->endTab();"
+                    "Make sure to call endTab() after adding fields to a tab. " .
+                    "Example: \$control->addTab('normal', 'Normal')->registerField(...)->endTab();"
             );
         }
 
         if ($this->currentGroup !== null) {
             throw new \InvalidArgumentException(
                 "Widget field structure error: Group '{$this->currentGroup}' was opened but never closed. " .
-                "Make sure to call endGroup() after adding fields to a group. " .
-                "Example: \$control->addGroup('styling', 'Styling')->registerField(...)->endGroup();"
+                    "Make sure to call endGroup() after adding fields to a group. " .
+                    "Example: \$control->addGroup('styling', 'Styling')->registerField(...)->endGroup();"
             );
         }
 
@@ -286,9 +288,9 @@ class ControlManager
         if ($hasTabs && $hasStandaloneFields) {
             error_log(
                 "Widget structure warning: You have both tabs and standalone fields. " .
-                "Consider organizing standalone fields into groups or tabs for better UX. " .
-                "Tabs: " . implode(', ', array_keys($this->structure['tabs'])) .
-                ". Standalone fields: " . implode(', ', array_keys($this->fields))
+                    "Consider organizing standalone fields into groups or tabs for better UX. " .
+                    "Tabs: " . implode(', ', array_keys($this->structure['tabs'])) .
+                    ". Standalone fields: " . implode(', ', array_keys($this->fields))
             );
         }
     }
@@ -306,9 +308,9 @@ class ControlManager
             if (!$hasFields && !$hasGroups) {
                 throw new \InvalidArgumentException(
                     "Widget field structure error: Tab '{$tabId}' is empty. " .
-                    "Tabs must contain at least one field or group. " .
-                    "Add fields using \$control->addTab('{$tabId}', 'Label')->registerField(...) " .
-                    "or groups using addGroup() within the tab."
+                        "Tabs must contain at least one field or group. " .
+                        "Add fields using \$control->addTab('{$tabId}', 'Label')->registerField(...) " .
+                        "or groups using addGroup() within the tab."
                 );
             }
 
@@ -318,8 +320,8 @@ class ControlManager
                     if (empty($group['fields'])) {
                         throw new \InvalidArgumentException(
                             "Widget field structure error: Group '{$groupId}' within tab '{$tabId}' is empty. " .
-                            "Groups must contain at least one field. " .
-                            "Add fields using \$control->addTab('{$tabId}', 'Label')->addGroup('{$groupId}', 'Group Label')->registerField(...);"
+                                "Groups must contain at least one field. " .
+                                "Add fields using \$control->addTab('{$tabId}', 'Label')->addGroup('{$groupId}', 'Group Label')->registerField(...);"
                         );
                     }
                 }
@@ -331,8 +333,8 @@ class ControlManager
             if (empty($group['fields'])) {
                 throw new \InvalidArgumentException(
                     "Widget field structure error: Group '{$groupId}' is empty. " .
-                    "Groups must contain at least one field. " .
-                    "Add fields using \$control->addGroup('{$groupId}', 'Label')->registerField(...);"
+                        "Groups must contain at least one field. " .
+                        "Add fields using \$control->addGroup('{$groupId}', 'Label')->registerField(...);"
                 );
             }
         }
@@ -350,11 +352,11 @@ class ControlManager
     {
         $css = '';
         $fields = $this->getAllFieldsFlat();
-        
+
         foreach ($fields as $fieldId => $fieldConfig) {
             if (isset($fieldConfig['selectors']) && !empty($fieldConfig['selectors'])) {
                 $fieldValue = $fieldValues[$fieldId] ?? $fieldConfig['default'] ?? null;
-                
+
                 if ($fieldValue !== null) {
                     $css .= $this->generateFieldCSS(
                         $fieldConfig['selectors'],
@@ -366,7 +368,7 @@ class ControlManager
                 }
             }
         }
-        
+
         return $css;
     }
 
@@ -381,27 +383,27 @@ class ControlManager
      * @return string Generated CSS
      */
     private function generateFieldCSS(
-        array $selectors, 
-        mixed $value, 
-        string $widgetId, 
-        array $fieldConfig, 
+        array $selectors,
+        mixed $value,
+        string $widgetId,
+        array $fieldConfig,
         string $breakpoint
     ): string {
         $css = '';
         $unit = $fieldConfig['unit'] ?? '';
-        
+
         foreach ($selectors as $selector => $properties) {
             // Replace wrapper placeholder
             $processedSelector = str_replace('{{WRAPPER}}', "#{$widgetId}", $selector);
-            
+
             // Process properties based on field type
             $processedProperties = $this->processProperties($properties, $value, $unit, $fieldConfig);
-            
+
             if (!empty($processedProperties)) {
                 $css .= "{$processedSelector} { {$processedProperties} }\n";
             }
         }
-        
+
         return $css;
     }
 
@@ -428,7 +430,7 @@ class ControlManager
             $properties = str_replace('{{VALUE}}', (string)$value, $properties);
             $properties = str_replace('{{UNIT}}', $unit, $properties);
         }
-        
+
         return $properties;
     }
 
@@ -440,21 +442,21 @@ class ControlManager
     private function getAllFieldsFlat(): array
     {
         $allFields = $this->fields;
-        
+
         // Add fields from groups
         foreach ($this->structure['groups'] ?? [] as $group) {
             if (isset($group['fields'])) {
                 $allFields = array_merge($allFields, $group['fields']);
             }
         }
-        
+
         // Add fields from tabs
         foreach ($this->structure['tabs'] ?? [] as $tab) {
             if (isset($tab['fields'])) {
                 $allFields = array_merge($allFields, $tab['fields']);
             }
         }
-        
+
         return $allFields;
     }
 
@@ -471,7 +473,7 @@ class ControlManager
         $this->currentGroup = null;
         $this->currentTab = null;
         $this->structure = [];
-        
+
         return $this;
     }
 

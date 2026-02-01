@@ -8,22 +8,22 @@ namespace Xgenious\PageBuilder\Core\Fields;
  * Provides a dropdown menu with customizable options, grouping support,
  * and search functionality for large option sets.
  * 
- * @package Plugins\Pagebuilder\Core\Fields
+ * @package plugins\Pagebuilder\Core\Fields
  */
 class SelectField extends BaseField
 {
     /** @var string */
     protected string $type = 'select';
-    
+
     /** @var array<string, string> */
     protected array $options = [];
-    
+
     /** @var bool */
     protected bool $searchable = false;
-    
+
     /** @var bool */
     protected bool $clearable = false;
-    
+
     /** @var string|null */
     protected ?string $groupBy = null;
 
@@ -153,11 +153,11 @@ class SelectField extends BaseField
             'searchable' => $this->searchable,
             'clearable' => $this->clearable,
         ];
-        
+
         if ($this->groupBy !== null) {
             $config['group_by'] = $this->groupBy;
         }
-        
+
         return $config;
     }
 }

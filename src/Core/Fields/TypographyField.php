@@ -16,13 +16,13 @@ namespace Xgenious\PageBuilder\Core\Fields;
  * - Font style (normal, italic, oblique)
  * - Text decoration options
  * 
- * @package Plugins\Pagebuilder\Core\Fields
+ * @package plugins\Pagebuilder\Core\Fields
  */
 class TypographyField extends BaseField
 {
     /** @var string */
     protected string $type = 'typography_group';
-    
+
     /** @var array */
     protected array $defaultTypography = [
         'font_family' => 'inherit',
@@ -47,7 +47,7 @@ class TypographyField extends BaseField
             'unit' => 'px'
         ]
     ];
-    
+
     /** @var array */
     protected array $fontFamilies = [
         'inherit' => 'Inherit',
@@ -66,7 +66,7 @@ class TypographyField extends BaseField
         '"Arial Black", Gadget, sans-serif' => 'Arial Black',
         '"Comic Sans MS", cursive' => 'Comic Sans MS'
     ];
-    
+
     /** @var array */
     protected array $fontWeights = [
         '100' => '100 - Thin',
@@ -79,7 +79,7 @@ class TypographyField extends BaseField
         '800' => '800 - Extra Bold',
         '900' => '900 - Black'
     ];
-    
+
     /** @var array */
     protected array $textTransforms = [
         'none' => 'None',
@@ -87,14 +87,14 @@ class TypographyField extends BaseField
         'lowercase' => 'Lowercase',
         'capitalize' => 'Capitalize'
     ];
-    
+
     /** @var array */
     protected array $fontStyles = [
         'normal' => 'Normal',
         'italic' => 'Italic',
         'oblique' => 'Oblique'
     ];
-    
+
     /** @var array */
     protected array $textDecorations = [
         'none' => 'None',
@@ -102,7 +102,7 @@ class TypographyField extends BaseField
         'overline' => 'Overline',
         'line-through' => 'Line Through'
     ];
-    
+
     /** @var array */
     protected array $enabledControls = [
         'font_family' => true,
@@ -115,7 +115,7 @@ class TypographyField extends BaseField
         'letter_spacing' => true,
         'word_spacing' => true
     ];
-    
+
     /** @var bool */
     protected bool $enableResponsive = true;
 
@@ -197,12 +197,12 @@ class TypographyField extends BaseField
         foreach ($this->enabledControls as $key => $value) {
             $this->enabledControls[$key] = false;
         }
-        
+
         // Enable specified ones
         foreach ($controls as $control) {
             $this->enabledControls[$control] = true;
         }
-        
+
         return $this;
     }
 

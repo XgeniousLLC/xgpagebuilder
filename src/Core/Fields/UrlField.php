@@ -15,51 +15,51 @@ use App\Utils\URLHandler;
  * - Download link support
  * - Custom tracking options
  * 
- * @package Plugins\Pagebuilder\Core\Fields
+ * @package plugins\Pagebuilder\Core\Fields
  */
 class UrlField extends BaseField
 {
     protected string $type = 'enhanced_url';
-    
+
     /** @var bool Enable URL validation */
     protected bool $validateUrl = true;
-    
+
     /** @var array Allowed URL schemes */
     protected array $allowedSchemes = ['http', 'https', 'mailto', 'tel'];
-    
+
     /** @var bool Allow relative URLs */
     protected bool $allowRelative = true;
-    
+
     /** @var bool Allow anchor links */
     protected bool $allowAnchors = true;
-    
+
     /** @var bool Show link target options */
     protected bool $showTargetOptions = true;
-    
+
     /** @var bool Show rel attribute options */
     protected bool $showRelOptions = true;
-    
+
     /** @var bool Show download options */
     protected bool $showDownloadOptions = false;
-    
+
     /** @var bool Enable link preview */
     protected bool $enablePreview = true;
-    
+
     /** @var bool Auto-detect link type */
     protected bool $autoDetectType = true;
-    
+
     /** @var bool Enable accessibility enhancements */
     protected bool $enableAccessibility = true;
-    
+
     /** @var bool Enable click tracking */
     protected bool $enableTracking = false;
-    
+
     /** @var string Default target value */
     protected string $defaultTarget = '_self';
-    
+
     /** @var array Default rel attributes */
     protected array $defaultRel = [];
-    
+
     /** @var string URL context for validation */
     protected string $context = 'general';
 
@@ -71,7 +71,7 @@ class UrlField extends BaseField
         $this->validateUrl = $validate;
         return $this;
     }
-    
+
     /**
      * Set allowed URL schemes
      */
@@ -80,7 +80,7 @@ class UrlField extends BaseField
         $this->allowedSchemes = $schemes;
         return $this;
     }
-    
+
     /**
      * Set whether to allow relative URLs
      */
@@ -89,7 +89,7 @@ class UrlField extends BaseField
         $this->allowRelative = $allow;
         return $this;
     }
-    
+
     /**
      * Set whether to allow anchor links
      */
@@ -98,7 +98,7 @@ class UrlField extends BaseField
         $this->allowAnchors = $allow;
         return $this;
     }
-    
+
     /**
      * Show/hide target options
      */
@@ -107,7 +107,7 @@ class UrlField extends BaseField
         $this->showTargetOptions = $show;
         return $this;
     }
-    
+
     /**
      * Show/hide rel attribute options
      */
@@ -116,7 +116,7 @@ class UrlField extends BaseField
         $this->showRelOptions = $show;
         return $this;
     }
-    
+
     /**
      * Show/hide download options
      */
@@ -125,7 +125,7 @@ class UrlField extends BaseField
         $this->showDownloadOptions = $show;
         return $this;
     }
-    
+
     /**
      * Enable/disable link preview
      */
@@ -134,7 +134,7 @@ class UrlField extends BaseField
         $this->enablePreview = $enable;
         return $this;
     }
-    
+
     /**
      * Enable/disable auto type detection
      */
@@ -143,7 +143,7 @@ class UrlField extends BaseField
         $this->autoDetectType = $enable;
         return $this;
     }
-    
+
     /**
      * Enable/disable accessibility features
      */
@@ -152,7 +152,7 @@ class UrlField extends BaseField
         $this->enableAccessibility = $enable;
         return $this;
     }
-    
+
     /**
      * Enable/disable click tracking
      */
@@ -161,7 +161,7 @@ class UrlField extends BaseField
         $this->enableTracking = $enable;
         return $this;
     }
-    
+
     /**
      * Set default target value
      */
@@ -170,7 +170,7 @@ class UrlField extends BaseField
         $this->defaultTarget = $target;
         return $this;
     }
-    
+
     /**
      * Set default rel attributes
      */
@@ -179,7 +179,7 @@ class UrlField extends BaseField
         $this->defaultRel = $rel;
         return $this;
     }
-    
+
     /**
      * Set URL context for validation
      */
@@ -188,65 +188,65 @@ class UrlField extends BaseField
         $this->context = $context;
         return $this;
     }
-    
+
     /**
      * Preset for web links
      */
     public function asWebLink(): static
     {
         return $this->setAllowedSchemes(['http', 'https'])
-                    ->setShowTargetOptions(true)
-                    ->setShowRelOptions(true)
-                    ->setContext('web');
+            ->setShowTargetOptions(true)
+            ->setShowRelOptions(true)
+            ->setContext('web');
     }
-    
+
     /**
      * Preset for email links
      */
     public function asEmailLink(): static
     {
         return $this->setAllowedSchemes(['mailto'])
-                    ->setShowTargetOptions(false)
-                    ->setShowRelOptions(false)
-                    ->setAllowRelative(false)
-                    ->setContext('email');
+            ->setShowTargetOptions(false)
+            ->setShowRelOptions(false)
+            ->setAllowRelative(false)
+            ->setContext('email');
     }
-    
+
     /**
      * Preset for phone links
      */
     public function asPhoneLink(): static
     {
         return $this->setAllowedSchemes(['tel', 'sms'])
-                    ->setShowTargetOptions(false)
-                    ->setShowRelOptions(false)
-                    ->setAllowRelative(false)
-                    ->setContext('phone');
+            ->setShowTargetOptions(false)
+            ->setShowRelOptions(false)
+            ->setAllowRelative(false)
+            ->setContext('phone');
     }
-    
+
     /**
      * Preset for download links
      */
     public function asDownloadLink(): static
     {
         return $this->setAllowedSchemes(['http', 'https'])
-                    ->setShowDownloadOptions(true)
-                    ->setDefaultTarget('_blank')
-                    ->setContext('download');
+            ->setShowDownloadOptions(true)
+            ->setDefaultTarget('_blank')
+            ->setContext('download');
     }
-    
+
     /**
      * Preset for internal navigation
      */
     public function asInternalLink(): static
     {
         return $this->setAllowRelative(true)
-                    ->setAllowAnchors(true)
-                    ->setShowTargetOptions(false)
-                    ->setDefaultTarget('_self')
-                    ->setContext('internal');
+            ->setAllowAnchors(true)
+            ->setShowTargetOptions(false)
+            ->setDefaultTarget('_self')
+            ->setContext('internal');
     }
-    
+
     /**
      * Validate URL using URLHandler utility
      */
@@ -255,16 +255,16 @@ class UrlField extends BaseField
         if (!$this->validateUrl || empty($value)) {
             return ['valid' => true, 'errors' => []];
         }
-        
+
         $options = [
             'allowed_schemes' => $this->allowedSchemes,
             'allow_relative' => $this->allowRelative,
             'allow_anchors' => $this->allowAnchors,
             'context' => $this->context
         ];
-        
+
         $result = URLHandler::validateURL($value, $options);
-        
+
         return [
             'valid' => $result['valid'],
             'errors' => $result['errors'],
@@ -272,7 +272,7 @@ class UrlField extends BaseField
             'metadata' => $result['metadata'] ?? []
         ];
     }
-    
+
     /**
      * Generate link attributes for the URL
      */
@@ -284,11 +284,11 @@ class UrlField extends BaseField
             'allow_anchors' => $this->allowAnchors,
             'context' => $this->context
         ]);
-        
+
         if (!$validated['valid']) {
             return ['href' => '#'];
         }
-        
+
         $options = [
             'target' => $settings['target'] ?? $this->defaultTarget,
             'rel' => array_merge($this->defaultRel, $settings['rel'] ?? []),
@@ -297,17 +297,17 @@ class UrlField extends BaseField
             'add_noopener' => $settings['add_noopener'] ?? true,
             'custom_attributes' => $settings['custom_attributes'] ?? []
         ];
-        
+
         return URLHandler::generateLinkAttributes($validated, $options);
     }
-    
+
     /**
      * Get sub-fields for URL configuration
      */
     public function getSubFields(): array
     {
         $fields = [];
-        
+
         // Main URL field
         $fields['url'] = [
             'type' => 'url',
@@ -319,7 +319,7 @@ class UrlField extends BaseField
                 'url' => $this->validateUrl
             ])
         ];
-        
+
         // Target options
         if ($this->showTargetOptions) {
             $fields['target'] = [
@@ -335,7 +335,7 @@ class UrlField extends BaseField
                 'description' => 'Where to open the link'
             ];
         }
-        
+
         // Rel attribute options
         if ($this->showRelOptions) {
             $fields['rel'] = [
@@ -353,7 +353,7 @@ class UrlField extends BaseField
                 'description' => 'SEO and security attributes'
             ];
         }
-        
+
         // Download options
         if ($this->showDownloadOptions) {
             $fields['download'] = [
@@ -362,7 +362,7 @@ class UrlField extends BaseField
                 'default' => false,
                 'description' => 'Force download instead of navigation'
             ];
-            
+
             $fields['download_filename'] = [
                 'type' => 'text',
                 'label' => 'Download Filename',
@@ -371,7 +371,7 @@ class UrlField extends BaseField
                 'description' => 'Suggested filename for download'
             ];
         }
-        
+
         // Accessibility options
         if ($this->enableAccessibility) {
             $fields['aria_label'] = [
@@ -380,7 +380,7 @@ class UrlField extends BaseField
                 'placeholder' => 'Descriptive label for screen readers',
                 'description' => 'Additional description for accessibility'
             ];
-            
+
             $fields['title'] = [
                 'type' => 'text',
                 'label' => 'Link Title',
@@ -388,7 +388,7 @@ class UrlField extends BaseField
                 'description' => 'Tooltip shown on hover'
             ];
         }
-        
+
         // Tracking options
         if ($this->enableTracking) {
             $fields['track_clicks'] = [
@@ -397,7 +397,7 @@ class UrlField extends BaseField
                 'default' => false,
                 'description' => 'Enable click tracking for analytics'
             ];
-            
+
             $fields['tracking_category'] = [
                 'type' => 'text',
                 'label' => 'Tracking Category',
@@ -406,7 +406,7 @@ class UrlField extends BaseField
                 'description' => 'Category for analytics tracking'
             ];
         }
-        
+
         // Custom Attributes (Repeater field for multiple attributes)
         $fields['custom_attributes'] = [
             'type' => 'repeater',
@@ -432,10 +432,10 @@ class UrlField extends BaseField
             'add_button_text' => 'Add Custom Attribute',
             'item_label' => '{{attribute_name}}="{{attribute_value}}"'
         ];
-        
+
         return $fields;
     }
-    
+
     protected function getTypeSpecificConfig(): array
     {
         return [

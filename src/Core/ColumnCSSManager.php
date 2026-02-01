@@ -17,16 +17,16 @@ use Xgenious\PageBuilder\Core\Widgets\ColumnWidget;
  * - CSS optimization and minification
  * - Column-specific selector management
  * 
- * @package Plugins\Pagebuilder\Core
+ * @package plugins\Pagebuilder\Core
  */
 class ColumnCSSManager
 {
     /** @var ColumnWidget */
     private static ColumnWidget $columnWidget;
-    
+
     /** @var array<string, string> */
     private static array $generatedCSS = [];
-    
+
     /**
      * Initialize the CSS manager
      */
@@ -34,7 +34,7 @@ class ColumnCSSManager
     {
         self::$columnWidget = new ColumnWidget();
     }
-    
+
     /**
      * Generate CSS for a single column
      *
@@ -49,13 +49,13 @@ class ColumnCSSManager
         array $breakpoints = ['desktop', 'tablet', 'mobile']
     ): string {
         self::ensureInitialized();
-        
+
         // Transform React settings to PHP field format
         $transformedSettings = self::transformReactSettings($settings);
-        
+
         // Get column field configuration
         $fieldConfig = self::getColumnFieldConfig();
-        
+
         // Generate CSS using CSSGenerator
         $css = CSSGenerator::generateWidgetCSS(
             "column-{$columnId}",
@@ -63,13 +63,13 @@ class ColumnCSSManager
             $transformedSettings,
             $breakpoints
         );
-        
+
         // Cache the generated CSS
         self::$generatedCSS[$columnId] = $css;
-        
+
         return $css;
     }
-    
+
     /**
      * Generate CSS for multiple columns
      *
@@ -79,15 +79,15 @@ class ColumnCSSManager
     public static function generateMultipleColumnCSS(array $columns): string
     {
         $combinedCSS = '';
-        
+
         foreach ($columns as $columnId => $settings) {
             $columnCSS = self::generateColumnCSS($columnId, $settings);
             $combinedCSS .= $columnCSS . "\n";
         }
-        
+
         return $combinedCSS;
     }
-    
+
     /**
      * Transform React column settings to PHP field format
      *
@@ -97,7 +97,7 @@ class ColumnCSSManager
     private static function transformReactSettings(array $reactSettings): array
     {
         $transformed = [];
-        
+
         // Direct mapping for simple fields
         $directMappings = [
             'display' => 'display',
@@ -107,13 +107,13 @@ class ColumnCSSManager
             'flexWrap' => 'flex_wrap',
             'gap' => 'gap'
         ];
-        
+
         foreach ($directMappings as $reactKey => $phpKey) {
             if (isset($reactSettings[$reactKey])) {
                 $transformed[$phpKey] = $reactSettings[$reactKey];
             }
         }
-        
+
         // Handle gap value transformation (ensure unit is included)
         if (isset($reactSettings['gap'])) {
             $gap = $reactSettings['gap'];
@@ -124,37 +124,37 @@ class ColumnCSSManager
                 $transformed['gap'] = $gap;
             }
         }
-        
+
         // Handle complex fields like padding, margin
         if (isset($reactSettings['padding'])) {
             $transformed['padding'] = self::transformDimensionField($reactSettings['padding']);
         }
-        
+
         if (isset($reactSettings['margin'])) {
             $transformed['margin'] = self::transformDimensionField($reactSettings['margin']);
         }
-        
+
         // Handle background group
         if (isset($reactSettings['background'])) {
             $transformed['column_bg'] = $reactSettings['background'];
         }
-        
+
         // Handle border fields
         if (isset($reactSettings['borderWidth'])) {
             $transformed['border_width'] = $reactSettings['borderWidth'];
         }
-        
+
         if (isset($reactSettings['borderColor'])) {
             $transformed['border_color'] = $reactSettings['borderColor'];
         }
-        
+
         if (isset($reactSettings['borderRadius'])) {
             $transformed['border_radius'] = self::transformDimensionField($reactSettings['borderRadius']);
         }
-        
+
         return $transformed;
     }
-    
+
     /**
      * Transform dimension field values
      *
@@ -166,7 +166,7 @@ class ColumnCSSManager
         if (is_array($dimensionValue)) {
             return $dimensionValue;
         }
-        
+
         if (is_string($dimensionValue) || is_numeric($dimensionValue)) {
             // Convert single value to dimension object
             return [
@@ -176,10 +176,10 @@ class ColumnCSSManager
                 'left' => $dimensionValue
             ];
         }
-        
+
         return ['top' => 0, 'right' => 0, 'bottom' => 0, 'left' => 0];
     }
-    
+
     /**
      * Get column field configuration for CSS generation
      *
@@ -188,13 +188,13 @@ class ColumnCSSManager
     private static function getColumnFieldConfig(): array
     {
         self::ensureInitialized();
-        
+
         $fieldConfig = [];
-        
+
         // Get field definitions from ColumnWidget
         $generalFields = self::$columnWidget->getGeneralFields();
         $styleFields = self::$columnWidget->getStyleFields();
-        
+
         // Extract field configurations with selectors
         foreach ($generalFields as $groupName => $group) {
             if (isset($group['fields'])) {
@@ -203,7 +203,7 @@ class ColumnCSSManager
                 }
             }
         }
-        
+
         foreach ($styleFields as $groupName => $group) {
             if (isset($group['fields'])) {
                 foreach ($group['fields'] as $fieldName => $field) {
@@ -211,10 +211,10 @@ class ColumnCSSManager
                 }
             }
         }
-        
+
         return $fieldConfig;
     }
-    
+
     /**
      * Get CSS for a specific column
      *
@@ -225,7 +225,7 @@ class ColumnCSSManager
     {
         return self::$generatedCSS[$columnId] ?? '';
     }
-    
+
     /**
      * Clear cached CSS for a column
      *
@@ -235,7 +235,7 @@ class ColumnCSSManager
     {
         unset(self::$generatedCSS[$columnId]);
     }
-    
+
     /**
      * Clear all cached CSS
      */
@@ -243,7 +243,7 @@ class ColumnCSSManager
     {
         self::$generatedCSS = [];
     }
-    
+
     /**
      * Generate CSS file for production
      *
@@ -254,14 +254,14 @@ class ColumnCSSManager
     public static function generateCSSFile(array $columns, string $filePath): bool
     {
         $css = self::generateMultipleColumnCSS($columns);
-        
+
         // Add CSS header
         $header = "/* Generated Column CSS - " . date('Y-m-d H:i:s') . " */\n\n";
         $css = $header . $css;
-        
+
         return file_put_contents($filePath, $css) !== false;
     }
-    
+
     /**
      * Ensure the CSS manager is initialized
      */
@@ -271,7 +271,7 @@ class ColumnCSSManager
             self::init();
         }
     }
-    
+
     /**
      * Get CSS selector for a column
      *
@@ -282,7 +282,7 @@ class ColumnCSSManager
     {
         return "#column-{$columnId}";
     }
-    
+
     /**
      * Get CSS classes for a column based on settings
      *
@@ -292,31 +292,31 @@ class ColumnCSSManager
     public static function getColumnClasses(array $settings): string
     {
         $classes = ['xgp-column'];
-        
+
         // Add display type class
         if (isset($settings['display'])) {
             $classes[] = "xgp-display-{$settings['display']}";
         }
-        
+
         // Add flex-specific classes
         if (isset($settings['display']) && $settings['display'] === 'flex') {
             if (isset($settings['flexDirection'])) {
                 $classes[] = "xgp-flex-direction-{$settings['flexDirection']}";
             }
-            
+
             if (isset($settings['justifyContent'])) {
                 $classes[] = "xgp-justify-{$settings['justifyContent']}";
             }
-            
+
             if (isset($settings['alignItems'])) {
                 $classes[] = "xgp-align-{$settings['alignItems']}";
             }
-            
+
             if (isset($settings['flexWrap'])) {
                 $classes[] = "xgp-flex-wrap-{$settings['flexWrap']}";
             }
         }
-        
+
         return implode(' ', $classes);
     }
 }

@@ -8,13 +8,13 @@ namespace Xgenious\PageBuilder\Core\Fields;
  * Provides an advanced gradient picker with visual preview, color stops,
  * type selection (linear/radial), angle control, and interactive UI.
  * 
- * @package Plugins\Pagebuilder\Core\Fields
+ * @package plugins\Pagebuilder\Core\Fields
  */
 class GradientField extends BaseField
 {
     /** @var string */
     protected string $type = 'gradient';
-    
+
     /** @var array */
     protected array $defaultGradient = [
         'type' => 'linear',
@@ -22,13 +22,13 @@ class GradientField extends BaseField
         'startColor' => '#667EEA',
         'endColor' => '#764BA2'
     ];
-    
+
     /** @var array<string> */
     protected array $allowedTypes = ['linear', 'radial'];
-    
+
     /** @var bool */
     protected bool $showPreview = true;
-    
+
     /** @var bool */
     protected bool $showAnglePicker = true;
 

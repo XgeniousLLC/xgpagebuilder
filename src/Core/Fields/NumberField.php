@@ -8,22 +8,22 @@ namespace Xgenious\PageBuilder\Core\Fields;
  * Provides a numeric input with min/max validation, step control, and unit support.
  * Perfect for dimensions, font sizes, and other numeric style properties.
  * 
- * @package Plugins\Pagebuilder\Core\Fields
+ * @package plugins\Pagebuilder\Core\Fields
  */
 class NumberField extends BaseField
 {
     /** @var string */
     protected string $type = 'number';
-    
+
     /** @var float|null */
     protected ?float $min = null;
-    
+
     /** @var float|null */
     protected ?float $max = null;
-    
+
     /** @var float */
     protected float $step = 1;
-    
+
     /** @var bool */
     protected bool $allowDecimals = true;
 
@@ -98,15 +98,15 @@ class NumberField extends BaseField
             'step' => $this->step,
             'allow_decimals' => $this->allowDecimals,
         ];
-        
+
         if ($this->min !== null) {
             $config['min'] = $this->min;
         }
-        
+
         if ($this->max !== null) {
             $config['max'] = $this->max;
         }
-        
+
         return $config;
     }
 }

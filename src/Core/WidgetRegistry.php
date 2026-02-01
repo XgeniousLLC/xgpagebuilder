@@ -29,7 +29,7 @@ class WidgetRegistry
 
         $widget = new $widgetClass();
         $config = $widget->getWidgetConfig();
-        
+
         // Validate category exists
         if (!WidgetCategory::categoryExists($config['category'])) {
             throw new \InvalidArgumentException("Invalid category: {$config['category']}");
@@ -62,18 +62,18 @@ class WidgetRegistry
         }
 
         $widgetPath = $widgetPath ?: base_path('plugins/Pagebuilder');
-        
+
         if (!File::exists($widgetPath)) {
             return;
         }
 
         $files = File::allFiles($widgetPath);
-        
+
         foreach ($files as $file) {
             if ($file->getExtension() === 'php') {
                 $relativePath = str_replace($widgetPath . '/', '', $file->getPathname());
                 $className = self::pathToClassName($relativePath);
-                
+
                 if (class_exists($className) && is_subclass_of($className, BaseWidget::class)) {
                     try {
                         self::register($className);
@@ -94,7 +94,7 @@ class WidgetRegistry
     private static function pathToClassName(string $path): string
     {
         $path = str_replace(['/', '.php'], ['\\', ''], $path);
-        return "Plugins\\Pagebuilder\\{$path}";
+        return "plugins\\Pagebuilder\\{$path}";
     }
 
     /**
@@ -112,7 +112,7 @@ class WidgetRegistry
     public static function getWidgetsByCategory(string $category): array
     {
         self::autoDiscover();
-        
+
         if (!WidgetCategory::categoryExists($category)) {
             return [];
         }
@@ -128,10 +128,10 @@ class WidgetRegistry
     public static function getWidgetsGroupedByCategory(): array
     {
         self::autoDiscover();
-        
+
         $grouped = [];
         $categories = WidgetCategory::getAllCategories();
-        
+
         foreach ($categories as $categorySlug => $categoryInfo) {
             $widgets = self::getWidgetsByCategory($categorySlug);
             if (!empty($widgets)) {
@@ -151,7 +151,7 @@ class WidgetRegistry
     public static function searchWidgets(string $query, array $filters = []): array
     {
         self::autoDiscover();
-        
+
         $query = strtolower(trim($query));
         $results = [];
 
@@ -171,7 +171,7 @@ class WidgetRegistry
                     } else {
                         $searchText = $config[$field];
                     }
-                    
+
                     if (str_contains(strtolower($searchText), $query)) {
                         $matches = true;
                         break;
@@ -186,11 +186,11 @@ class WidgetRegistry
                 if (isset($filters['category']) && $config['category'] !== $filters['category']) {
                     $matches = false;
                 }
-                
+
                 if (isset($filters['is_pro']) && $config['is_pro'] !== $filters['is_pro']) {
                     $matches = false;
                 }
-                
+
                 if (isset($filters['tags']) && !empty($filters['tags'])) {
                     $hasTag = false;
                     foreach ($filters['tags'] as $tag) {
@@ -219,7 +219,7 @@ class WidgetRegistry
     public static function getWidget(string $type): ?BaseWidget
     {
         self::autoDiscover();
-        
+
         if (!isset(self::$registeredWidgets[$type])) {
             return null;
         }
@@ -233,7 +233,7 @@ class WidgetRegistry
     public static function getWidgetConfig(string $type): ?array
     {
         self::autoDiscover();
-        
+
         if (!isset(self::$registeredWidgets[$type])) {
             return null;
         }
@@ -256,7 +256,7 @@ class WidgetRegistry
     public static function getWidgetFields(string $type, string $tab = null): ?array
     {
         $widget = self::getWidget($type);
-        
+
         if (!$widget) {
             return null;
         }
@@ -274,7 +274,7 @@ class WidgetRegistry
     public static function getCategoriesWithCounts(): array
     {
         self::autoDiscover();
-        
+
         $categories = WidgetCategory::getCategoriesForApi();
         $widgetCounts = [];
 
@@ -298,11 +298,11 @@ class WidgetRegistry
     public static function getPopularWidgets(int $limit = 10): array
     {
         self::autoDiscover();
-        
+
         // This would typically query usage statistics from database
         // For now, return first N widgets sorted by name
         $widgets = self::$registeredWidgets;
-        
+
         uasort($widgets, function ($a, $b) {
             return strcmp($a['config']['name'], $b['config']['name']);
         });
@@ -316,11 +316,11 @@ class WidgetRegistry
     public static function getRecentWidgets(int $limit = 10): array
     {
         self::autoDiscover();
-        
+
         // This would typically sort by created_at from database
         // For now, return last N widgets by registration order
         $widgets = array_reverse(self::$registeredWidgets, true);
-        
+
         return array_slice($widgets, 0, $limit, true);
     }
 
@@ -335,12 +335,12 @@ class WidgetRegistry
         foreach ($widgets as $type => $widget) {
             $config = $widget['config'];
             $category = WidgetCategory::getCategory($config['category']);
-            
+
             // Skip hidden categories unless explicitly requested
             if (isset($category['hidden']) && $category['hidden'] && !($filters['show_hidden'] ?? false)) {
                 continue;
             }
-            
+
             $result[] = [
                 'type' => $type,
                 'name' => $config['name'],
@@ -359,15 +359,15 @@ class WidgetRegistry
         usort($result, function ($a, $b) {
             $categoryA = WidgetCategory::getCategory($a['category']);
             $categoryB = WidgetCategory::getCategory($b['category']);
-            
+
             if ($categoryA['sort_order'] !== $categoryB['sort_order']) {
                 return $categoryA['sort_order'] <=> $categoryB['sort_order'];
             }
-            
+
             if ($a['sort_order'] !== $b['sort_order']) {
                 return $a['sort_order'] <=> $b['sort_order'];
             }
-            
+
             return strcmp($a['name'], $b['name']);
         });
 
@@ -389,7 +389,7 @@ class WidgetRegistry
     public static function getStats(): array
     {
         self::autoDiscover();
-        
+
         $stats = [
             'total_widgets' => count(self::$registeredWidgets),
             'categories' => [],
@@ -400,10 +400,10 @@ class WidgetRegistry
         foreach (self::$registeredWidgets as $widget) {
             $config = $widget['config'];
             $category = $config['category'];
-            
+
             // Count by category
             $stats['categories'][$category] = ($stats['categories'][$category] ?? 0) + 1;
-            
+
             // Count pro/free
             if ($config['is_pro']) {
                 $stats['pro_widgets']++;
@@ -421,7 +421,7 @@ class WidgetRegistry
     public static function validateWidgetSettings(string $type, array $settings): array
     {
         $widget = self::getWidget($type);
-        
+
         if (!$widget) {
             return ['Widget type not found'];
         }
@@ -435,7 +435,7 @@ class WidgetRegistry
     public static function cache(): void
     {
         self::autoDiscover();
-        
+
         $cacheData = [
             'widgets' => self::$registeredWidgets,
             'categories' => self::getCategoriesWithCounts(),
@@ -459,7 +459,7 @@ class WidgetRegistry
     {
         try {
             $cacheData = Cache::get('widget_registry');
-            
+
             if ($cacheData) {
                 self::$registeredWidgets = $cacheData['widgets'];
                 self::$autoDiscovered = true;
@@ -492,7 +492,7 @@ class WidgetRegistry
     public static function getWidgetDefaults(string $type): array
     {
         $widget = self::getWidget($type);
-        
+
         if (!$widget) {
             return ['general' => [], 'style' => [], 'advanced' => []];
         }
@@ -512,7 +512,7 @@ class WidgetRegistry
     private static function extractFieldDefaults(array $fieldsData): array
     {
         $defaults = [];
-        
+
         // The fieldsData is already in the format where keys are group names
         foreach ($fieldsData as $groupKey => $groupData) {
             if (!empty($groupData['fields']) && is_array($groupData['fields'])) {
@@ -524,7 +524,7 @@ class WidgetRegistry
                 }
             }
         }
-        
+
         return $defaults;
     }
 
@@ -534,7 +534,7 @@ class WidgetRegistry
     public static function renderWidget(string $type, array $settings): ?array
     {
         $widget = self::getWidget($type);
-        
+
         if (!$widget) {
             return null;
         }
@@ -542,13 +542,13 @@ class WidgetRegistry
         try {
             // Generate a consistent widget ID for both HTML and CSS
             $widgetId = 'widget-' . uniqid();
-            
+
             // Pass widget_id to settings so the widget can use it if needed
             $settings['widget_id'] = $widgetId;
-            
+
             $html = $widget->render($settings);
             $css = $widget->generateCSS($widgetId, $settings);
-            
+
             // Wrap the HTML in a container with the widget ID to ensure CSS selectors match
             // This fixes the issue where generated CSS selectors (.widget-{id}) didn't match the HTML
             $wrappedHtml = sprintf(
@@ -558,7 +558,7 @@ class WidgetRegistry
                 $type,
                 $html
             );
-            
+
             return [
                 'html' => $wrappedHtml,
                 'css' => $css,

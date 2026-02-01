@@ -8,7 +8,7 @@ namespace Xgenious\PageBuilder\Core\Fields;
  * Provides a visual icon picker interface that opens a modal with searchable
  * icon grid. Stores the selected icon's CSS class name.
  *
- * @package Plugins\Pagebuilder\Core\Fields
+ * @package plugins\Pagebuilder\Core\Fields
  */
 class IconInputField extends BaseField
 {
@@ -195,7 +195,7 @@ class IconInputField extends BaseField
     private function iconExists(string $iconClass): bool
     {
         try {
-            $iconService = app(\Plugins\Pagebuilder\Services\IconService::class);
+            $iconService = app(\plugins\Pagebuilder\Services\IconService::class);
             return $iconService->validateIcon($iconClass);
         } catch (\Exception $e) {
             return false;
@@ -215,7 +215,7 @@ class IconInputField extends BaseField
         }
 
         try {
-            $iconService = app(\Plugins\Pagebuilder\Services\IconService::class);
+            $iconService = app(\plugins\Pagebuilder\Services\IconService::class);
             $allIcons = $iconService->getAllIcons();
 
             foreach ($allIcons as $icon) {

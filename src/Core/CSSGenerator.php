@@ -11,7 +11,7 @@ namespace Xgenious\PageBuilder\Core;
  * - CSS optimization and minification
  * - Dimension field value expansion
  * 
- * @package Plugins\Pagebuilder\Core
+ * @package plugins\Pagebuilder\Core
  */
 class CSSGenerator
 {
@@ -52,7 +52,7 @@ class CSSGenerator
             }
 
             $fieldValue = $fieldValues[$fieldId] ?? $field['default'] ?? null;
-            
+
             if ($fieldValue === null) {
                 continue;
             }
@@ -67,7 +67,7 @@ class CSSGenerator
                             $widgetId,
                             $field
                         );
-                        
+
                         if (!empty($breakpointCSS)) {
                             if (!isset($responsiveCSS[$breakpoint])) {
                                 $responsiveCSS[$breakpoint] = '';
@@ -169,14 +169,14 @@ class CSSGenerator
         switch ($fieldType) {
             case 'dimension':
                 return self::processDimensionProperties($properties, $value, $unit);
-            
+
             case 'color':
                 return self::processColorProperties($properties, $value);
-            
+
             case 'number':
             case 'range':
                 return self::processNumericProperties($properties, $value, $unit);
-            
+
             default:
                 return self::processDefaultProperties($properties, $value, $unit);
         }
@@ -201,7 +201,7 @@ class CSSGenerator
             $properties = str_replace('{{VALUE.BOTTOM}}', (string)($value['bottom'] ?? 0), $properties);
             $properties = str_replace('{{VALUE.LEFT}}', (string)($value['left'] ?? 0), $properties);
             $properties = str_replace('{{UNIT}}', $unit, $properties);
-            
+
             // Handle shorthand dimension syntax
             if (str_contains($properties, '{{VALUE}}')) {
                 $shorthand = implode($unit . ' ', [
@@ -279,22 +279,22 @@ class CSSGenerator
     private static function sanitizeColorValue(string $color): string
     {
         $color = trim($color);
-        
+
         // Handle hex colors
         if (str_starts_with($color, '#')) {
             return $color;
         }
-        
+
         // Handle rgb/rgba colors
         if (str_starts_with($color, 'rgb')) {
             return $color;
         }
-        
+
         // Handle hsl/hsla colors
         if (str_starts_with($color, 'hsl')) {
             return $color;
         }
-        
+
         // Handle named colors
         return $color;
     }
@@ -314,7 +314,7 @@ class CSSGenerator
         $css = str_replace('; ', ";\n  ", $css);
         $css = str_replace(' }', "\n}", $css);
         $css = str_replace('}', "}\n\n", $css);
-        
+
         return trim($css);
     }
 
@@ -328,13 +328,13 @@ class CSSGenerator
     {
         // Remove comments
         $css = preg_replace('!/\*[^*]*\*+([^/][^*]*\*+)*/!', '', $css);
-        
+
         // Remove extra whitespace
         $css = preg_replace('/\s+/', ' ', $css);
-        
+
         // Remove space around specific characters
         $css = str_replace([' {', '{ ', ' }', '} ', ': ', ' :', '; ', ' ;'], ['{', '{', '}', '}', ':', ':', ';', ';'], $css);
-        
+
         return trim($css);
     }
 
@@ -367,15 +367,15 @@ class CSSGenerator
     public static function generateMultipleWidgetCSS(array $widgets): string
     {
         $combinedCSS = '';
-        
+
         foreach ($widgets as $widgetId => $widgetData) {
             $fieldConfig = $widgetData['fields'] ?? [];
             $fieldValues = $widgetData['values'] ?? [];
-            
+
             $widgetCSS = self::generateWidgetCSS($widgetId, $fieldConfig, $fieldValues);
             $combinedCSS .= $widgetCSS;
         }
-        
+
         return $combinedCSS;
     }
 
@@ -389,11 +389,11 @@ class CSSGenerator
     public static function generateCSSFile(array $widgets, string $filePath): bool
     {
         $css = self::generateMultipleWidgetCSS($widgets);
-        
+
         // Add CSS header
         $header = "/* Generated Widget CSS - " . date('Y-m-d H:i:s') . " */\n\n";
         $css = $header . $css;
-        
+
         return file_put_contents($filePath, $css) !== false;
     }
 }

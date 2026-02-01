@@ -8,22 +8,22 @@ namespace Xgenious\PageBuilder\Core\Fields;
  * Provides a toggle switch for boolean values with customizable labels
  * and visual styles.
  * 
- * @package Plugins\Pagebuilder\Core\Fields
+ * @package plugins\Pagebuilder\Core\Fields
  */
 class ToggleField extends BaseField
 {
     /** @var string */
     protected string $type = 'toggle';
-    
+
     /** @var string */
     protected string $onText = '';
-    
+
     /** @var string */
     protected string $offText = '';
-    
+
     /** @var string */
     protected string $size = 'medium';
-    
+
     /** @var string */
     protected string $color = 'primary';
 

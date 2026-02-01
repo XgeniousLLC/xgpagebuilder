@@ -7,19 +7,19 @@ namespace Xgenious\PageBuilder\Core\Fields;
  * 
  * Provides a single-line text input with validation and placeholder support.
  * 
- * @package Plugins\Pagebuilder\Core\Fields
+ * @package plugins\Pagebuilder\Core\Fields
  */
 class TextField extends BaseField
 {
     /** @var string */
     protected string $type = 'text';
-    
+
     /** @var int|null */
     protected ?int $maxLength = null;
-    
+
     /** @var int|null */
     protected ?int $minLength = null;
-    
+
     /** @var string|null */
     protected ?string $pattern = null;
 
@@ -65,19 +65,19 @@ class TextField extends BaseField
     protected function getTypeSpecificConfig(): array
     {
         $config = [];
-        
+
         if ($this->maxLength !== null) {
             $config['max_length'] = $this->maxLength;
         }
-        
+
         if ($this->minLength !== null) {
             $config['min_length'] = $this->minLength;
         }
-        
+
         if ($this->pattern !== null) {
             $config['pattern'] = $this->pattern;
         }
-        
+
         return $config;
     }
 }

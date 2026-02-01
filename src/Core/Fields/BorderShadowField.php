@@ -12,13 +12,13 @@ namespace Xgenious\PageBuilder\Core\Fields;
  * - Multiple shadow support
  * - Preset library for common styles
  * 
- * @package Plugins\Pagebuilder\Core\Fields
+ * @package plugins\Pagebuilder\Core\Fields
  */
 class BorderShadowField extends BaseField
 {
     /** @var string */
     protected string $type = 'border_shadow_group';
-    
+
     /** @var array */
     protected array $defaultBorderShadow = [
         'border' => [
@@ -39,7 +39,7 @@ class BorderShadowField extends BaseField
             'shadows' => [] // for multiple shadows
         ]
     ];
-    
+
     /** @var array */
     protected array $borderStyles = [
         'solid' => 'Solid',
@@ -51,7 +51,7 @@ class BorderShadowField extends BaseField
         'inset' => 'Inset',
         'outset' => 'Outset'
     ];
-    
+
     /** @var array */
     protected array $shadowPresets = [
         'none' => ['name' => 'None', 'shadow' => 'none'],

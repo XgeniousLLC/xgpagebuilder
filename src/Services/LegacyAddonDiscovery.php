@@ -27,18 +27,18 @@ class LegacyAddonDiscovery
 
         // Discover new-style widgets (BaseWidget) from widget_paths config
         $widgetPaths = config('xgpagebuilder.widget_paths', []);
-        
+
         foreach ($widgetPaths as $pathConfig) {
             $path = $pathConfig['path'] ?? null;
             $namespace = $pathConfig['namespace'] ?? null;
-            
+
             if (!$path || !$namespace || !File::exists($path)) {
                 Log::info("Widget path does not exist or is misconfigured: " . ($path ?? 'null'));
                 continue;
             }
 
             $files = File::allFiles($path);
-            
+
             foreach ($files as $file) {
                 if ($file->getExtension() !== 'php') {
                     continue;
@@ -52,15 +52,15 @@ class LegacyAddonDiscovery
 
                     if (class_exists($className)) {
                         $reflection = new \ReflectionClass($className);
-                        
+
                         if ($reflection->isSubclassOf(BaseWidget::class) && !$reflection->isAbstract()) {
                             $instance = new $className();
-                            
+
                             // Check if widget is enabled
                             if (method_exists($instance, 'enable') && !$instance->enable()) {
                                 continue;
                             }
-                            
+
                             WidgetRegistry::register($className);
                             $registered++;
                         }
@@ -84,7 +84,7 @@ class LegacyAddonDiscovery
                 }
 
                 $files = File::allFiles($path);
-                
+
                 foreach ($files as $file) {
                     if ($file->getExtension() !== 'php') {
                         continue;
@@ -95,16 +95,16 @@ class LegacyAddonDiscovery
 
                         if (class_exists($className)) {
                             $reflection = new \ReflectionClass($className);
-                            
+
                             if ($reflection->isSubclassOf(LegacyAddonAdapter::class) && !$reflection->isAbstract()) {
                                 $instance = new $className();
                                 if (method_exists($instance, 'enable') && !$instance->enable()) {
                                     continue;
                                 }
-                                
+
                                 WidgetRegistry::register($className);
                                 $registered++;
-                                
+
                                 Log::info("Registered legacy addon: {$className}");
                             }
                         }
@@ -130,13 +130,13 @@ class LegacyAddonDiscovery
     {
         // Get relative path from base
         $relativePath = str_replace($basePath . '/', '', $filePath);
-        
+
         // Remove .php extension
         $relativePath = str_replace('.php', '', $relativePath);
-        
+
         // Convert path separators to namespace separators
         $namespacePath = str_replace('/', '\\', $relativePath);
-        
+
         // Build full class name
         // e.g., "Home/HeroSection" -> "plugins\PageBuilder\Addons\Home\HeroSection"
         return "plugins\\PageBuilder\\Addons\\{$namespacePath}";
@@ -161,7 +161,7 @@ class LegacyAddonDiscovery
             }
 
             $files = File::allFiles($path);
-            
+
             foreach ($files as $file) {
                 if ($file->getExtension() !== 'php') {
                     continue;
@@ -172,9 +172,11 @@ class LegacyAddonDiscovery
 
                     if (class_exists($className)) {
                         $reflection = new \ReflectionClass($className);
-                        
-                        if ($reflection->isSubclassOf(LegacyAddonAdapter::class) 
-                            && !$reflection->isAbstract()) {
+
+                        if (
+                            $reflection->isSubclassOf(LegacyAddonAdapter::class)
+                            && !$reflection->isAbstract()
+                        ) {
                             $addons[] = $className;
                         }
                     }

@@ -18,7 +18,7 @@ namespace Xgenious\PageBuilder\Core;
  * - Single output in page header
  * - Memory efficient collection
  *
- * @package Plugins\Pagebuilder\Core
+ * @package plugins\Pagebuilder\Core
  */
 class CSSManager
 {
@@ -51,7 +51,7 @@ class CSSManager
      * @var array CSS rules by selector to enable deduplication
      */
     private static array $cssBySelector = [];
-    
+
     /**
      * Add CSS rules for a specific widget
      * 
@@ -64,18 +64,18 @@ class CSSManager
         if (empty($css)) {
             return;
         }
-        
+
         // Store original CSS for this widget
         self::$collectedCSS[$widgetId] = [
             'css' => $css,
             'type' => $widgetType,
             'timestamp' => microtime(true)
         ];
-        
+
         // Parse and store by selector for deduplication
         self::parseCSSIntoSelectors($css, $widgetId);
     }
-    
+
     /**
      * Add inline styles for a specific widget
      *
@@ -286,23 +286,23 @@ class CSSManager
     {
         // Simple CSS parser to extract selectors and rules
         $css = self::minifyCSS($css);
-        
+
         // Match CSS rules (selector { properties })
         preg_match_all('/([^{]+)\{([^}]+)\}/', $css, $matches, PREG_SET_ORDER);
-        
+
         foreach ($matches as $match) {
             $selector = trim($match[1]);
             $properties = trim($match[2]);
-            
+
             if (!isset(self::$cssBySelector[$selector])) {
                 self::$cssBySelector[$selector] = [];
             }
-            
+
             // Store properties with widget ID for tracking
             self::$cssBySelector[$selector][$widgetId] = $properties;
         }
     }
-    
+
     /**
      * Get all collected CSS as a single consolidated string
      * 
@@ -314,18 +314,18 @@ class CSSManager
         if (empty(self::$cssBySelector)) {
             return '';
         }
-        
+
         $css = [];
         $css[] = '/* PageBuilder Widget Styles - Generated at ' . date('Y-m-d H:i:s') . ' */';
-        
+
         // Add base widget styles first
         $css[] = self::getBaseWidgetStyles();
-        
+
         // Add consolidated widget-specific styles
         foreach (self::$cssBySelector as $selector => $widgetRules) {
             // Combine all properties for this selector
             $allProperties = [];
-            
+
             foreach ($widgetRules as $widgetId => $properties) {
                 // Parse individual properties
                 $props = explode(';', $properties);
@@ -336,25 +336,25 @@ class CSSManager
                     }
                 }
             }
-            
+
             // Remove duplicates and combine
             $uniqueProperties = array_unique($allProperties);
-            
+
             if (!empty($uniqueProperties)) {
                 $css[] = $selector . ' {';
                 $css[] = '    ' . implode(';', $uniqueProperties) . ';';
                 $css[] = '}';
             }
         }
-        
+
         // Add responsive styles
         $css[] = self::getResponsiveStyles();
-        
+
         $consolidatedCSS = implode("\n", $css);
-        
+
         return $minify ? self::minifyCSS($consolidatedCSS) : $consolidatedCSS;
     }
-    
+
     /**
      * Get base styles that apply to all widgets
      */
@@ -412,53 +412,53 @@ class CSSManager
 }
 ';
     }
-    
+
     /**
      * Get responsive styles for all widgets
      */
     private static function getResponsiveStyles(): string
     {
         $css = [];
-        
+
         // Generate responsive styles for collected inline styles
         foreach (self::$inlineStyles as $widgetId => $styles) {
             // Add responsive padding/margin if they exist
             if (isset($styles['padding_tablet']) || isset($styles['margin_tablet'])) {
                 $css[] = "@media (max-width: 768px) {";
                 $css[] = "    #{$widgetId} {";
-                
+
                 if (isset($styles['padding_tablet'])) {
                     $css[] = "        padding: {$styles['padding_tablet']};";
                 }
-                
+
                 if (isset($styles['margin_tablet'])) {
                     $css[] = "        margin: {$styles['margin_tablet']};";
                 }
-                
+
                 $css[] = "    }";
                 $css[] = "}";
             }
-            
+
             if (isset($styles['padding_mobile']) || isset($styles['margin_mobile'])) {
                 $css[] = "@media (max-width: 480px) {";
                 $css[] = "    #{$widgetId} {";
-                
+
                 if (isset($styles['padding_mobile'])) {
                     $css[] = "        padding: {$styles['padding_mobile']};";
                 }
-                
+
                 if (isset($styles['margin_mobile'])) {
                     $css[] = "        margin: {$styles['margin_mobile']};";
                 }
-                
+
                 $css[] = "    }";
                 $css[] = "}";
             }
         }
-        
+
         return implode("\n", $css);
     }
-    
+
     /**
      * Output consolidated CSS for page header
      * 
@@ -470,22 +470,22 @@ class CSSManager
         if (self::$cssOutput) {
             return ''; // Prevent duplicate output
         }
-        
+
         $css = self::getConsolidatedCSS();
-        
+
         if (empty($css)) {
             return '';
         }
-        
+
         self::$cssOutput = true;
-        
+
         if ($includeStyleTags) {
             return "<style id=\"pagebuilder-widget-styles\">\n{$css}\n</style>";
         }
-        
+
         return $css;
     }
-    
+
     /**
      * Clear all collected CSS (useful for testing or page regeneration)
      */
@@ -498,7 +498,7 @@ class CSSManager
         self::$cssBySelector = [];
         self::$cssOutput = false;
     }
-    
+
     /**
      * Get statistics about collected CSS
      */
@@ -514,7 +514,7 @@ class CSSManager
             'estimated_size' => strlen(self::getConsolidatedCSS()) . ' bytes'
         ];
     }
-    
+
     /**
      * Minify CSS by removing unnecessary whitespace and comments
      */
@@ -522,15 +522,15 @@ class CSSManager
     {
         // Remove comments
         $css = preg_replace('!/\*[^*]*\*+([^/][^*]*\*+)*/!', '', $css);
-        
+
         // Remove unnecessary whitespace
         $css = str_replace(["\r\n", "\r", "\n", "\t"], '', $css);
         $css = preg_replace('/\s+/', ' ', $css);
         $css = str_replace([' {', '{ ', ' }', '} ', ': ', ' :', '; ', ' ;'], ['{', '{', '}', '}', ':', ':', ';', ';'], $css);
-        
+
         return trim($css);
     }
-    
+
     /**
      * Check if specific widget has CSS
      */
@@ -538,7 +538,7 @@ class CSSManager
     {
         return isset(self::$collectedCSS[$widgetId]);
     }
-    
+
     /**
      * Get CSS for a specific widget (for debugging)
      */
@@ -546,14 +546,14 @@ class CSSManager
     {
         return self::$collectedCSS[$widgetId] ?? null;
     }
-    
+
     /**
      * Register CSS that should be loaded once per page (libraries, frameworks)
      */
     public static function addGlobalCSS(string $css, string $identifier = ''): void
     {
         $key = $identifier ?: 'global_' . md5($css);
-        
+
         if (!isset(self::$cssBySelector[$key])) {
             self::$cssBySelector[$key] = ['global' => $css];
         }

@@ -8,22 +8,22 @@ namespace Xgenious\PageBuilder\Core\Fields;
  * Provides a multi-line text input with row control, character limits,
  * and optional HTML support.
  * 
- * @package Plugins\Pagebuilder\Core\Fields
+ * @package plugins\Pagebuilder\Core\Fields
  */
 class TextareaField extends BaseField
 {
     /** @var string */
     protected string $type = 'textarea';
-    
+
     /** @var int */
     protected int $rows = 4;
-    
+
     /** @var int|null */
     protected ?int $cols = null;
-    
+
     /** @var string */
     protected string $resize = 'vertical';
-    
+
     /** @var bool */
     protected bool $allowHtml = false;
 
@@ -85,11 +85,11 @@ class TextareaField extends BaseField
             'resize' => $this->resize,
             'allow_html' => $this->allowHtml,
         ];
-        
+
         if ($this->cols !== null) {
             $config['cols'] = $this->cols;
         }
-        
+
         return $config;
     }
 }

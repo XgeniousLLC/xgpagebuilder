@@ -8,7 +8,7 @@ namespace Xgenious\PageBuilder\Core;
  * Provides helper methods for rendering various page builder elements
  * with proper XSS protection and security measures.
  * 
- * @package Plugins\Pagebuilder\Core
+ * @package plugins\Pagebuilder\Core
  */
 class PageBuilderUtils
 {
@@ -32,7 +32,7 @@ class PageBuilderUtils
 
         // Validate and sanitize link data
         $sanitizedLink = self::sanitizeLinkData($linkData);
-        
+
         // If no URL and not allowing empty URLs, return content without link
         if (empty($sanitizedLink['url']) && !$options['allow_empty_url']) {
             return $options['escape_content'] ? htmlspecialchars($content, ENT_QUOTES, 'UTF-8') : $content;
@@ -143,8 +143,8 @@ class PageBuilderUtils
             foreach ($utmKeys as $key) {
                 if (isset($linkData['utm_parameters'][$key])) {
                     $sanitized['utm_parameters'][$key] = htmlspecialchars(
-                        strip_tags($linkData['utm_parameters'][$key]), 
-                        ENT_QUOTES, 
+                        strip_tags($linkData['utm_parameters'][$key]),
+                        ENT_QUOTES,
                         'UTF-8'
                     );
                 }
@@ -241,8 +241,16 @@ class PageBuilderUtils
 
         // Allow specific safe HTML attributes
         $allowedAttributes = [
-            'class', 'id', 'title', 'style', 'role', 'tabindex',
-            'lang', 'dir', 'hidden', 'accesskey'
+            'class',
+            'id',
+            'title',
+            'style',
+            'role',
+            'tabindex',
+            'lang',
+            'dir',
+            'hidden',
+            'accesskey'
         ];
 
         return in_array($attributeName, $allowedAttributes);
@@ -270,12 +278,12 @@ class PageBuilderUtils
 
         // Add rel attribute
         $relValues = $linkData['rel'] ?? [];
-        
+
         // Auto-add security rel attributes for external links
         if ($linkData['target'] === '_blank' && !in_array('noopener', $relValues)) {
             $relValues[] = 'noopener';
         }
-        
+
         if (!empty($relValues)) {
             $attributes['rel'] = implode(' ', array_unique($relValues));
         }

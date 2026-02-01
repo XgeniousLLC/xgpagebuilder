@@ -9,7 +9,7 @@ namespace Xgenious\PageBuilder\Core\Fields;
  * multiple units, and responsive breakpoints. Perfect for padding, margin,
  * border radius, and other CSS box model properties.
  * 
- * @package Plugins\Pagebuilder\Core\Fields
+ * @package plugins\Pagebuilder\Core\Fields
  */
 class DimensionField extends BaseField
 {
@@ -166,9 +166,9 @@ class DimensionField extends BaseField
     public function asPadding(): static
     {
         return $this->setUnits(['px', 'em', 'rem', '%'])
-                    ->setMin(0)
-                    ->setMax(200)
-                    ->setDefault(['top' => 0, 'right' => 0, 'bottom' => 0, 'left' => 0]);
+            ->setMin(0)
+            ->setMax(200)
+            ->setDefault(['top' => 0, 'right' => 0, 'bottom' => 0, 'left' => 0]);
     }
 
     /**
@@ -179,10 +179,10 @@ class DimensionField extends BaseField
     public function asMargin(): static
     {
         return $this->setUnits(['px', 'em', 'rem', '%'])
-                    ->setAllowNegative(true)
-                    ->setMin(-200)
-                    ->setMax(200)
-                    ->setDefault(['top' => 0, 'right' => 0, 'bottom' => 0, 'left' => 0]);
+            ->setAllowNegative(true)
+            ->setMin(-200)
+            ->setMax(200)
+            ->setDefault(['top' => 0, 'right' => 0, 'bottom' => 0, 'left' => 0]);
     }
 
     /**
@@ -193,9 +193,9 @@ class DimensionField extends BaseField
     public function asBorderRadius(): static
     {
         return $this->setUnits(['px', 'em', 'rem', '%'])
-                    ->setMin(0)
-                    ->setMax(100)
-                    ->setDefault(['top' => 0, 'right' => 0, 'bottom' => 0, 'left' => 0]);
+            ->setMin(0)
+            ->setMax(100)
+            ->setDefault(['top' => 0, 'right' => 0, 'bottom' => 0, 'left' => 0]);
     }
 
     /**
@@ -206,7 +206,7 @@ class DimensionField extends BaseField
     public function asSingleValue(): static
     {
         return $this->setSides(['all'])
-                    ->setLinked(true);
+            ->setLinked(true);
     }
 
     /**
@@ -222,15 +222,15 @@ class DimensionField extends BaseField
             'step' => $this->step,
             'show_labels' => $this->showLabels,
         ];
-        
+
         if ($this->min !== null) {
             $config['min'] = $this->min;
         }
-        
+
         if ($this->max !== null) {
             $config['max'] = $this->max;
         }
-        
+
         return $config;
     }
 }

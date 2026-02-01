@@ -43,7 +43,7 @@ use Xgenious\PageBuilder\Core\FieldTypes\DividerField as VisualDividerField;
  * and type safety. Each method returns a configured field instance that can be further
  * customized using chainable methods.
  * 
- * @package Plugins\Pagebuilder\Core
+ * @package plugins\Pagebuilder\Core
  */
 class FieldManager
 {

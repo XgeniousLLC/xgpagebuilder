@@ -11,25 +11,25 @@ namespace Xgenious\PageBuilder\Core\Fields;
  * - Background images with positioning options
  * - Hover states
  * 
- * @package Plugins\Pagebuilder\Core\Fields
+ * @package plugins\Pagebuilder\Core\Fields
  */
 class BackgroundField extends BaseField
 {
     /** @var string */
     protected string $type = 'background_group';
-    
+
     /** @var array<string> */
     protected array $allowedTypes = ['none', 'color', 'gradient', 'image'];
-    
+
     /** @var string */
     protected string $defaultType = 'none';
-    
+
     /** @var bool */
     protected bool $enableHover = true;
-    
+
     /** @var bool */
     protected bool $enableImage = true;
-    
+
     /** @var array */
     protected array $defaultBackground = [
         'type' => 'none',

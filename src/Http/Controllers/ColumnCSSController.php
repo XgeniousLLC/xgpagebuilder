@@ -5,7 +5,7 @@ namespace Xgenious\PageBuilder\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Plugins\Pagebuilder\Core\ColumnCSSManager;
+use plugins\Pagebuilder\Core\ColumnCSSManager;
 
 /**
  * ColumnCSSController - Handles column CSS generation for the page builder
@@ -46,7 +46,6 @@ class ColumnCSSController extends Controller
                 'selector' => ColumnCSSManager::getColumnSelector($columnId),
                 'classes' => ColumnCSSManager::getColumnClasses($settings)
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -86,7 +85,6 @@ class ColumnCSSController extends Controller
                 'css' => $css,
                 'columns' => count($columns)
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -114,7 +112,6 @@ class ColumnCSSController extends Controller
                 'success' => true,
                 'classes' => $classes
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -157,7 +154,6 @@ class ColumnCSSController extends Controller
                     'settings' => $settings
                 ]
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -189,7 +185,6 @@ class ColumnCSSController extends Controller
                 'success' => true,
                 'message' => $message
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,

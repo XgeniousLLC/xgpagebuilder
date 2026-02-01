@@ -8,46 +8,46 @@ namespace Xgenious\PageBuilder\Core\Fields;
  * Provides common functionality and chainable methods for field configuration.
  * Each field type extends this class and implements type-specific behavior.
  * 
- * @package Plugins\Pagebuilder\Core\Fields
+ * @package plugins\Pagebuilder\Core\Fields
  */
 abstract class BaseField
 {
     /** @var string */
     protected string $type;
-    
+
     /** @var string */
     protected string $label = '';
-    
+
     /** @var mixed */
     protected mixed $default = null;
-    
+
     /** @var bool */
     protected bool $required = false;
-    
+
     /** @var string */
     protected string $placeholder = '';
-    
+
     /** @var string */
     protected string $description = '';
-    
+
     /** @var array<string, mixed> */
     protected array $condition = [];
-    
+
     /** @var array<string, mixed> */
     protected array $validation = [];
-    
+
     /** @var array<string, string> */
     protected array $selectors = [];
-    
+
     /** @var array<string, mixed> */
     protected array $attributes = [];
-    
+
     /** @var string */
     protected string $cssClass = '';
-    
+
     /** @var bool */
     protected bool $responsive = false;
-    
+
     /** @var string|null */
     protected ?string $unit = null;
 

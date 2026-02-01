@@ -17,7 +17,7 @@ use Xgenious\PageBuilder\Core\FieldManager;
  * - Custom background for visual debugging
  * - Min/max height constraints
  *
- * @package Plugins\Pagebuilder\Widgets\Layout
+ * @package plugins\Pagebuilder\Widgets\Layout
  */
 class SpacerWidget extends BaseWidget
 {
@@ -60,81 +60,99 @@ class SpacerWidget extends BaseWidget
 
         // Spacing Configuration Group
         $control->addGroup('spacing', 'Spacing Configuration')
-            ->registerField('height', FieldManager::NUMBER()
-                ->setLabel('Height')
-                ->setDefault(50)
-                ->setMin(0)
-                ->setMax(500)
-                ->setUnit('px')
-                ->setResponsive(true)
-                ->setDescription('The height of the spacer element')
+            ->registerField(
+                'height',
+                FieldManager::NUMBER()
+                    ->setLabel('Height')
+                    ->setDefault(50)
+                    ->setMin(0)
+                    ->setMax(500)
+                    ->setUnit('px')
+                    ->setResponsive(true)
+                    ->setDescription('The height of the spacer element')
             )
-            ->registerField('min_height', FieldManager::NUMBER()
-                ->setLabel('Minimum Height')
-                ->setDefault(0)
-                ->setMin(0)
-                ->setMax(200)
-                ->setUnit('px')
-                ->setResponsive(true)
-                ->setDescription('Minimum height constraint')
+            ->registerField(
+                'min_height',
+                FieldManager::NUMBER()
+                    ->setLabel('Minimum Height')
+                    ->setDefault(0)
+                    ->setMin(0)
+                    ->setMax(200)
+                    ->setUnit('px')
+                    ->setResponsive(true)
+                    ->setDescription('Minimum height constraint')
             )
-            ->registerField('max_height', FieldManager::NUMBER()
-                ->setLabel('Maximum Height')
-                ->setDefault('')
-                ->setMin(0)
-                ->setMax(1000)
-                ->setUnit('px')
-                ->setResponsive(true)
-                ->setDescription('Maximum height constraint (leave empty for no limit)')
+            ->registerField(
+                'max_height',
+                FieldManager::NUMBER()
+                    ->setLabel('Maximum Height')
+                    ->setDefault('')
+                    ->setMin(0)
+                    ->setMax(1000)
+                    ->setUnit('px')
+                    ->setResponsive(true)
+                    ->setDescription('Maximum height constraint (leave empty for no limit)')
             )
             ->endGroup();
 
         // Responsive Behavior Group
         $control->addGroup('responsive', 'Responsive Behavior')
-            ->registerField('hide_on_desktop', FieldManager::TOGGLE()
-                ->setLabel('Hide on Desktop')
-                ->setDefault(false)
-                ->setDescription('Hide spacer on desktop devices (1024px and up)')
+            ->registerField(
+                'hide_on_desktop',
+                FieldManager::TOGGLE()
+                    ->setLabel('Hide on Desktop')
+                    ->setDefault(false)
+                    ->setDescription('Hide spacer on desktop devices (1024px and up)')
             )
-            ->registerField('hide_on_tablet', FieldManager::TOGGLE()
-                ->setLabel('Hide on Tablet')
-                ->setDefault(false)
-                ->setDescription('Hide spacer on tablet devices (768px - 1023px)')
+            ->registerField(
+                'hide_on_tablet',
+                FieldManager::TOGGLE()
+                    ->setLabel('Hide on Tablet')
+                    ->setDefault(false)
+                    ->setDescription('Hide spacer on tablet devices (768px - 1023px)')
             )
-            ->registerField('hide_on_mobile', FieldManager::TOGGLE()
-                ->setLabel('Hide on Mobile')
-                ->setDefault(false)
-                ->setDescription('Hide spacer on mobile devices (767px and below)')
+            ->registerField(
+                'hide_on_mobile',
+                FieldManager::TOGGLE()
+                    ->setLabel('Hide on Mobile')
+                    ->setDefault(false)
+                    ->setDescription('Hide spacer on mobile devices (767px and below)')
             )
             ->endGroup();
 
         // Advanced Options Group
         $control->addGroup('advanced_options', 'Advanced Options')
-            ->registerField('spacer_type', FieldManager::SELECT()
-                ->setLabel('Spacer Type')
-                ->setDefault('vertical')
-                ->setOptions([
-                    'vertical' => 'Vertical Spacing',
-                    'horizontal' => 'Horizontal Spacing',
-                    'both' => 'Both Directions'
-                ])
-                ->setDescription('Direction of the spacing')
+            ->registerField(
+                'spacer_type',
+                FieldManager::SELECT()
+                    ->setLabel('Spacer Type')
+                    ->setDefault('vertical')
+                    ->setOptions([
+                        'vertical' => 'Vertical Spacing',
+                        'horizontal' => 'Horizontal Spacing',
+                        'both' => 'Both Directions'
+                    ])
+                    ->setDescription('Direction of the spacing')
             )
-            ->registerField('horizontal_width', FieldManager::NUMBER()
-                ->setLabel('Horizontal Width')
-                ->setDefault(50)
-                ->setMin(0)
-                ->setMax(500)
-                ->setUnit('px')
-                ->setResponsive(true)
-                ->setCondition(['spacer_type' => ['in', ['horizontal', 'both']]])
-                ->setDescription('Width for horizontal spacing')
+            ->registerField(
+                'horizontal_width',
+                FieldManager::NUMBER()
+                    ->setLabel('Horizontal Width')
+                    ->setDefault(50)
+                    ->setMin(0)
+                    ->setMax(500)
+                    ->setUnit('px')
+                    ->setResponsive(true)
+                    ->setCondition(['spacer_type' => ['in', ['horizontal', 'both']]])
+                    ->setDescription('Width for horizontal spacing')
             )
-            ->registerField('inline_spacer', FieldManager::TOGGLE()
-                ->setLabel('Inline Spacer')
-                ->setDefault(false)
-                ->setCondition(['spacer_type' => ['in', ['horizontal', 'both']]])
-                ->setDescription('Make spacer inline instead of block level')
+            ->registerField(
+                'inline_spacer',
+                FieldManager::TOGGLE()
+                    ->setLabel('Inline Spacer')
+                    ->setDefault(false)
+                    ->setCondition(['spacer_type' => ['in', ['horizontal', 'both']]])
+                    ->setDescription('Make spacer inline instead of block level')
             )
             ->endGroup();
 
@@ -150,147 +168,177 @@ class SpacerWidget extends BaseWidget
 
         // Appearance Group
         $control->addGroup('appearance', 'Appearance')
-            ->registerField('show_background', FieldManager::TOGGLE()
-                ->setLabel('Show Background')
-                ->setDefault(false)
-                ->setDescription('Show background color for visual debugging')
+            ->registerField(
+                'show_background',
+                FieldManager::TOGGLE()
+                    ->setLabel('Show Background')
+                    ->setDefault(false)
+                    ->setDescription('Show background color for visual debugging')
             )
-            ->registerField('background_color', FieldManager::COLOR()
-                ->setLabel('Background Color')
-                ->setDefault('#F3F4F6')
-                ->setCondition(['show_background' => true])
-                ->setSelectors([
-                    '{{WRAPPER}} .spacer-element' => 'background-color: {{VALUE}};'
-                ])
+            ->registerField(
+                'background_color',
+                FieldManager::COLOR()
+                    ->setLabel('Background Color')
+                    ->setDefault('#F3F4F6')
+                    ->setCondition(['show_background' => true])
+                    ->setSelectors([
+                        '{{WRAPPER}} .spacer-element' => 'background-color: {{VALUE}};'
+                    ])
             )
-            ->registerField('background_opacity', FieldManager::NUMBER()
-                ->setLabel('Background Opacity')
-                ->setDefault(0.3)
-                ->setMin(0)
-                ->setMax(1)
-                ->setStep(0.1)
-                ->setCondition(['show_background' => true])
-                ->setSelectors([
-                    '{{WRAPPER}} .spacer-element' => 'opacity: {{VALUE}};'
-                ])
+            ->registerField(
+                'background_opacity',
+                FieldManager::NUMBER()
+                    ->setLabel('Background Opacity')
+                    ->setDefault(0.3)
+                    ->setMin(0)
+                    ->setMax(1)
+                    ->setStep(0.1)
+                    ->setCondition(['show_background' => true])
+                    ->setSelectors([
+                        '{{WRAPPER}} .spacer-element' => 'opacity: {{VALUE}};'
+                    ])
             )
             ->endGroup();
 
         // Border & Effects Group
         $control->addGroup('border', 'Border & Effects')
-            ->registerField('show_border', FieldManager::TOGGLE()
-                ->setLabel('Show Border')
-                ->setDefault(false)
-                ->setDescription('Show border for visual debugging')
+            ->registerField(
+                'show_border',
+                FieldManager::TOGGLE()
+                    ->setLabel('Show Border')
+                    ->setDefault(false)
+                    ->setDescription('Show border for visual debugging')
             )
-            ->registerField('border_style', FieldManager::SELECT()
-                ->setLabel('Border Style')
-                ->setDefault('dashed')
-                ->setOptions([
-                    'solid' => 'Solid',
-                    'dashed' => 'Dashed',
-                    'dotted' => 'Dotted',
-                    'double' => 'Double'
-                ])
-                ->setCondition(['show_border' => true])
-                ->setSelectors([
-                    '{{WRAPPER}} .spacer-element' => 'border-style: {{VALUE}};'
-                ])
+            ->registerField(
+                'border_style',
+                FieldManager::SELECT()
+                    ->setLabel('Border Style')
+                    ->setDefault('dashed')
+                    ->setOptions([
+                        'solid' => 'Solid',
+                        'dashed' => 'Dashed',
+                        'dotted' => 'Dotted',
+                        'double' => 'Double'
+                    ])
+                    ->setCondition(['show_border' => true])
+                    ->setSelectors([
+                        '{{WRAPPER}} .spacer-element' => 'border-style: {{VALUE}};'
+                    ])
             )
-            ->registerField('border_width', FieldManager::NUMBER()
-                ->setLabel('Border Width')
-                ->setDefault(1)
-                ->setMin(1)
-                ->setMax(10)
-                ->setUnit('px')
-                ->setCondition(['show_border' => true])
-                ->setSelectors([
-                    '{{WRAPPER}} .spacer-element' => 'border-width: {{VALUE}}{{UNIT}};'
-                ])
+            ->registerField(
+                'border_width',
+                FieldManager::NUMBER()
+                    ->setLabel('Border Width')
+                    ->setDefault(1)
+                    ->setMin(1)
+                    ->setMax(10)
+                    ->setUnit('px')
+                    ->setCondition(['show_border' => true])
+                    ->setSelectors([
+                        '{{WRAPPER}} .spacer-element' => 'border-width: {{VALUE}}{{UNIT}};'
+                    ])
             )
-            ->registerField('border_color', FieldManager::COLOR()
-                ->setLabel('Border Color')
-                ->setDefault('#E5E7EB')
-                ->setCondition(['show_border' => true])
-                ->setSelectors([
-                    '{{WRAPPER}} .spacer-element' => 'border-color: {{VALUE}};'
-                ])
+            ->registerField(
+                'border_color',
+                FieldManager::COLOR()
+                    ->setLabel('Border Color')
+                    ->setDefault('#E5E7EB')
+                    ->setCondition(['show_border' => true])
+                    ->setSelectors([
+                        '{{WRAPPER}} .spacer-element' => 'border-color: {{VALUE}};'
+                    ])
             )
-            ->registerField('border_radius', FieldManager::DIMENSION()
-                ->setLabel('Border Radius')
-                ->setDefault(['top' => 0, 'right' => 0, 'bottom' => 0, 'left' => 0])
-                ->setUnits(['px', 'em', 'rem', '%'])
-                ->setMin(0)
-                ->setMax(50)
-                ->setLinked(true)
-                ->setCondition(['show_border' => true])
-                ->setSelectors([
-                    '{{WRAPPER}} .spacer-element' => 'border-radius: {{VALUE.TOP}}{{UNIT}} {{VALUE.RIGHT}}{{UNIT}} {{VALUE.BOTTOM}}{{UNIT}} {{VALUE.LEFT}}{{UNIT}};'
-                ])
+            ->registerField(
+                'border_radius',
+                FieldManager::DIMENSION()
+                    ->setLabel('Border Radius')
+                    ->setDefault(['top' => 0, 'right' => 0, 'bottom' => 0, 'left' => 0])
+                    ->setUnits(['px', 'em', 'rem', '%'])
+                    ->setMin(0)
+                    ->setMax(50)
+                    ->setLinked(true)
+                    ->setCondition(['show_border' => true])
+                    ->setSelectors([
+                        '{{WRAPPER}} .spacer-element' => 'border-radius: {{VALUE.TOP}}{{UNIT}} {{VALUE.RIGHT}}{{UNIT}} {{VALUE.BOTTOM}}{{UNIT}} {{VALUE.LEFT}}{{UNIT}};'
+                    ])
             )
             ->endGroup();
 
         // Debug Information Group
         $control->addGroup('debug', 'Debug Information')
-            ->registerField('show_label', FieldManager::TOGGLE()
-                ->setLabel('Show Label')
-                ->setDefault(false)
-                ->setDescription('Show spacer label for debugging purposes')
+            ->registerField(
+                'show_label',
+                FieldManager::TOGGLE()
+                    ->setLabel('Show Label')
+                    ->setDefault(false)
+                    ->setDescription('Show spacer label for debugging purposes')
             )
-            ->registerField('label_text', FieldManager::TEXT()
-                ->setLabel('Label Text')
-                ->setDefault('SPACER')
-                ->setCondition(['show_label' => true])
-                ->setDescription('Custom text to display in the spacer')
+            ->registerField(
+                'label_text',
+                FieldManager::TEXT()
+                    ->setLabel('Label Text')
+                    ->setDefault('SPACER')
+                    ->setCondition(['show_label' => true])
+                    ->setDescription('Custom text to display in the spacer')
             )
-            ->registerField('label_color', FieldManager::COLOR()
-                ->setLabel('Label Color')
-                ->setDefault('#6B7280')
-                ->setCondition(['show_label' => true])
-                ->setSelectors([
-                    '{{WRAPPER}} .spacer-label' => 'color: {{VALUE}};'
-                ])
+            ->registerField(
+                'label_color',
+                FieldManager::COLOR()
+                    ->setLabel('Label Color')
+                    ->setDefault('#6B7280')
+                    ->setCondition(['show_label' => true])
+                    ->setSelectors([
+                        '{{WRAPPER}} .spacer-label' => 'color: {{VALUE}};'
+                    ])
             )
-            ->registerField('label_font_size', FieldManager::NUMBER()
-                ->setLabel('Label Font Size')
-                ->setDefault(12)
-                ->setMin(8)
-                ->setMax(20)
-                ->setUnit('px')
-                ->setCondition(['show_label' => true])
-                ->setSelectors([
-                    '{{WRAPPER}} .spacer-label' => 'font-size: {{VALUE}}{{UNIT}};'
-                ])
+            ->registerField(
+                'label_font_size',
+                FieldManager::NUMBER()
+                    ->setLabel('Label Font Size')
+                    ->setDefault(12)
+                    ->setMin(8)
+                    ->setMax(20)
+                    ->setUnit('px')
+                    ->setCondition(['show_label' => true])
+                    ->setSelectors([
+                        '{{WRAPPER}} .spacer-label' => 'font-size: {{VALUE}}{{UNIT}};'
+                    ])
             )
             ->endGroup();
 
         // Advanced Styling Group
         $control->addGroup('advanced_style', 'Advanced Styling')
-            ->registerField('box_shadow', FieldManager::TEXT()
-                ->setLabel('Box Shadow')
-                ->setDefault('none')
-                ->setPlaceholder('0 1px 3px rgba(0,0,0,0.1)')
-                ->setSelectors([
-                    '{{WRAPPER}} .spacer-element' => 'box-shadow: {{VALUE}};'
-                ])
+            ->registerField(
+                'box_shadow',
+                FieldManager::TEXT()
+                    ->setLabel('Box Shadow')
+                    ->setDefault('none')
+                    ->setPlaceholder('0 1px 3px rgba(0,0,0,0.1)')
+                    ->setSelectors([
+                        '{{WRAPPER}} .spacer-element' => 'box-shadow: {{VALUE}};'
+                    ])
             )
-            ->registerField('transform', FieldManager::TEXT()
-                ->setLabel('Transform')
-                ->setDefault('none')
-                ->setPlaceholder('scale(1.1) or rotate(5deg)')
-                ->setSelectors([
-                    '{{WRAPPER}} .spacer-element' => 'transform: {{VALUE}};'
-                ])
+            ->registerField(
+                'transform',
+                FieldManager::TEXT()
+                    ->setLabel('Transform')
+                    ->setDefault('none')
+                    ->setPlaceholder('scale(1.1) or rotate(5deg)')
+                    ->setSelectors([
+                        '{{WRAPPER}} .spacer-element' => 'transform: {{VALUE}};'
+                    ])
             )
-            ->registerField('z_index', FieldManager::NUMBER()
-                ->setLabel('Z-Index')
-                ->setDefault('')
-                ->setMin(-1000)
-                ->setMax(1000)
-                ->setSelectors([
-                    '{{WRAPPER}} .spacer-element' => 'z-index: {{VALUE}};'
-                ])
-                ->setDescription('Stacking order of the spacer element')
+            ->registerField(
+                'z_index',
+                FieldManager::NUMBER()
+                    ->setLabel('Z-Index')
+                    ->setDefault('')
+                    ->setMin(-1000)
+                    ->setMax(1000)
+                    ->setSelectors([
+                        '{{WRAPPER}} .spacer-element' => 'z-index: {{VALUE}};'
+                    ])
+                    ->setDescription('Stacking order of the spacer element')
             )
             ->endGroup();
 

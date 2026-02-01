@@ -18,7 +18,7 @@ use Xgenious\PageBuilder\Core\FieldManager;
  * - Drop cap functionality
  * - Advanced styling options
  * 
- * @package Plugins\Pagebuilder\Widgets\Basic
+ * @package plugins\Pagebuilder\Widgets\Basic
  */
 class ParagraphWidget extends BaseWidget
 {

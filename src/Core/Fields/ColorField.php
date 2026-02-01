@@ -8,22 +8,22 @@ namespace Xgenious\PageBuilder\Core\Fields;
  * Provides a color picker with support for hex, rgba, and predefined color swatches.
  * Includes transparency support and color palette management.
  * 
- * @package Plugins\Pagebuilder\Core\Fields
+ * @package plugins\Pagebuilder\Core\Fields
  */
 class ColorField extends BaseField
 {
     /** @var string */
     protected string $type = 'color';
-    
+
     /** @var bool */
     protected bool $allowTransparency = true;
-    
+
     /** @var array<string> */
     protected array $swatches = [];
-    
+
     /** @var bool */
     protected bool $showInput = true;
-    
+
     /** @var string */
     protected string $format = 'hex';
 
@@ -83,8 +83,16 @@ class ColorField extends BaseField
     public function addCommonSwatches(): static
     {
         $this->swatches = array_merge($this->swatches, [
-            '#000000', '#FFFFFF', '#FF0000', '#00FF00', '#0000FF',
-            '#FFFF00', '#FF00FF', '#00FFFF', '#808080', '#C0C0C0'
+            '#000000',
+            '#FFFFFF',
+            '#FF0000',
+            '#00FF00',
+            '#0000FF',
+            '#FFFF00',
+            '#FF00FF',
+            '#00FFFF',
+            '#808080',
+            '#C0C0C0'
         ]);
         return $this;
     }

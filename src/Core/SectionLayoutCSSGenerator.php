@@ -14,7 +14,7 @@ namespace Xgenious\PageBuilder\Core;
  * - full_width_contained: Full viewport width with contained inner content
  * - full_width: Full viewport width with unconstrained inner content
  *
- * @package Plugins\Pagebuilder\Core
+ * @package plugins\Pagebuilder\Core
  */
 class SectionLayoutCSSGenerator
 {

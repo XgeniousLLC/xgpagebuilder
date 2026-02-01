@@ -4,7 +4,7 @@ namespace Xgenious\PageBuilder\Core;
 
 use Xgenious\PageBuilder\Core\WidgetRegistry;
 use Xgenious\PageBuilder\Core\WidgetCategory;
-use Plugins\Pagebuilder\Widgets\Theme\HeaderWidget;
+use plugins\Pagebuilder\Widgets\Theme\HeaderWidget;
 use Illuminate\Support\Facades\File;
 
 /**
@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\File;
  * External users should use WidgetRegistrar class instead.
  *
  * @internal This class is for internal use only
- * @see \Plugins\Pagebuilder\WidgetRegistrar For public API
+ * @see \plugins\Pagebuilder\WidgetRegistrar For public API
  */
 class WidgetLoader
 {
@@ -258,10 +258,10 @@ class WidgetLoader
     private static function registerMediaWidgets(): void
     {
         $mediaWidgets = [
-            \Plugins\Pagebuilder\Widgets\Media\ImageWidget::class,
-            \Plugins\Pagebuilder\Widgets\Media\VideoWidget::class,
-            \Plugins\Pagebuilder\Widgets\Media\IconWidget::class,
-            \Plugins\Pagebuilder\Widgets\Media\ImageGalleryWidget::class,
+            \plugins\Pagebuilder\Widgets\Media\ImageWidget::class,
+            \plugins\Pagebuilder\Widgets\Media\VideoWidget::class,
+            \plugins\Pagebuilder\Widgets\Media\IconWidget::class,
+            \plugins\Pagebuilder\Widgets\Media\ImageGalleryWidget::class,
         ];
 
         WidgetRegistry::registerMultiple($mediaWidgets);
@@ -273,7 +273,7 @@ class WidgetLoader
     private static function registerInteractiveWidgets(): void
     {
         $interactiveWidgets = [
-            \Plugins\Pagebuilder\Widgets\Interactive\TabsWidget::class,
+            \plugins\Pagebuilder\Widgets\Interactive\TabsWidget::class,
         ];
 
         WidgetRegistry::registerMultiple($interactiveWidgets);
@@ -285,7 +285,7 @@ class WidgetLoader
     private static function registerContentWidgets(): void
     {
         $contentWidgets = [
-            \Plugins\Pagebuilder\Widgets\Content\TestimonialWidget::class,
+            \plugins\Pagebuilder\Widgets\Content\TestimonialWidget::class,
         ];
 
         WidgetRegistry::registerMultiple($contentWidgets);
@@ -297,7 +297,7 @@ class WidgetLoader
     private static function registerAdvancedWidgets(): void
     {
         $advancedWidgets = [
-            \Plugins\Pagebuilder\Widgets\Advanced\CodeWidget::class,
+            \plugins\Pagebuilder\Widgets\Advanced\CodeWidget::class,
         ];
 
         WidgetRegistry::registerMultiple($advancedWidgets);
@@ -308,9 +308,7 @@ class WidgetLoader
      */
     private static function registerFormWidgets(): void
     {
-        $formWidgets = [
-
-        ];
+        $formWidgets = [];
 
         WidgetRegistry::registerMultiple($formWidgets);
     }

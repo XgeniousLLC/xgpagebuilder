@@ -15,7 +15,7 @@ namespace Xgenious\PageBuilder\Core;
  * - Inline style generation for immediate preview
  * - Support for all CSS properties and units
  * 
- * @package Plugins\Pagebuilder\Core
+ * @package plugins\Pagebuilder\Core
  */
 trait AutoStyleGenerator
 {
@@ -29,33 +29,33 @@ trait AutoStyleGenerator
     protected function generateInlineStyles(array $settings, array $additionalStyles = []): string
     {
         $styles = [];
-        
+
         // Get all style fields for this widget
         $styleFields = $this->getStyleFields();
         $styleSettings = $settings['style'] ?? [];
-        
+
         // Process each style field group
         foreach ($styleFields as $groupName => $group) {
             if (!isset($group['fields'])) continue;
-            
+
             $groupSettings = $styleSettings[$groupName] ?? [];
             $groupStyles = $this->processStyleGroup($group['fields'], $groupSettings);
             $styles = array_merge($styles, $groupStyles);
         }
-        
+
         // Add any additional manual styles
         if (!empty($additionalStyles)) {
             $styles = array_merge($styles, $additionalStyles);
         }
-        
+
         // Remove empty styles and duplicates
-        $styles = array_unique(array_filter($styles, function($value) {
+        $styles = array_unique(array_filter($styles, function ($value) {
             return !empty($value) && $value !== 'none' && trim($value) !== '';
         }));
-        
+
         return implode('; ', $styles);
     }
-    
+
     /**
      * Process a group of style fields
      * 
@@ -66,23 +66,23 @@ trait AutoStyleGenerator
     private function processStyleGroup(array $fields, array $settings): array
     {
         $styles = [];
-        
+
         foreach ($fields as $fieldName => $field) {
             if (!isset($settings[$fieldName])) continue;
-            
+
             $value = $settings[$fieldName];
             $fieldType = $field['type'] ?? '';
-            
+
             // Skip empty values
             if (empty($value) && $value !== 0) continue;
-            
+
             $cssStyles = $this->convertFieldToCSS($fieldName, $value, $field);
             $styles = array_merge($styles, $cssStyles);
         }
-        
+
         return $styles;
     }
-    
+
     /**
      * Convert a field value to CSS properties
      * 
@@ -95,7 +95,7 @@ trait AutoStyleGenerator
     {
         $styles = [];
         $fieldType = $field['type'] ?? '';
-        
+
         // Handle special padding fields
         if ($fieldName === 'padding_horizontal') {
             $unit = $field['unit'] ?? 'px';
@@ -103,57 +103,57 @@ trait AutoStyleGenerator
             $styles[] = "padding-right: {$value}{$unit}";
             return $styles;
         }
-        
+
         if ($fieldName === 'padding_vertical') {
             $unit = $field['unit'] ?? 'px';
             $styles[] = "padding-top: {$value}{$unit}";
             $styles[] = "padding-bottom: {$value}{$unit}";
             return $styles;
         }
-        
+
         switch ($fieldType) {
             case 'color':
                 $styles[] = $this->getColorCSS($fieldName, $value);
                 break;
-                
+
             case 'number':
                 $styles[] = $this->getNumberCSS($fieldName, $value, $field);
                 break;
-                
+
             case 'dimension':
                 $dimensionStyles = $this->getDimensionCSS($fieldName, $value, $field);
                 $styles = array_merge($styles, $dimensionStyles);
                 break;
-                
+
             case 'select':
                 $styles[] = $this->getSelectCSS($fieldName, $value);
                 break;
-                
+
             case 'text':
                 $styles[] = $this->getTextCSS($fieldName, $value);
                 break;
-                
+
             case 'toggle':
                 if ($value) {
                     $toggleStyles = $this->getToggleCSS($fieldName, $field);
                     $styles = array_merge($styles, $toggleStyles);
                 }
                 break;
-                
+
             case 'typography_group':
                 $typographyStyles = $this->getTypographyGroupCSS($value);
                 $styles = array_merge($styles, $typographyStyles);
                 break;
-                
+
             case 'background_group':
                 $backgroundStyles = $this->getBackgroundGroupCSS($value);
                 $styles = array_merge($styles, $backgroundStyles);
                 break;
         }
-        
+
         return array_filter($styles);
     }
-    
+
     /**
      * Generate CSS for color fields
      */
@@ -162,7 +162,7 @@ trait AutoStyleGenerator
         $cssProperty = $this->fieldNameToCSS($fieldName);
         return "{$cssProperty}: {$value}";
     }
-    
+
     /**
      * Generate CSS for number fields
      */
@@ -170,10 +170,10 @@ trait AutoStyleGenerator
     {
         $cssProperty = $this->fieldNameToCSS($fieldName);
         $unit = $field['unit'] ?? '';
-        
+
         return "{$cssProperty}: {$value}{$unit}";
     }
-    
+
     /**
      * Generate CSS for dimension fields (margin, padding, border-radius, etc.)
      */
@@ -182,7 +182,7 @@ trait AutoStyleGenerator
         $styles = [];
         $cssProperty = $this->fieldNameToCSS($fieldName);
         $unit = $field['unit'] ?? 'px';
-        
+
         if (is_array($value)) {
             // Handle dimension objects like {top: 10, right: 20, bottom: 10, left: 20}
             if (isset($value['top']) || isset($value['right']) || isset($value['bottom']) || isset($value['left'])) {
@@ -190,14 +190,14 @@ trait AutoStyleGenerator
                 $right = $value['right'] ?? 0;
                 $bottom = $value['bottom'] ?? 0;
                 $left = $value['left'] ?? 0;
-                
+
                 $styles[] = "{$cssProperty}: {$top}{$unit} {$right}{$unit} {$bottom}{$unit} {$left}{$unit}";
             }
         }
-        
+
         return $styles;
     }
-    
+
     /**
      * Generate CSS for select fields
      */
@@ -206,7 +206,7 @@ trait AutoStyleGenerator
         $cssProperty = $this->fieldNameToCSS($fieldName);
         return "{$cssProperty}: {$value}";
     }
-    
+
     /**
      * Generate CSS for text fields
      */
@@ -215,43 +215,43 @@ trait AutoStyleGenerator
         $cssProperty = $this->fieldNameToCSS($fieldName);
         return "{$cssProperty}: {$value}";
     }
-    
+
     /**
      * Generate CSS for toggle fields
      */
     private function getToggleCSS(string $fieldName, array $field): array
     {
         $styles = [];
-        
+
         // Handle specific toggle behaviors
         switch ($fieldName) {
             case 'full_width':
                 $styles[] = 'width: 100%';
                 $styles[] = 'display: block';
                 break;
-                
+
             case 'disabled':
                 $styles[] = 'opacity: 0.5';
                 $styles[] = 'cursor: not-allowed';
                 $styles[] = 'pointer-events: none';
                 break;
-                
+
             case 'bold':
                 $styles[] = 'font-weight: bold';
                 break;
-                
+
             case 'italic':
                 $styles[] = 'font-style: italic';
                 break;
-                
+
             case 'underline':
                 $styles[] = 'text-decoration: underline';
                 break;
         }
-        
+
         return $styles;
     }
-    
+
     /**
      * Convert field name to CSS property name
      */
@@ -278,15 +278,15 @@ trait AutoStyleGenerator
             'hover_color' => 'color', // For hover states (handled separately)
             'hover_background_color' => 'background-color', // For hover states
         ];
-        
+
         if (isset($mappings[$fieldName])) {
             return $mappings[$fieldName];
         }
-        
+
         // Convert snake_case to kebab-case for CSS
         return str_replace('_', '-', $fieldName);
     }
-    
+
     /**
      * Generate CSS classes automatically from settings
      * 
@@ -297,40 +297,40 @@ trait AutoStyleGenerator
     protected function generateCssClasses(array $settings, array $additionalClasses = []): string
     {
         $classes = [];
-        
+
         // Add base widget classes with xgp_ prefix
         $classes[] = 'xgp_widget';
         $classes[] = 'xgp_' . $this->getWidgetType();
-        
+
         // Process general settings for classes
         $generalSettings = $settings['general'] ?? [];
         $generalClasses = $this->processGeneralClasses($generalSettings);
         $classes = array_merge($classes, $generalClasses);
-        
+
         // Process style settings for classes
         $styleSettings = $settings['style'] ?? [];
         $styleClasses = $this->processStyleClasses($styleSettings);
         $classes = array_merge($classes, $styleClasses);
-        
+
         // Add any additional manual classes
         $classes = array_merge($classes, $additionalClasses);
-        
+
         // Remove duplicates and empty values
         $classes = array_unique(array_filter($classes));
-        
+
         return implode(' ', $classes);
     }
-    
+
     /**
      * Process general settings to generate CSS classes
      */
     private function processGeneralClasses(array $settings): array
     {
         $classes = [];
-        
+
         foreach ($settings as $groupName => $group) {
             if (!is_array($group)) continue;
-            
+
             foreach ($group as $fieldName => $value) {
                 switch ($fieldName) {
                     case 'text_align':
@@ -338,21 +338,21 @@ trait AutoStyleGenerator
                             $classes[] = 'text-' . $value;
                         }
                         break;
-                        
+
                     case 'size':
                         $classes[] = 'size-' . $value;
                         break;
-                        
+
                     case 'button_style':
                         $classes[] = 'style-' . $value;
                         break;
-                        
+
                     case 'full_width':
                         if ($value) {
                             $classes[] = 'full-width';
                         }
                         break;
-                        
+
                     case 'disabled':
                         if ($value) {
                             $classes[] = 'disabled';
@@ -361,23 +361,23 @@ trait AutoStyleGenerator
                 }
             }
         }
-        
+
         return $classes;
     }
-    
+
     /**
      * Process style settings to generate CSS classes
      */
     private function processStyleClasses(array $settings): array
     {
         $classes = [];
-        
+
         // Add classes based on style settings if needed
         // This can be extended based on specific widget needs
-        
+
         return $classes;
     }
-    
+
     /**
      * Generate complete style attribute string
      * 
@@ -388,14 +388,14 @@ trait AutoStyleGenerator
     protected function generateStyleAttribute(array $settings, array $additionalStyles = []): string
     {
         $inlineStyles = $this->generateInlineStyles($settings, $additionalStyles);
-        
+
         if (empty($inlineStyles)) {
             return '';
         }
-        
+
         return 'style="' . htmlspecialchars($inlineStyles, ENT_QUOTES) . '"';
     }
-    
+
     /**
      * Generate complete class attribute string
      * 
@@ -406,10 +406,10 @@ trait AutoStyleGenerator
     protected function generateClassAttribute(array $settings, array $additionalClasses = []): string
     {
         $cssClasses = $this->generateCssClasses($settings, $additionalClasses);
-        
+
         return 'class="' . htmlspecialchars($cssClasses, ENT_QUOTES) . '"';
     }
-    
+
     /**
      * Generate CSS for Typography Group fields
      */

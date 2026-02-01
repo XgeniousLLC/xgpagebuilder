@@ -18,25 +18,25 @@ namespace Xgenious\PageBuilder\Core\Fields;
  * - Responsive support
  * - Customizable alignment options
  * 
- * @package Plugins\Pagebuilder\Core\Fields
+ * @package plugins\Pagebuilder\Core\Fields
  */
 class AlignmentField extends BaseField
 {
     /** @var string */
     protected string $type = 'alignment';
-    
+
     /** @var array<string> */
     protected array $alignments = ['none', 'left', 'center', 'right'];
-    
+
     /** @var bool */
     protected bool $showNone = true;
-    
+
     /** @var bool */
     protected bool $showJustify = false;
-    
+
     /** @var bool */
     protected bool $allowDisable = false;
-    
+
     /** @var string */
     protected string $property = 'text-align';
 
@@ -61,13 +61,13 @@ class AlignmentField extends BaseField
     public function setShowNone(bool $showNone = true): static
     {
         $this->showNone = $showNone;
-        
+
         if ($showNone && !in_array('none', $this->alignments)) {
             array_unshift($this->alignments, 'none');
         } elseif (!$showNone) {
             $this->alignments = array_filter($this->alignments, fn($val) => $val !== 'none');
         }
-        
+
         return $this;
     }
 
@@ -80,13 +80,13 @@ class AlignmentField extends BaseField
     public function setShowJustify(bool $showJustify = true): static
     {
         $this->showJustify = $showJustify;
-        
+
         if ($showJustify && !in_array('justify', $this->alignments)) {
             $this->alignments[] = 'justify';
         } elseif (!$showJustify) {
             $this->alignments = array_filter($this->alignments, fn($val) => $val !== 'justify');
         }
-        
+
         return $this;
     }
 
@@ -122,9 +122,9 @@ class AlignmentField extends BaseField
     public function asTextAlign(): static
     {
         return $this->setProperty('text-align')
-                    ->setAlignments(['none', 'left', 'center', 'right'])
-                    ->setShowJustify(true)
-                    ->setDefault('left');
+            ->setAlignments(['none', 'left', 'center', 'right'])
+            ->setShowJustify(true)
+            ->setDefault('left');
     }
 
     /**
@@ -135,9 +135,9 @@ class AlignmentField extends BaseField
     public function asFlexAlign(): static
     {
         return $this->setProperty('justify-content')
-                    ->setAlignments(['flex-start', 'center', 'flex-end'])
-                    ->setShowNone(false)
-                    ->setDefault('flex-start');
+            ->setAlignments(['flex-start', 'center', 'flex-end'])
+            ->setShowNone(false)
+            ->setDefault('flex-start');
     }
 
     /**
@@ -148,9 +148,9 @@ class AlignmentField extends BaseField
     public function asElementAlign(): static
     {
         return $this->setProperty('align-items')
-                    ->setAlignments(['flex-start', 'center', 'flex-end'])
-                    ->setShowNone(false)
-                    ->setDefault('flex-start');
+            ->setAlignments(['flex-start', 'center', 'flex-end'])
+            ->setShowNone(false)
+            ->setDefault('flex-start');
     }
 
     /**
