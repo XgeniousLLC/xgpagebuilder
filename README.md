@@ -109,7 +109,7 @@ return [
 
     // Register custom widgets
     'custom_widgets' => [
-        \Plugins\PageBuilder\Widgets\HeroSectionWidget::class,
+        \plugins\PageBuilder\Widgets\HeroSectionWidget::class,
     ],
 ];
 ```
@@ -165,7 +165,7 @@ Display in your Blade view:
 Create a widget class:
 
 ```php
-namespace Plugins\PageBuilder\Widgets;
+namespace plugins\PageBuilder\Widgets;
 
 use Xgenious\PageBuilder\Core\BaseWidget;
 use Xgenious\PageBuilder\Core\ControlManager;
@@ -209,7 +209,7 @@ Register in config:
 
 ```php
 'custom_widgets' => [
-    \Plugins\PageBuilder\Widgets\HeroSectionWidget::class,
+    \plugins\PageBuilder\Widgets\HeroSectionWidget::class,
 ],
 ```
 

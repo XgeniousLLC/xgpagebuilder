@@ -154,8 +154,8 @@ Register your custom widget classes:
 
 ```php
 'custom_widgets' => [
-    \Plugins\PageBuilder\Widgets\HeroSectionWidget::class,
-    \Plugins\PageBuilder\Widgets\FeatureGridWidget::class,
+    \plugins\PageBuilder\Widgets\HeroSectionWidget::class,
+    \plugins\PageBuilder\Widgets\FeatureGridWidget::class,
 ],
 ```
 

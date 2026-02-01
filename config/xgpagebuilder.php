@@ -97,7 +97,7 @@ return [
     'widget_paths' => [
         [
             'path' => base_path('plugins/PageBuilder/Widgets'),
-            'namespace' => 'Plugins\\PageBuilder\\Widgets',
+            'namespace' => 'plugins\\PageBuilder\\Widgets',
         ],
     ],
 
@@ -143,7 +143,7 @@ return [
     */
 
     'custom_widgets' => [
-        // \Plugins\PageBuilder\Widgets\HeroSectionWidget::class,
+        // \plugins\PageBuilder\Widgets\HeroSectionWidget::class,
     ],
 
     /*

@@ -181,7 +181,7 @@ Register your custom widget classes:
 
 ```php
 'custom_widgets' => [
-    \Plugins\PageBuilder\Widgets\HeroSectionWidget::class,
+    \plugins\PageBuilder\Widgets\HeroSectionWidget::class,
 ],
 ```
 
@@ -487,7 +487,7 @@ Change the route prefix:
 1. Verify widget is registered:
    ```php
    'custom_widgets' => [
-       \Plugins\PageBuilder\Widgets\HeroSectionWidget::class,
+       \plugins\PageBuilder\Widgets\HeroSectionWidget::class,
    ],
    ```
 

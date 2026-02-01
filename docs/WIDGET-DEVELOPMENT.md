@@ -21,13 +21,13 @@ Learn how to create custom widgets for XgPageBuilder and migrate legacy addons.
 Here's a complete example of a production-ready hero section widget with background image, trusted users, and call-to-action buttons:
 
 ```php
-// Plugins/PageBuilder/Widgets/HeroSectionWidget.php
-namespace Plugins\PageBuilder\Widgets;
+// plugins/PageBuilder/Widgets/HeroSectionWidget.php
+namespace plugins\PageBuilder\Widgets;
 
 use Xgenious\PageBuilder\Core\BaseWidget;
 use Xgenious\PageBuilder\Core\ControlManager;
 use Xgenious\PageBuilder\Core\FieldManager;
-use Plugins\PageBuilder\Traits\ExtractsImageIds;
+use plugins\PageBuilder\Traits\ExtractsImageIds;
 
 class HeroSectionWidget extends BaseWidget
 {
