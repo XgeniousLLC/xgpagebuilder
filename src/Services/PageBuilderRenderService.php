@@ -7,44 +7,57 @@ use Xgenious\PageBuilder\Core\SectionLayoutCSSGenerator;
 
 /**
  * PageBuilderRenderService
- * 
+ *
  * Handles the rendering of page builder content and manages CSS output
  * for the page header. This service coordinates between individual widget
  * rendering and the consolidated CSS system.
- * 
+ *
  * @package App\Services
  */
 class PageBuilderRenderService
 {
     /**
      * Render page builder content and collect CSS
-     * 
+     *
      * @param array $pageContent Page builder JSON content
+     * @param bool $ignoreStatus If true, renders content even if status is not 'on'.
+     *                           Useful for custom rendering logic (e.g., translations) where status is handled elsewhere.
      * @return array Rendered content and CSS
      */
-    public function renderPageContent(array $pageContent): array
+    public function renderPageContent(array $pageContent, bool $ignoreStatus = false): array
     {
         // Clear any previous CSS collection
         CSSManager::clearCSS();
-        
+
+        // If not ignoring status, perform a check on the content array if available
+        // Note: This checks the array structure, not the DB model.
+        // For DB model checks, use renderPage().
+        if (!$ignoreStatus && isset($pageContent['page_builder_status']) && $pageContent['page_builder_status'] !== 'on') {
+            return [
+                'html' => '',
+                'css' => '',
+                'stats' => []
+            ];
+        }
+
         $renderedHTML = '';
-        
+
         if (isset($pageContent['containers'])) {
             foreach ($pageContent['containers'] as $container) {
                 $renderedHTML .= $this->renderContainer($container);
             }
         }
-        
+
         // Get consolidated CSS
         $consolidatedCSS = CSSManager::getConsolidatedCSS();
-        
+
         return [
             'html' => $renderedHTML,
             'css' => $consolidatedCSS,
             'stats' => CSSManager::getStats()
         ];
     }
-    
+
     /**
      * Render a container with its columns and widgets
      */
@@ -99,7 +112,7 @@ class PageBuilderRenderService
 
         return $html;
     }
-    
+
     /**
      * Render a column with its widgets
      */
@@ -144,7 +157,7 @@ class PageBuilderRenderService
 
         return $html;
     }
-    
+
     /**
      * Render a single widget
      */
@@ -152,7 +165,7 @@ class PageBuilderRenderService
     {
         $widgetType = $widget['type'] ?? '';
         $widgetId = $widget['id'] ?? 'widget-' . uniqid();
-        
+
         // Prepare complete widget data with all settings
         // Widget data structure from getCompleteContent includes: general, style, advanced
         $widgetData = [
@@ -161,14 +174,14 @@ class PageBuilderRenderService
             'advanced' => $widget['advanced'] ?? [],
             'settings' => $widget['settings'] ?? [], // For backward compatibility
         ];
-        
+
         // Get widget instance and render
         $widgetInstance = $this->getWidgetInstance($widgetType);
-        
+
         if (!$widgetInstance) {
             return "<!-- Widget type '{$widgetType}' not found -->";
         }
-        
+
         try {
             // Generate CSS for the widget and register it with CSSManager
             // This ensures that styles are applied on the frontend
@@ -183,7 +196,7 @@ class PageBuilderRenderService
             // LegacyAddonAdapter needs the full structure with general/style/advanced tabs
             // It will flatten them internally in the render() method
             $html = $widgetInstance->render($widgetData);
-            
+
             // Wrap the HTML in a container with the widget ID to ensure CSS selectors match
             return sprintf(
                 '<div id="%s" class="%s xgp-widget xgp-widget-%s">%s</div>',
@@ -196,20 +209,19 @@ class PageBuilderRenderService
             return "<!-- Widget render error: {$e->getMessage()} -->";
         }
     }
-    
+
     /**
      * Get widget instance by type
      */
     private function getWidgetInstance(string $widgetType)
     {
         // This would use the WidgetRegistry to get the widget instance
-        // For now, return null as placeholder
         return \Xgenious\PageBuilder\Core\WidgetRegistry::getWidget($widgetType);
     }
-    
+
     /**
      * Get CSS for page header output
-     * 
+     *
      * @param bool $includeStyleTags Whether to wrap in <style> tags
      * @return string CSS ready for page header
      */
@@ -217,17 +229,18 @@ class PageBuilderRenderService
     {
         return CSSManager::outputPageCSS($includeStyleTags);
     }
-    
+
     /**
      * Render page content from JSON string
-     * 
+     *
      * @param string $jsonContent JSON encoded page content
+     * @param bool $ignoreStatus Bypass status check
      * @return array Rendered content and CSS
      */
-    public function renderFromJson(string $jsonContent): array
+    public function renderFromJson(string $jsonContent, bool $ignoreStatus = false): array
     {
         $pageContent = json_decode($jsonContent, true);
-        
+
         if (json_last_error() !== JSON_ERROR_NONE) {
             return [
                 'html' => '<!-- Invalid JSON content -->',
@@ -235,26 +248,27 @@ class PageBuilderRenderService
                 'error' => 'Invalid JSON: ' . json_last_error_msg()
             ];
         }
-        
-        return $this->renderPageContent($pageContent);
+
+        return $this->renderPageContent($pageContent, $ignoreStatus);
     }
 
     /**
      * Render a page using the page builder
-     * 
+     * This is the standard entry point for Page Models.
+     *
      * @param mixed $page Page model instance
      * @return string Rendered HTML with inline CSS
      */
     public function renderPage($page): string
     {
-        // Check if page uses page builder
-        if (!$page->use_page_builder) {
+        // Strict Status Check: Use page builder ONLY if status is 'on'
+        if (!$page->use_page_builder || $page->page_builder_status !== 'on') {
             return $page->page_content ?? '';
         }
 
         // Get page builder content
         $content = $page->pageBuilderContent;
-        
+
         if (!$content) {
             return '<div class="no-content">Page builder content not found</div>';
         }
@@ -264,17 +278,17 @@ class PageBuilderRenderService
 
     /**
      * Render PageBuilderContent model
-     * 
+     *
      * @param \Xgenious\PageBuilder\Models\PageBuilderContent $content
      * @return string Rendered HTML with inline CSS
      */
     public function renderPageBuilderContent($content): string
     {
         $completeContent = $content->getCompleteContent();
-        
+
         // Clear previous CSS
         CSSManager::clearCSS();
-        
+
         $html = '';
 
         // Render each container
@@ -292,7 +306,7 @@ class PageBuilderRenderService
 
         return $html;
     }
-    
+
     /**
      * Clear CSS collection (useful for testing)
      */
@@ -300,7 +314,7 @@ class PageBuilderRenderService
     {
         CSSManager::clearCSS();
     }
-    
+
     /**
      * Get CSS statistics
      */
