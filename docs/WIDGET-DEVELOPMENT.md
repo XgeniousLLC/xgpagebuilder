@@ -305,6 +305,107 @@ FieldManager::IMAGE()
     ->setDefault('')
 ```
 
+### Video Upload
+
+Upload and preview self-hosted video files (mp4, webm, mov, avi).
+
+```php
+FieldManager::VIDEO()
+    ->setLabel('Product Demo Video')
+    ->setDescription('Upload an MP4 or WebM file (max 100 MB)')
+    ->setDefault('')
+```
+
+**All available options:**
+
+```php
+FieldManager::VIDEO()
+    ->setLabel('Demo Video')
+    ->setRequired(true)
+    ->setDescription('Supports mp4, webm, mov, avi — max 100 MB by default')
+
+    // Restrict accepted MIME types (default: all four video types)
+    ->setAllowedTypes(['video/mp4', 'video/webm'])
+
+    // Maximum file size in bytes (default: 104857600 = 100 MB)
+    ->setMaxSize(52428800)   // 50 MB
+
+    // Allow selecting multiple videos (default: false)
+    ->setMultiple(false)
+
+    // Show native browser controls in preview (default: true)
+    ->setControls(true)
+
+    // Autoplay in preview (default: false — pair with setMuted(true) for browsers)
+    ->setAutoplay(false)
+
+    // Loop the preview (default: false)
+    ->setLoop(false)
+
+    // Start muted — required for autoplay to work in most browsers (default: false)
+    ->setMuted(false)
+
+    // HTML preload hint: 'auto' | 'metadata' | 'none' (default: 'metadata')
+    ->setPreload('metadata')
+
+    // Show the poster/thumbnail URL input in the editor (default: true)
+    ->setAllowPoster(true)
+```
+
+**Stored value shape** — the field saves a JSON object into widget settings:
+
+```php
+[
+    'id'        => 42,                    // media record ID (or null)
+    'url'       => 'https://…/video.mp4', // public URL
+    'poster'    => 'https://…/thumb.jpg', // optional thumbnail
+    'title'     => 'Demo Video',
+    'caption'   => '',
+    'filename'  => 'video.mp4',
+    'size'      => 5242880,               // bytes
+    'mime_type' => 'video/mp4',
+]
+```
+
+**Rendering the stored value in a widget:**
+
+```php
+public function render(array $settings = []): string
+{
+    $videoField = $settings['general']['media']['video'] ?? [];
+
+    $videoUrl   = $videoField['url']    ?? '';
+    $posterUrl  = $videoField['poster'] ?? '';
+    $videoTitle = $videoField['title']  ?? '';
+
+    return view('pagebuilder::widgets.my-video-widget', compact(
+        'videoUrl', 'posterUrl', 'videoTitle'
+    ))->render();
+}
+```
+
+```blade
+{{-- core/plugins/PageBuilder/views/widgets/my-video-widget.blade.php --}}
+@if($videoUrl)
+    <video
+        src="{{ $videoUrl }}"
+        @if($posterUrl) poster="{{ $posterUrl }}" @endif
+        controls
+        preload="metadata"
+        class="w-full rounded"
+    >
+        Your browser does not support the video tag.
+    </video>
+    @if($videoTitle)
+        <p class="video-caption">{{ $videoTitle }}</p>
+    @endif
+@endif
+```
+
+> **Note:** Videos are uploaded to the same host-app media endpoint used by `ImageField`
+> (`config('xgpagebuilder.media.upload_route')`). The `VideoField` applies its own
+> MIME-type and size validation independently of the global `media.allowed_types` config key.
+
 ### Select Dropdown
 
 ```php
@@ -543,6 +644,7 @@ class HeroSectionWidget extends BaseWidget
 | `Number::get()` | `FieldManager::NUMBER()` |
 | `ColorPicker::get()` | `FieldManager::COLOR()` |
 | `Image::get()` | `FieldManager::IMAGE()` |
+| `Video::get()` | `FieldManager::VIDEO()` |
 | `Select::get()` | `FieldManager::SELECT()` |
 | `Checkbox::get()` | `FieldManager::CHECKBOX()` |
 | `IconPicker::get()` | `FieldManager::ICON()` |

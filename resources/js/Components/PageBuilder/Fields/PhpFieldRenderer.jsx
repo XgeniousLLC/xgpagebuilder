@@ -14,6 +14,7 @@ import NumberFieldComponent from './NumberFieldComponent';
 import UrlFieldComponent from './UrlFieldComponent';
 import RangeFieldComponent from './RangeFieldComponent';
 import ImageFieldComponent from './ImageFieldComponent';
+import VideoFieldComponent from './VideoFieldComponent';
 import RepeaterFieldComponent from './RepeaterFieldComponent';
 import IconInputField from './IconInputField';
 import CodeFieldComponent from './CodeFieldComponent';
@@ -169,6 +170,16 @@ const PhpFieldRenderer = ({ fieldKey, fieldConfig, value, onChange }) => {
       case 'image':
         return (
           <ImageFieldComponent
+            fieldKey={fieldKey}
+            fieldConfig={fieldConfig}
+            value={value}
+            onChange={onChange}
+          />
+        );
+
+      case 'video':
+        return (
+          <VideoFieldComponent
             fieldKey={fieldKey}
             fieldConfig={fieldConfig}
             value={value}
@@ -346,7 +357,7 @@ const PhpFieldRenderer = ({ fieldKey, fieldConfig, value, onChange }) => {
   return (
     <div className="field-wrapper">
       {/* Field Label - only show for non-checkbox/toggle fields and fields that handle their own labels */}
-      {!['checkbox', 'toggle', 'divider', 'repeater', 'image', 'icon_input'].includes(type) && label && (
+      {!['checkbox', 'toggle', 'divider', 'repeater', 'image', 'video', 'icon_input'].includes(type) && label && (
         <label className="block text-sm font-medium text-gray-700 mb-2">
           {label}
         </label>
@@ -358,7 +369,7 @@ const PhpFieldRenderer = ({ fieldKey, fieldConfig, value, onChange }) => {
       </div>
 
       {/* Field Description - only show for fields that don't handle their own descriptions */}
-      {description && !['checkbox', 'toggle', 'divider', 'repeater', 'image', 'icon_input'].includes(type) && (
+      {description && !['checkbox', 'toggle', 'divider', 'repeater', 'image', 'video', 'icon_input'].includes(type) && (
         <p className="mt-1 text-xs text-gray-500">
           {description}
         </p>
