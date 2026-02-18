@@ -12,6 +12,7 @@ use Xgenious\PageBuilder\Core\Fields\ColorField;
 use Xgenious\PageBuilder\Core\Fields\IconField;
 use Xgenious\PageBuilder\Core\Fields\IconInputField;
 use Xgenious\PageBuilder\Core\Fields\ImageField;
+use Xgenious\PageBuilder\Core\Fields\VideoField;
 use Xgenious\PageBuilder\Core\Fields\UrlField;
 use Xgenious\PageBuilder\Core\Fields\EmailField;
 use Xgenious\PageBuilder\Core\Fields\PasswordField;
@@ -147,6 +148,18 @@ class FieldManager
     public static function IMAGE(): ImageField
     {
         return new ImageField();
+    }
+
+    /**
+     * Create a video upload/picker field
+     *
+     * Supports mp4, webm, mov, avi with configurable size limit and playback options.
+     *
+     * @return VideoField
+     */
+    public static function VIDEO(): VideoField
+    {
+        return new VideoField();
     }
 
     /**
