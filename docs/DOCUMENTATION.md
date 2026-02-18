@@ -153,9 +153,17 @@ Configure media library integration:
     'delete_route' => 'admin.upload.media.file.delete',
     'base_path' => 'assets/uploads',
     'allowed_types' => ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
-    'max_size' => 5120, // 5MB
+    'max_size' => 5120, // 5MB in KB
 ],
 ```
+
+> **Video uploads** use the same `upload_route` endpoint as images. The `VideoField`
+> defines its own accepted MIME types (`video/mp4`, `video/webm`, `video/quicktime`,
+> `video/x-msvideo`) and size limit (100 MB default) at the **field level**, independently
+> of the `media.allowed_types` key above. Ensure your host app's upload route accepts
+> video MIME types and a suitably large `upload_max_filesize` / `post_max_size` in
+> `php.ini`. See the [Video Upload field reference](WIDGET-DEVELOPMENT.md#video-upload)
+> for per-field configuration options.
 
 ### Widget Configuration
 
