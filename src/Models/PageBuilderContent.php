@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * PageBuilderContent Model
- * 
+ *
  * Stores page builder layout structure (containers and columns)
  * Widget data is now stored separately in the page_builder_widgets table
  *
@@ -33,7 +33,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class PageBuilderContent extends Model
 {
     protected $table = 'page_builder_content';
-    
+
     protected $fillable = [
         'page_id',
         'content',
@@ -49,7 +49,7 @@ class PageBuilderContent extends Model
         'is_published' => 'boolean',
         'published_at' => 'datetime'
     ];
-    
+
     /**
      * Get the page that owns this content
      */
@@ -58,7 +58,7 @@ class PageBuilderContent extends Model
         $pageModel = config('xgpagebuilder.models.page', \App\Models\Backend\Page::class);
         return $this->belongsTo($pageModel);
     }
-    
+
     /**
      * Get the admin who created this content
      */
@@ -67,7 +67,7 @@ class PageBuilderContent extends Model
         $adminModel = config('xgpagebuilder.models.admin', \App\Models\Admin::class);
         return $this->belongsTo($adminModel, 'created_by');
     }
-    
+
     /**
      * Get the admin who last updated this content
      */
@@ -83,7 +83,7 @@ class PageBuilderContent extends Model
     public function widgets(): HasMany
     {
         return $this->hasMany(PageBuilderWidget::class, 'page_id', 'page_id')
-                    ->ordered();
+            ->ordered();
     }
 
     /**
@@ -101,7 +101,7 @@ class PageBuilderContent extends Model
     {
         return $this->widgets()->ofType($type);
     }
-    
+
     /**
      * Get the content with fallback to empty structure
      */
@@ -112,8 +112,8 @@ class PageBuilderContent extends Model
             set: fn ($value) => json_encode($value ?? ['containers' => []])
         );
     }
-    
-    
+
+
     /**
      * Scope to get published content
      */
@@ -121,7 +121,7 @@ class PageBuilderContent extends Model
     {
         return $query->where('is_published', true);
     }
-    
+
     /**
      * Scope to get draft content
      */
@@ -129,7 +129,7 @@ class PageBuilderContent extends Model
     {
         return $query->where('is_published', false);
     }
-    
+
     /**
      * Mark content as published
      */
@@ -140,7 +140,7 @@ class PageBuilderContent extends Model
             'published_at' => now()
         ]);
     }
-    
+
     /**
      * Mark content as draft
      */
@@ -151,7 +151,7 @@ class PageBuilderContent extends Model
             'published_at' => null
         ]);
     }
-    
+
     /**
      * Get the total count of widgets for this page
      */
@@ -182,8 +182,8 @@ class PageBuilderContent extends Model
             'total_views' => $widgets->sum('view_count'),
             'total_interactions' => $widgets->sum('interaction_count'),
             'widgets_by_type' => $widgets->groupBy('widget_type')
-                                       ->map(fn($group) => $group->count())
-                                       ->toArray(),
+                ->map(fn($group) => $group->count())
+                ->toArray(),
             'cached_widgets' => $widgets->filter(fn($w) => $w->isCacheValid())->count()
         ];
     }
@@ -237,9 +237,12 @@ class PageBuilderContent extends Model
                         Log::info("Found widget {$widgetId} in database", ['type' => $widgetData->widget_type]);
 
                         // Helper to ensure settings are objects, not empty arrays
+                        // CRITICAL: Must return stdClass for empty values so json_encode produces {}
+                        // If we return [], json_encode produces [] which JS treats as Array,
+                        // and string-keyed properties on JS arrays are silently lost during JSON.stringify
                         $ensureObject = function($value) {
                             if (empty($value) || (is_array($value) && count($value) === 0)) {
-                                return [];  // Return empty array for now, frontend will convert
+                                return new \stdClass();
                             }
                             return $value;
                         };

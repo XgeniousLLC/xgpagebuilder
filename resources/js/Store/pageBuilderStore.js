@@ -324,26 +324,26 @@ const usePageBuilderStore = create((set, get) => ({
           columns: container.columns.map(column => ({
             ...column,
             widgets: column.widgets.map(widget =>
-              widget.id === widgetId
-                ? {
-                  ...widget,
-                  content: JSON.parse(JSON.stringify(snapshot.content)),
-                  style: JSON.parse(JSON.stringify(snapshot.style)),
-                  advanced: JSON.parse(JSON.stringify(snapshot.advanced))
-                }
-                : widget
+                widget.id === widgetId
+                    ? {
+                      ...widget,
+                      content: JSON.parse(JSON.stringify(snapshot.content)),
+                      style: JSON.parse(JSON.stringify(snapshot.style)),
+                      advanced: JSON.parse(JSON.stringify(snapshot.advanced))
+                    }
+                    : widget
             )
           }))
         }))
       },
       selectedWidget: state.selectedWidget?.id === widgetId
-        ? {
-          ...state.selectedWidget,
-          content: JSON.parse(JSON.stringify(snapshot.content)),
-          style: JSON.parse(JSON.stringify(snapshot.style)),
-          advanced: JSON.parse(JSON.stringify(snapshot.advanced))
-        }
-        : state.selectedWidget
+          ? {
+            ...state.selectedWidget,
+            content: JSON.parse(JSON.stringify(snapshot.content)),
+            style: JSON.parse(JSON.stringify(snapshot.style)),
+            advanced: JSON.parse(JSON.stringify(snapshot.advanced))
+          }
+          : state.selectedWidget
     };
   }),
 
@@ -372,7 +372,7 @@ const usePageBuilderStore = create((set, get) => ({
             }
           ],
           settings: {
-            padding: '20px',
+            padding: '0px',
             margin: '0px',
             backgroundColor: '#ffffff'
           },
@@ -404,7 +404,7 @@ const usePageBuilderStore = create((set, get) => ({
           }
         ],
         settings: {
-          padding: '20px',
+          padding: '0px',
           margin: '0px',
           backgroundColor: '#ffffff',
           ...section.settings
@@ -458,7 +458,7 @@ const usePageBuilderStore = create((set, get) => ({
             settings: {}
           })),
           settings: {
-            padding: widgetTemplate.defaultContent?.padding || '20px',
+            padding: widgetTemplate.defaultContent?.padding || '0px',
             backgroundColor: widgetTemplate.defaultContent?.backgroundColor || '#ffffff',
             gap: widgetTemplate.defaultContent?.gap || '20px'
           }
@@ -469,16 +469,16 @@ const usePageBuilderStore = create((set, get) => ({
         pageContent: {
           ...state.pageContent,
           containers: state.pageContent.containers.map(container =>
-            container.id === containerId
-              ? {
-                ...container,
-                columns: container.columns.map(column =>
-                  column.id === columnId
-                    ? { ...column, widgets: [...column.widgets, newWidget] }
-                    : column
-                )
-              }
-              : container
+              container.id === containerId
+                  ? {
+                    ...container,
+                    columns: container.columns.map(column =>
+                        column.id === columnId
+                            ? { ...column, widgets: [...column.widgets, newWidget] }
+                            : column
+                    )
+                  }
+                  : container
           )
         },
         isDirty: true
@@ -517,8 +517,8 @@ const usePageBuilderStore = create((set, get) => ({
   updateWidget: (widgetId, updates) => {
     set(state => {
       const updatedWidget = state.selectedWidget?.id === widgetId
-        ? { ...state.selectedWidget, ...updates }
-        : state.selectedWidget;
+          ? { ...state.selectedWidget, ...updates }
+          : state.selectedWidget;
 
       return {
         pageContent: {
@@ -528,7 +528,7 @@ const usePageBuilderStore = create((set, get) => ({
             columns: container.columns.map(column => ({
               ...column,
               widgets: column.widgets.map(widget =>
-                widget.id === widgetId ? { ...widget, ...updates } : widget
+                  widget.id === widgetId ? { ...widget, ...updates } : widget
               )
             }))
           }))
@@ -711,7 +711,7 @@ const usePageBuilderStore = create((set, get) => ({
     pageContent: {
       ...state.pageContent,
       containers: state.pageContent.containers.map(container =>
-        container.id === containerId ? { ...container, ...updates } : container
+          container.id === containerId ? { ...container, ...updates } : container
       )
     },
     isDirty: true
@@ -1120,22 +1120,22 @@ const usePageBuilderStore = create((set, get) => ({
             pageContent: {
               ...state.pageContent,
               containers: state.pageContent.containers.map(container =>
-                container.id === widgetLocation.containerId ? {
-                  ...container,
-                  columns: container.columns.map(column =>
-                    column.id === widgetLocation.columnId ? {
-                      ...column,
-                      widgets: column.widgets.map(widget =>
-                        widget.id === widgetId ? {
-                          ...widget,
-                          general: allSettings.general || widget.general,
-                          style: allSettings.style || widget.style,
-                          advanced: allSettings.advanced || widget.advanced
-                        } : widget
-                      )
-                    } : column
-                  )
-                } : container
+                  container.id === widgetLocation.containerId ? {
+                    ...container,
+                    columns: container.columns.map(column =>
+                        column.id === widgetLocation.columnId ? {
+                          ...column,
+                          widgets: column.widgets.map(widget =>
+                              widget.id === widgetId ? {
+                                ...widget,
+                                general: allSettings.general || widget.general,
+                                style: allSettings.style || widget.style,
+                                advanced: allSettings.advanced || widget.advanced
+                              } : widget
+                          )
+                        } : column
+                    )
+                  } : container
               )
             }
             // Widget settings are saved to database, so page is not dirty
@@ -1183,11 +1183,11 @@ const usePageBuilderStore = create((set, get) => ({
           pageContent: {
             ...state.pageContent,
             containers: state.pageContent.containers.map(container =>
-              container.id === sectionId ? {
-                ...container,
-                settings: { ...container.settings, ...settings },
-                responsiveSettings: { ...container.responsiveSettings, ...responsiveSettings }
-              } : container
+                container.id === sectionId ? {
+                  ...container,
+                  settings: { ...container.settings, ...settings },
+                  responsiveSettings: { ...container.responsiveSettings, ...responsiveSettings }
+                } : container
             )
           }
         }));
@@ -1234,11 +1234,11 @@ const usePageBuilderStore = create((set, get) => ({
             containers: state.pageContent.containers.map(container => ({
               ...container,
               columns: container.columns.map(column =>
-                column.id === columnId ? {
-                  ...column,
-                  settings: { ...column.settings, ...settings },
-                  responsiveSettings: { ...column.responsiveSettings, ...responsiveSettings }
-                } : column
+                  column.id === columnId ? {
+                    ...column,
+                    settings: { ...column.settings, ...settings },
+                    responsiveSettings: { ...column.responsiveSettings, ...responsiveSettings }
+                  } : column
               )
             }))
           }

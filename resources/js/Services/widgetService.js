@@ -1,6 +1,6 @@
 /**
  * Widget Service - API client for PHP-based widgets
- * 
+ *
  * This service handles all API calls to the PHP widget system,
  * providing a clean interface for the React components.
  */
@@ -378,7 +378,7 @@ class WidgetService {
       is_pro: phpWidget.is_pro || false,
       defaultContent: {},
       defaultStyle: {
-        margin: '0 0 16px 0',
+        margin: '0',
         padding: '0'
       },
       defaultAdvanced: {
@@ -401,7 +401,7 @@ class WidgetService {
    */
   async formatWidgetsForReact(phpWidgets) {
     const formattedWidgets = await Promise.all(
-      phpWidgets.map(widget => this.formatWidgetForReact(widget))
+        phpWidgets.map(widget => this.formatWidgetForReact(widget))
     );
     return formattedWidgets;
   }
@@ -415,7 +415,7 @@ class WidgetService {
 
     for (const [categoryKey, categoryData] of Object.entries(groupedWidgets)) {
       const formattedWidgets = Object.values(categoryData.widgets).map(widgetData =>
-        this.formatWidgetForReactLite(widgetData.config)
+          this.formatWidgetForReactLite(widgetData.config)
       );
 
       result[categoryKey] = {
@@ -435,9 +435,9 @@ class WidgetService {
 
     for (const [categoryKey, categoryData] of Object.entries(groupedWidgets)) {
       const formattedWidgets = await Promise.all(
-        Object.values(categoryData.widgets).map(widgetData =>
-          this.formatWidgetForReact(widgetData.config)
-        )
+          Object.values(categoryData.widgets).map(widgetData =>
+              this.formatWidgetForReact(widgetData.config)
+          )
       );
 
       result[categoryKey] = {

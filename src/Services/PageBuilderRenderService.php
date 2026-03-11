@@ -261,8 +261,8 @@ class PageBuilderRenderService
      */
     public function renderPage($page): string
     {
-        // Strict Status Check: Use page builder ONLY if status is 'on'
-        if (!$page->use_page_builder || $page->page_builder_status !== 'on') {
+        // Check if page builder is enabled for this page
+        if (!$page->use_page_builder) {
             return $page->page_content ?? '';
         }
 
