@@ -236,7 +236,7 @@ export const useDragAndDrop = () => {
             settings: {}
           }],
           settings: {
-            padding: '40px 20px',
+            padding: '0px',
             margin: '0px',
             backgroundColor: '#ffffff'
           }
@@ -295,7 +295,7 @@ export const useDragAndDrop = () => {
               settings: {}
             }],
             settings: {
-              padding: '40px 20px',
+              padding: '0px',
               margin: '0px',
               backgroundColor: 'transparent'
             },
@@ -351,9 +351,9 @@ export const useDragAndDrop = () => {
 
       // Rule 3: Auto-create section for regular widgets dropped on canvas
       if (activeData?.type === 'widget-template' &&
-        activeData?.widget?.type !== 'container' &&
-        activeData?.widget?.type !== 'section' &&
-        overData?.type === 'canvas') {
+          activeData?.widget?.type !== 'container' &&
+          activeData?.widget?.type !== 'section' &&
+          overData?.type === 'canvas') {
 
         console.log('Auto-creating section for widget dropped on canvas');
 
@@ -387,7 +387,7 @@ export const useDragAndDrop = () => {
             settings: {}
           }],
           settings: {
-            padding: '40px 20px',
+            padding: '0px',
             margin: '0px',
             backgroundColor: 'transparent'
           }
@@ -476,10 +476,10 @@ export const useDragAndDrop = () => {
           // Cross-column movement via drop zone
           console.log('[DragAndDrop] 🔄 Cross-column movement via drop zone');
           moveWidgetBetweenColumns(
-            activeData.widget.id,
-            activeData.columnId,
-            overData.columnId,
-            overData.insertIndex
+              activeData.widget.id,
+              activeData.columnId,
+              overData.columnId,
+              overData.insertIndex
           );
         }
 
@@ -509,8 +509,8 @@ export const useDragAndDrop = () => {
 
       // Handle section widget drop on canvas
       if (activeData?.type === 'widget-template' &&
-        activeData?.widget?.type === 'section' &&
-        overData?.type === 'canvas') {
+          activeData?.widget?.type === 'section' &&
+          overData?.type === 'canvas') {
 
         // Create a new section container
         const newContainerId = `section-${Date.now()}`;
@@ -525,7 +525,7 @@ export const useDragAndDrop = () => {
             settings: {}
           }],
           settings: {
-            padding: '40px 20px',
+            padding: '0px',
             margin: '0px',
             backgroundColor: 'transparent'
           },
@@ -537,8 +537,8 @@ export const useDragAndDrop = () => {
 
       // Handle container widget drop on canvas - only containers allowed on canvas
       if (activeData?.type === 'widget-template' &&
-        activeData?.widget?.type === 'container' &&
-        overData?.type === 'canvas') {
+          activeData?.widget?.type === 'container' &&
+          overData?.type === 'canvas') {
 
         // Create a new container based on the container widget settings
         const newContainerId = `container-${Date.now()}`;
@@ -556,7 +556,7 @@ export const useDragAndDrop = () => {
           type: 'section',
           columns: containerColumns,
           settings: {
-            padding: activeData.widget.defaultContent?.padding || '40px 20px',
+            padding: activeData.widget.defaultContent?.padding || '0px',
             margin: '0px',
             backgroundColor: activeData.widget.defaultContent?.backgroundColor || '#ffffff',
             gap: activeData.widget.defaultContent?.gap || '20px'
@@ -614,10 +614,10 @@ export const useDragAndDrop = () => {
           // Different columns - handle cross-column movement
           console.log('[DragAndDrop] 🔄 Cross-column widget movement');
           moveWidgetBetweenColumns(
-            activeData.widget.id,
-            activeData.columnId,
-            overData.columnId,
-            overData.widgetIndex
+              activeData.widget.id,
+              activeData.columnId,
+              overData.columnId,
+              overData.widgetIndex
           );
         }
         return;
@@ -636,10 +636,10 @@ export const useDragAndDrop = () => {
 
           // Move widget to different column using store method
           moveWidgetBetweenColumns(
-            activeData.widget.id,
-            activeData.columnId,
-            overData.columnId,
-            overData.containerId
+              activeData.widget.id,
+              activeData.columnId,
+              overData.columnId,
+              overData.containerId
           );
         }
         return;
@@ -647,7 +647,7 @@ export const useDragAndDrop = () => {
 
       // Handle widget drop on another widget (for reordering between columns)
       if (activeData?.type === 'widget' && overData?.type === 'widget' &&
-        activeData.columnId !== overData.columnId) {
+          activeData.columnId !== overData.columnId) {
         console.log('[DragAndDrop] Moving widget via widget drop:', {
           widgetId: activeData.widget.id,
           fromColumn: activeData.columnId,
@@ -658,10 +658,10 @@ export const useDragAndDrop = () => {
 
         // Move widget to the same column as the target widget
         moveWidgetBetweenColumns(
-          activeData.widget.id,
-          activeData.columnId,
-          overData.columnId,
-          overData.containerId
+            activeData.widget.id,
+            activeData.columnId,
+            overData.columnId,
+            overData.containerId
         );
         return;
       }

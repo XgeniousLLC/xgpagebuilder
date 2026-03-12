@@ -50,7 +50,7 @@ const PageBuilder = ({ page, content, contentId, widgets, sections, templates })
   // Set document title
   React.useEffect(() => {
     document.title = `Page Builder - ${page?.title || 'Untitled'}`;
-    
+
     // Load required CSS
     const loadCSS = (href) => {
       if (!document.querySelector(`link[href="${href}"]`)) {
@@ -60,7 +60,7 @@ const PageBuilder = ({ page, content, contentId, widgets, sections, templates })
         document.head.appendChild(link);
       }
     };
-    
+
     loadCSS('https://cdn.lineicons.com/4.0/lineicons.css');
     loadCSS('/css/drop-zones.css');
   }, [page]);
@@ -84,7 +84,7 @@ const PageBuilder = ({ page, content, contentId, widgets, sections, templates })
       try {
         // Set current page ID for auto-save
         setCurrentPageId(page.id);
-        
+
         // Start editing session first
         await startSession('full_page');
 
@@ -105,7 +105,7 @@ const PageBuilder = ({ page, content, contentId, widgets, sections, templates })
               settings: {}
             }],
             settings: {
-              padding: '40px 20px',
+              padding: '0px',
               margin: '0px',
               backgroundColor: '#ffffff'
             }
@@ -127,7 +127,7 @@ const PageBuilder = ({ page, content, contentId, widgets, sections, templates })
             settings: {}
           }],
           settings: {
-            padding: '40px 20px',
+            padding: '0px',
             margin: '0px',
             backgroundColor: '#ffffff'
           }
@@ -153,104 +153,104 @@ const PageBuilder = ({ page, content, contentId, widgets, sections, templates })
   }, [pageContent, injectPageCSS]);
 
   return (
-    <>
-      <div className="h-screen flex bg-gray-50 overflow-hidden">
-        <DndContext
-          collisionDetection={closestCenter}
-          onDragStart={handleDragStart}
-          onDragOver={handleDragOver}
-          onDragEnd={handleDragEnd}
-        >
-          {/* Left Sidebar - Widget Panel */}
-          <WidgetPanel
-            widgets={widgets}
-            sections={sections}
-            templates={templates}
-            activeTab={activePanel}
-            onTabChange={setActivePanel}
-            collapsed={sidebarCollapsed}
-            onToggleCollapse={toggleSidebar}
-          />
-
-          {/* Main Canvas Area */}
-          <div className="flex-1 flex flex-col min-w-0">
-            {/* Canvas Toolbar */}
-            <CanvasToolbar page={page} />
-
-            {/* Canvas */}
-            <Canvas
-              content={pageContent}
-              onUpdate={setPageContent}
-              onSelectWidget={setSelectedWidget}
-              selectedWidget={selectedWidget}
-              hoveredDropZone={hoveredDropZone}
-            />
-          </div>
-
-          {/* Right Sidebar - Settings Panel */}
-          {settingsPanelVisible && (
-            <SettingsPanel
-              widget={selectedWidget}
-              page={page}
-              onUpdate={setPageContent}
-              onWidgetUpdate={setSelectedWidget}
-            />
-          )}
-
-          {/* Drag Overlay */}
-          <DragOverlay>
-            {activeId ? (
-              <DragOverlayContent
-                activeId={activeId}
+      <>
+        <div className="h-screen flex bg-gray-50 overflow-hidden">
+          <DndContext
+              collisionDetection={closestCenter}
+              onDragStart={handleDragStart}
+              onDragOver={handleDragOver}
+              onDragEnd={handleDragEnd}
+          >
+            {/* Left Sidebar - Widget Panel */}
+            <WidgetPanel
                 widgets={widgets}
                 sections={sections}
+                templates={templates}
+                activeTab={activePanel}
+                onTabChange={setActivePanel}
+                collapsed={sidebarCollapsed}
+                onToggleCollapse={toggleSidebar}
+            />
+
+            {/* Main Canvas Area */}
+            <div className="flex-1 flex flex-col min-w-0">
+              {/* Canvas Toolbar */}
+              <CanvasToolbar page={page} />
+
+              {/* Canvas */}
+              <Canvas
+                  content={pageContent}
+                  onUpdate={setPageContent}
+                  onSelectWidget={setSelectedWidget}
+                  selectedWidget={selectedWidget}
+                  hoveredDropZone={hoveredDropZone}
               />
-            ) : null}
-          </DragOverlay>
+            </div>
 
-          {/* Movable Navigation Dialog */}
-          <MovableNavigationDialog />
-        </DndContext>
+            {/* Right Sidebar - Settings Panel */}
+            {settingsPanelVisible && (
+                <SettingsPanel
+                    widget={selectedWidget}
+                    page={page}
+                    onUpdate={setPageContent}
+                    onWidgetUpdate={setSelectedWidget}
+                />
+            )}
 
-        {/* Editing Conflict Modal */}
-        <EditingConflictModal
-          isOpen={conflictModal.isOpen}
-          conflictData={conflictModal.conflictData}
-          onTakeover={handleTakeover}
-          onExit={handleConflictExit}
-          onClose={closeConflictModal}
-        />
+            {/* Drag Overlay */}
+            <DragOverlay>
+              {activeId ? (
+                  <DragOverlayContent
+                      activeId={activeId}
+                      widgets={widgets}
+                      sections={sections}
+                  />
+              ) : null}
+            </DragOverlay>
 
-        {/* Active Editors Indicator */}
-        {hasActiveSession && activeEditors.length > 1 && (
-          <div className="fixed top-4 right-4 z-40">
-            <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3">
-              <div className="flex items-center space-x-2">
-                <div className="flex -space-x-2">
-                  {activeEditors.slice(0, 3).map((editor, index) => (
-                    <div
-                      key={editor.id}
-                      className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center border-2 border-white text-xs font-medium text-blue-600"
-                      title={`${editor.admin?.name} (${editor.editing_section})`}
-                    >
-                      {editor.admin?.name?.[0]?.toUpperCase() || '?'}
+            {/* Movable Navigation Dialog */}
+            <MovableNavigationDialog />
+          </DndContext>
+
+          {/* Editing Conflict Modal */}
+          <EditingConflictModal
+              isOpen={conflictModal.isOpen}
+              conflictData={conflictModal.conflictData}
+              onTakeover={handleTakeover}
+              onExit={handleConflictExit}
+              onClose={closeConflictModal}
+          />
+
+          {/* Active Editors Indicator */}
+          {hasActiveSession && activeEditors.length > 1 && (
+              <div className="fixed top-4 right-4 z-40">
+                <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3">
+                  <div className="flex items-center space-x-2">
+                    <div className="flex -space-x-2">
+                      {activeEditors.slice(0, 3).map((editor, index) => (
+                          <div
+                              key={editor.id}
+                              className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center border-2 border-white text-xs font-medium text-blue-600"
+                              title={`${editor.admin?.name} (${editor.editing_section})`}
+                          >
+                            {editor.admin?.name?.[0]?.toUpperCase() || '?'}
+                          </div>
+                      ))}
+                      {activeEditors.length > 3 && (
+                          <div className="h-8 w-8 bg-gray-100 rounded-full flex items-center justify-center border-2 border-white text-xs font-medium text-gray-600">
+                            +{activeEditors.length - 3}
+                          </div>
+                      )}
                     </div>
-                  ))}
-                  {activeEditors.length > 3 && (
-                    <div className="h-8 w-8 bg-gray-100 rounded-full flex items-center justify-center border-2 border-white text-xs font-medium text-gray-600">
-                      +{activeEditors.length - 3}
+                    <div className="text-sm text-gray-600">
+                      {activeEditors.length === 2 ? 'One other editor' : `${activeEditors.length - 1} other editors`}
                     </div>
-                  )}
-                </div>
-                <div className="text-sm text-gray-600">
-                  {activeEditors.length === 2 ? 'One other editor' : `${activeEditors.length - 1} other editors`}
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-        )}
-      </div>
-    </>
+          )}
+        </div>
+      </>
   );
 };
 
