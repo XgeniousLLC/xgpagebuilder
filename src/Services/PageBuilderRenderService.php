@@ -259,13 +259,9 @@ class PageBuilderRenderService
      * @param mixed $page Page model instance
      * @return string Rendered HTML with inline CSS
      */
-    public function renderPage($page): string
-    {
-        // Check if page builder is enabled for this page
-        if (!$page->use_page_builder) {
-            return $page->page_content ?? '';
-        }
-
+    public function renderPage($page): string { 
+        // Strict Status Check: Use page builder ONLY if status is 'on'
+        if (!$page->use_page_builder || $page->page_builder_status !== 'on') { return $page->page_content ?? ''; }
         // Get page builder content
         $content = $page->pageBuilderContent;
 
