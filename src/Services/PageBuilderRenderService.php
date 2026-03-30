@@ -259,7 +259,7 @@ class PageBuilderRenderService
      * @param mixed $page Page model instance
      * @return string Rendered HTML with inline CSS
      */
-    public function renderPage($page): string
+    public function renderPage($page,$css=false): mixed
     {
         // Check if page builder is enabled for this page
         if (!$page->use_page_builder) {
@@ -273,7 +273,17 @@ class PageBuilderRenderService
             return '<div class="no-content">Page builder content not found</div>';
         }
 
-        return $this->renderPageBuilderContent($content);
+        $reurn_data = [
+            'html' => is_array($this->renderPageBuilderContent($content)) ? $this->renderPageBuilderContent($content)['html'] : null,
+        ];
+
+        if ($css){
+
+            $reurn_data['css'] =  is_array($this->renderPageBuilderContent($content)) ? $this->renderPageBuilderContent($content)['css'] : null;
+        }
+
+
+        return $reurn_data;
     }
 
     /**
@@ -282,7 +292,7 @@ class PageBuilderRenderService
      * @param \Xgenious\PageBuilder\Models\PageBuilderContent $content
      * @return string Rendered HTML with inline CSS
      */
-    public function renderPageBuilderContent($content): string
+    public function renderPageBuilderContent($content,$type='array'): mixed
     {
         $completeContent = $content->getCompleteContent();
 
@@ -299,9 +309,11 @@ class PageBuilderRenderService
         // Get consolidated CSS
         $css = CSSManager::getConsolidatedCSS();
 
-        // Combine CSS and HTML
-        if (!empty($css)) {
-            $html = "<style>{$css}</style>\n{$html}";
+        if ($type == 'array') {
+            return [
+                'html' => $html,
+                'css' => $css
+            ];
         }
 
         return $html;
