@@ -1,4 +1,4 @@
-import React, { useState, useRef, lazy, Suspense } from 'react';
+import React, { useState, useRef } from 'react';
 import { Monitor, Tablet, Smartphone, Plus, Trash2, GripVertical, ChevronDown, ChevronRight, Copy, Loader, Check } from 'lucide-react';
 import { DndContext, closestCenter, DragOverlay, useSensor, useSensors, PointerSensor } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
@@ -27,13 +27,13 @@ import BorderShadowGroup from './BorderShadowGroup';
 import DynamicTabGroup from './DynamicTabGroup';
 import DividerField from './DividerField';
 
-// Lazy load heavy components to reduce initial bundle size
-const WysiwygEditor = lazy(() => import('./WysiwygEditor'));
-const EnhancedBackgroundPicker = lazy(() => import('./EnhancedBackgroundPicker'));
-const EnhancedTypographyPicker = lazy(() => import('./EnhancedTypographyPicker'));
-const EnhancedColorPicker = lazy(() => import('./EnhancedColorPicker'));
-const EnhancedDimensionPicker = lazy(() => import('./EnhancedDimensionPicker'));
-const EnhancedLinkPicker = lazy(() => import('./EnhancedLinkPicker'));
+// Import heavy components directly to fix React context issues
+import WysiwygEditor from './WysiwygEditor';
+import EnhancedBackgroundPicker from './EnhancedBackgroundPicker';
+import EnhancedTypographyPicker from './EnhancedTypographyPicker';
+import EnhancedColorPicker from './EnhancedColorPicker';
+import EnhancedDimensionPicker from './EnhancedDimensionPicker';
+import EnhancedLinkPicker from './EnhancedLinkPicker';
 
 /**
  * PhpFieldRenderer - Renders dynamic PHP widget fields with modular components
@@ -125,36 +125,30 @@ const PhpFieldRenderer = ({ fieldKey, fieldConfig, value, onChange }) => {
 
       case 'url':
         return (
-          <Suspense fallback={<div className="animate-pulse h-8 bg-gray-200 rounded"></div>}>
-            <EnhancedLinkPicker
-              fieldKey={fieldKey}
-              fieldConfig={fieldConfig}
-              value={value}
-              onChange={onChange}
-            />
-          </Suspense>
+          <EnhancedLinkPicker
+            fieldKey={fieldKey}
+            fieldConfig={fieldConfig}
+            value={value}
+            onChange={onChange}
+          />
         );
 
       case 'enhanced_url':
         return (
-          <Suspense fallback={<div className="animate-pulse h-8 bg-gray-200 rounded"></div>}>
-            <EnhancedLinkPicker
-              fieldKey={fieldKey}
-              fieldConfig={fieldConfig}
-              value={value}
-              onChange={onChange}
-            />
-          </Suspense>
+          <EnhancedLinkPicker
+            fieldKey={fieldKey}
+            fieldConfig={fieldConfig}
+            value={value}
+            onChange={onChange}
+          />
         );
 
       case 'color':
         return (
-          <Suspense fallback={<div className="animate-pulse bg-gray-200 h-12 rounded"></div>}>
-            <EnhancedColorPicker
-              value={value || fieldConfig.default || '#000000'}
-              onChange={onChange}
-            />
-          </Suspense>
+          <EnhancedColorPicker
+            value={value || fieldConfig.default || '#000000'}
+            onChange={onChange}
+          />
         );
 
       case 'range':
@@ -198,30 +192,30 @@ const PhpFieldRenderer = ({ fieldKey, fieldConfig, value, onChange }) => {
 
       case 'background_group':
         return (
-          <Suspense fallback={<div className="animate-pulse h-8 bg-gray-200 rounded"></div>}>
+          
             <EnhancedBackgroundPicker
               value={value}
               onChange={onChange}
               label={label}
             />
-          </Suspense>
+          
         );
 
       case 'typography_group':
         return (
-          <Suspense fallback={<div className="animate-pulse h-8 bg-gray-200 rounded"></div>}>
+          
             <EnhancedTypographyPicker
               value={value}
               onChange={onChange}
               label={label}
             />
-          </Suspense>
+          
         );
 
       case 'dimension':
       case 'spacing':
         return (
-          <Suspense fallback={<div className="animate-pulse h-8 bg-gray-200 rounded"></div>}>
+          
             <EnhancedDimensionPicker
               value={value}
               onChange={onChange}
@@ -236,18 +230,18 @@ const PhpFieldRenderer = ({ fieldKey, fieldConfig, value, onChange }) => {
               linked={fieldConfig.linked || false}
               showLabels={fieldConfig.showLabels !== false}
             />
-          </Suspense>
+          
         );
 
       case 'wysiwyg':
         return (
-          <Suspense fallback={<div className="animate-pulse h-24 bg-gray-200 rounded"></div>}>
+          
             <WysiwygEditor
               value={value}
               onChange={onChange}
               placeholder={fieldConfig.placeholder || 'Enter your content...'}
             />
-          </Suspense>
+          
         );
 
       case 'alignment':
@@ -279,13 +273,13 @@ const PhpFieldRenderer = ({ fieldKey, fieldConfig, value, onChange }) => {
 
       case 'link_group':
         return (
-          <Suspense fallback={<div className="animate-pulse h-8 bg-gray-200 rounded"></div>}>
+          
             <EnhancedLinkPicker
               value={value}
               onChange={onChange}
               fieldConfig={fieldConfig}
             />
-          </Suspense>
+          
         );
 
       case 'divider':
