@@ -1,3 +1,9 @@
+---
+layout: default
+title: Field Reference
+nav_order: 5
+---
+
 # PHP Field Reference
 
 All fields are created via the `FieldManager` static factory class. Every field supports a common set of base methods, plus type-specific options documented below.

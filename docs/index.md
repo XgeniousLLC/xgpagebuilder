@@ -68,6 +68,7 @@ php artisan config:clear
 - [Installation Guide](installation.html) - Detailed installation instructions
 - [Configuration](configuration.html) - Configure the package for your app
 - [Widget Development](widgets.html) - Create custom widgets
+- [Field Reference](fields.html) - All available PHP fields with examples
 - [GitHub Repository](https://github.com/XgeniousLLC/xgpagebuilder) - View source code
 
 ---
