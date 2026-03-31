@@ -213,25 +213,26 @@ const EnhancedDimensionPicker = ({
       </div>
 
       {/* Row 2: Input Fields — only render sides listed in the `sides` prop */}
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-2">
         {[
-          { key: 'top',    label: 'T', placeholder: 'T' },
-          { key: 'right',  label: 'R', placeholder: 'R' },
-          { key: 'bottom', label: 'B', placeholder: 'B' },
-          { key: 'left',   label: 'L', placeholder: 'L' },
-        ].filter(({ key }) => sides.includes(key)).map(({ key, label, placeholder }) => (
-          <input
-            key={key}
-            type="number"
-            value={dimensionValue[key]}
-            onChange={(e) => updateDimension(key, parseFloat(e.target.value) || 0)}
-            className="w-12 px-1 py-1 text-xs text-center border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-            min={allowNegative ? min : 0}
-            max={max}
-            step={step}
-            title={label}
-            placeholder={placeholder}
-          />
+          { key: 'top',    label: 'Top' },
+          { key: 'right',  label: 'Right' },
+          { key: 'bottom', label: 'Bottom' },
+          { key: 'left',   label: 'Left' },
+        ].filter(({ key }) => sides.includes(key)).map(({ key, label: sideLabel }) => (
+          <div key={key} className="flex items-center gap-0.5">
+            <span className="text-[8px] text-gray-400 leading-none">{sideLabel}</span>
+            <input
+              type="number"
+              value={dimensionValue[key]}
+              onChange={(e) => updateDimension(key, parseFloat(e.target.value) || 0)}
+              className="w-14 px-1 py-1 text-xs text-center border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+              min={allowNegative ? min : 0}
+              max={max}
+              step={step}
+              title={sideLabel}
+            />
+          </div>
         ))}
       </div>
     </div>
