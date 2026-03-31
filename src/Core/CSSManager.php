@@ -53,6 +53,11 @@ class CSSManager
     private static array $cssBySelector = [];
 
     /**
+     * @var array Global CSS rules (libraries, frameworks)
+     */
+    private static array $globalCSS = [];
+
+    /**
      * Add CSS rules for a specific widget
      * 
      * @param string $widgetId Unique widget identifier
@@ -305,52 +310,62 @@ class CSSManager
 
     /**
      * Get all collected CSS as a single consolidated string
-     * 
+     *
+     * Outputs raw CSS strings directly to preserve @media block structure.
+     * The old selector-parsing approach mangled nested @media rules.
+     *
      * @param bool $minify Whether to minify the output
      * @return string Consolidated CSS
      */
     public static function getConsolidatedCSS(bool $minify = true): string
     {
-        if (empty(self::$cssBySelector)) {
+        $hasContent = !empty(self::$collectedCSS)
+            || !empty(self::$sectionCSS)
+            || !empty(self::$columnCSS)
+            || !empty(self::$globalCSS);
+
+        if (!$hasContent) {
             return '';
         }
 
-        $css = [];
-        $css[] = '/* PageBuilder Widget Styles - Generated at ' . date('Y-m-d H:i:s') . ' */';
+        $parts = [];
 
-        // Add base widget styles first
-        $css[] = self::getBaseWidgetStyles();
+        // Base widget styles
+        $parts[] = self::getBaseWidgetStyles();
 
-        // Add consolidated widget-specific styles
-        foreach (self::$cssBySelector as $selector => $widgetRules) {
-            // Combine all properties for this selector
-            $allProperties = [];
+        // Global CSS (libraries, once-per-page rules)
+        foreach (self::$globalCSS as $rawCSS) {
+            $parts[] = $rawCSS;
+        }
 
-            foreach ($widgetRules as $widgetId => $properties) {
-                // Parse individual properties
-                $props = explode(';', $properties);
-                foreach ($props as $prop) {
-                    $prop = trim($prop);
-                    if (!empty($prop)) {
-                        $allProperties[] = $prop;
-                    }
-                }
-            }
-
-            // Remove duplicates and combine
-            $uniqueProperties = array_unique($allProperties);
-
-            if (!empty($uniqueProperties)) {
-                $css[] = $selector . ' {';
-                $css[] = '    ' . implode(';', $uniqueProperties) . ';';
-                $css[] = '}';
+        // Section CSS
+        foreach (self::$sectionCSS as $data) {
+            if (!empty($data['css'])) {
+                $parts[] = $data['css'];
             }
         }
 
-        // Add responsive styles
-        $css[] = self::getResponsiveStyles();
+        // Column CSS
+        foreach (self::$columnCSS as $data) {
+            if (!empty($data['css'])) {
+                $parts[] = $data['css'];
+            }
+        }
 
-        $consolidatedCSS = implode("\n", $css);
+        // Widget CSS
+        foreach (self::$collectedCSS as $data) {
+            if (!empty($data['css'])) {
+                $parts[] = $data['css'];
+            }
+        }
+
+        // Responsive inline-style overrides
+        $responsive = self::getResponsiveStyles();
+        if (!empty($responsive)) {
+            $parts[] = $responsive;
+        }
+
+        $consolidatedCSS = implode("\n", $parts);
 
         return $minify ? self::minifyCSS($consolidatedCSS) : $consolidatedCSS;
     }
@@ -496,6 +511,7 @@ class CSSManager
         self::$columnCSS = [];
         self::$inlineStyles = [];
         self::$cssBySelector = [];
+        self::$globalCSS = [];
         self::$cssOutput = false;
     }
 
@@ -528,6 +544,9 @@ class CSSManager
         $css = preg_replace('/\s+/', ' ', $css);
         $css = str_replace([' {', '{ ', ' }', '} ', ': ', ' :', '; ', ' ;'], ['{', '{', '}', '}', ':', ':', ';', ';'], $css);
 
+        // Add a space after each closing brace so minified rules don't run together
+        $css = str_replace('}', '} ', $css);
+
         return trim($css);
     }
 
@@ -554,8 +573,8 @@ class CSSManager
     {
         $key = $identifier ?: 'global_' . md5($css);
 
-        if (!isset(self::$cssBySelector[$key])) {
-            self::$cssBySelector[$key] = ['global' => $css];
+        if (!isset(self::$globalCSS[$key])) {
+            self::$globalCSS[$key] = $css;
         }
     }
 }
