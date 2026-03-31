@@ -783,7 +783,6 @@ abstract class BaseWidget
 
         // Handle group fields (like BACKGROUND_GROUP) that should use single selector
         if (is_string($selectors)) {
-            // Single selector for group fields - let the field type handle CSS generation
             $prefix = $sectionId ? ".{$sectionId} " : '';
             $processedSelector = str_replace('{{WRAPPER}}', "{$prefix}.{$widgetId}", $selectors);
             $cssProperties = $this->generateFieldTypeCSS($fieldConfig, $value);
@@ -791,12 +790,12 @@ abstract class BaseWidget
             if (!empty($cssProperties)) {
                 $css .= "{$processedSelector} { {$cssProperties} }\n";
             }
+            $css .= $this->generateDimensionResponsiveCSS($processedSelector, $value, $fieldConfig, null);
         }
         // Handle array selectors
         elseif (is_array($selectors)) {
             // Check if it's a simple array with just selectors (for group fields like BACKGROUND_GROUP)
             if (array_is_list($selectors)) {
-                // Array contains just selectors, use the first one for group fields
                 $selector = $selectors[0] ?? '';
                 $prefix = $sectionId ? ".{$sectionId} " : '';
                 $processedSelector = str_replace('{{WRAPPER}}', "{$prefix}.{$widgetId}", $selector);
@@ -805,23 +804,111 @@ abstract class BaseWidget
                 if (!empty($cssProperties)) {
                     $css .= "{$processedSelector} { {$cssProperties} }\n";
                 }
+                $css .= $this->generateDimensionResponsiveCSS($processedSelector, $value, $fieldConfig, null);
             } else {
                 // Traditional array with selector => property mapping for simple fields
                 $unit = $fieldConfig['unit'] ?? '';
 
                 foreach ($selectors as $selector => $properties) {
-                    // Replace wrapper placeholder
                     $prefix = $sectionId ? ".{$sectionId} " : '';
                     $processedSelector = str_replace('{{WRAPPER}}', "{$prefix}.{$widgetId}", $selector);
 
-                    // Process properties based on field type
                     $processedProperties = $this->processFieldProperties($properties, $value, $unit, $fieldConfig);
 
                     if (!empty($processedProperties)) {
                         $css .= "{$processedSelector} { {$processedProperties} }\n";
                     }
+                    $css .= $this->generateDimensionResponsiveCSS($processedSelector, $value, $fieldConfig, $properties);
                 }
             }
+        }
+
+        return $css;
+    }
+
+    /**
+     * Parse a CSS dimension shorthand string into individual top/right/bottom/left values.
+     * e.g. "50px 20px 30px 10px" → ['top'=>'50','right'=>'20','bottom'=>'30','left'=>'10','unit'=>'px']
+     */
+    private function parseShorthandDimension(string $shorthand): array
+    {
+        $parts = preg_split('/\s+/', trim($shorthand));
+
+        switch (count($parts)) {
+            case 1: $parts = [$parts[0], $parts[0], $parts[0], $parts[0]]; break;
+            case 2: $parts = [$parts[0], $parts[1], $parts[0], $parts[1]]; break;
+            case 3: $parts = [$parts[0], $parts[1], $parts[2], $parts[1]]; break;
+        }
+
+        preg_match('/^[\d.]+(.*)$/', $parts[0], $m);
+        $unit = trim($m[1] ?? 'px') ?: 'px';
+
+        $num = fn(string $p): string => (string) preg_replace('/[^\d.]/', '', $p);
+
+        return [
+            'top'    => $num($parts[0]),
+            'right'  => $num($parts[1]),
+            'bottom' => $num($parts[2]),
+            'left'   => $num($parts[3]),
+            'unit'   => $unit,
+        ];
+    }
+
+    /**
+     * Generate responsive @media CSS for dimension fields (tablet / mobile breakpoints).
+     * Only runs when the value array contains 'tablet' or 'mobile' keys.
+     *
+     * @param string      $selector           Already-resolved CSS selector
+     * @param mixed       $value              Field value array
+     * @param array       $fieldConfig        Field configuration
+     * @param string|null $propertiesTemplate Template string with {{VALUE.TOP}} etc., or null for auto (padding)
+     */
+    private function generateDimensionResponsiveCSS(string $selector, $value, array $fieldConfig, ?string $propertiesTemplate): string
+    {
+        if (($fieldConfig['type'] ?? '') !== 'dimension' || !is_array($value)) {
+            return '';
+        }
+
+        $css = '';
+        $cssProp = $fieldConfig['css_property'] ?? 'padding';
+        $breakpoints = [
+            'tablet' => '@media (max-width:1024px)',
+            'mobile' => '@media (max-width:768px)',
+        ];
+
+        foreach ($breakpoints as $key => $mediaQuery) {
+            $bpValue = $value[$key] ?? null;
+            if (empty($bpValue)) {
+                continue;
+            }
+
+            if (is_string($bpValue)) {
+                $parsed = $this->parseShorthandDimension($bpValue);
+            } elseif (is_array($bpValue)) {
+                $parsed = array_merge(['unit' => $value['unit'] ?? 'px'], $bpValue);
+            } else {
+                continue;
+            }
+
+            $unit = $parsed['unit'];
+
+            if ($propertiesTemplate) {
+                $props = $propertiesTemplate;
+                $props = str_replace('{{VALUE.TOP}}',    (string)($parsed['top']    ?? 0), $props);
+                $props = str_replace('{{VALUE.RIGHT}}',  (string)($parsed['right']  ?? 0), $props);
+                $props = str_replace('{{VALUE.BOTTOM}}', (string)($parsed['bottom'] ?? 0), $props);
+                $props = str_replace('{{VALUE.LEFT}}',   (string)($parsed['left']   ?? 0), $props);
+                $props = str_replace('{{UNIT}}',         $unit,                             $props);
+                $cssProperties = $props;
+            } else {
+                $t = ($parsed['top']    ?? 0) . $unit;
+                $r = ($parsed['right']  ?? 0) . $unit;
+                $b = ($parsed['bottom'] ?? 0) . $unit;
+                $l = ($parsed['left']   ?? 0) . $unit;
+                $cssProperties = "{$cssProp}: {$t} {$r} {$b} {$l};";
+            }
+
+            $css .= "{$mediaQuery} { {$selector} { {$cssProperties} } }\n";
         }
 
         return $css;
@@ -843,12 +930,18 @@ abstract class BaseWidget
 
             case 'dimension':
                 if (is_array($value)) {
-                    $unit = $fieldConfig['unit'] ?? 'px';
-                    $top = $value['top'] ?? 0;
-                    $right = $value['right'] ?? 0;
-                    $bottom = $value['bottom'] ?? 0;
-                    $left = $value['left'] ?? 0;
-                    return "padding: {$top}{$unit} {$right}{$unit} {$bottom}{$unit} {$left}{$unit};";
+                    // Prefer the desktop breakpoint shorthand if present
+                    $activeValue = $value;
+                    if (!empty($value['desktop']) && is_string($value['desktop'])) {
+                        $activeValue = array_merge($value, $this->parseShorthandDimension($value['desktop']));
+                    }
+                    $cssProp = $fieldConfig['css_property'] ?? 'padding';
+                    $unit    = $activeValue['unit']   ?? 'px';
+                    $top     = $activeValue['top']    ?? 0;
+                    $right   = $activeValue['right']  ?? 0;
+                    $bottom  = $activeValue['bottom'] ?? 0;
+                    $left    = $activeValue['left']   ?? 0;
+                    return "{$cssProp}: {$top}{$unit} {$right}{$unit} {$bottom}{$unit} {$left}{$unit};";
                 }
                 break;
 
@@ -1017,14 +1110,25 @@ abstract class BaseWidget
     {
         // Handle dimension fields (top, right, bottom, left)
         if (($fieldConfig['type'] ?? '') === 'dimension' && is_array($value)) {
-            // For dimension fields, use the unit from the value or default to px
-            $dimensionUnit = $value['unit'] ?? $unit ?? 'px';
+            // Prefer the desktop breakpoint shorthand when present
+            $activeValue = $value;
+            if (!empty($value['desktop']) && is_string($value['desktop'])) {
+                $activeValue = array_merge($value, $this->parseShorthandDimension($value['desktop']));
+            }
 
-            $properties = str_replace('{{VALUE.TOP}}', (string)($value['top'] ?? 0), $properties);
-            $properties = str_replace('{{VALUE.RIGHT}}', (string)($value['right'] ?? 0), $properties);
-            $properties = str_replace('{{VALUE.BOTTOM}}', (string)($value['bottom'] ?? 0), $properties);
-            $properties = str_replace('{{VALUE.LEFT}}', (string)($value['left'] ?? 0), $properties);
-            $properties = str_replace('{{UNIT}}', $dimensionUnit, $properties);
+            $dimensionUnit = $activeValue['unit'] ?? $unit ?? 'px';
+
+            $properties = str_replace('{{VALUE.TOP}}',    (string)($activeValue['top']    ?? 0), $properties);
+            $properties = str_replace('{{VALUE.RIGHT}}',  (string)($activeValue['right']  ?? 0), $properties);
+            $properties = str_replace('{{VALUE.BOTTOM}}', (string)($activeValue['bottom'] ?? 0), $properties);
+            $properties = str_replace('{{VALUE.LEFT}}',   (string)($activeValue['left']   ?? 0), $properties);
+            $properties = str_replace('{{UNIT}}',         $dimensionUnit,                         $properties);
+
+            // Support {{VALUE}} shorthand placeholder
+            if (str_contains($properties, '{{VALUE}}')) {
+                $shorthand = "{$activeValue['top']}{$dimensionUnit} {$activeValue['right']}{$dimensionUnit} {$activeValue['bottom']}{$dimensionUnit} {$activeValue['left']}{$dimensionUnit}";
+                $properties = str_replace('{{VALUE}}', $shorthand, $properties);
+            }
         } else {
             // Handle single value fields
             $properties = str_replace('{{VALUE}}', (string)$value, $properties);
