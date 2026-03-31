@@ -212,59 +212,27 @@ const EnhancedDimensionPicker = ({
         )}
       </div>
 
-      {/* Row 2: Input Fields [T] [R] [B] [L] */}
+      {/* Row 2: Input Fields — only render sides listed in the `sides` prop */}
       <div className="flex items-center gap-1">
-        {/* Top */}
-        <input
-          type="number"
-          value={dimensionValue.top}
-          onChange={(e) => updateDimension('top', parseFloat(e.target.value) || 0)}
-          className="w-12 px-1 py-1 text-xs text-center border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-          min={allowNegative ? min : 0}
-          max={max}
-          step={step}
-          title="Top"
-          placeholder="T"
-        />
-        
-        {/* Right */}
-        <input
-          type="number"
-          value={dimensionValue.right}
-          onChange={(e) => updateDimension('right', parseFloat(e.target.value) || 0)}
-          className="w-12 px-1 py-1 text-xs text-center border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-          min={allowNegative ? min : 0}
-          max={max}
-          step={step}
-          title="Right"
-          placeholder="R"
-        />
-        
-        {/* Bottom */}
-        <input
-          type="number"
-          value={dimensionValue.bottom}
-          onChange={(e) => updateDimension('bottom', parseFloat(e.target.value) || 0)}
-          className="w-12 px-1 py-1 text-xs text-center border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-          min={allowNegative ? min : 0}
-          max={max}
-          step={step}
-          title="Bottom"
-          placeholder="B"
-        />
-        
-        {/* Left */}
-        <input
-          type="number"
-          value={dimensionValue.left}
-          onChange={(e) => updateDimension('left', parseFloat(e.target.value) || 0)}
-          className="w-12 px-1 py-1 text-xs text-center border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-          min={allowNegative ? min : 0}
-          max={max}
-          step={step}
-          title="Left"
-          placeholder="L"
-        />
+        {[
+          { key: 'top',    label: 'T', placeholder: 'T' },
+          { key: 'right',  label: 'R', placeholder: 'R' },
+          { key: 'bottom', label: 'B', placeholder: 'B' },
+          { key: 'left',   label: 'L', placeholder: 'L' },
+        ].filter(({ key }) => sides.includes(key)).map(({ key, label, placeholder }) => (
+          <input
+            key={key}
+            type="number"
+            value={dimensionValue[key]}
+            onChange={(e) => updateDimension(key, parseFloat(e.target.value) || 0)}
+            className="w-12 px-1 py-1 text-xs text-center border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+            min={allowNegative ? min : 0}
+            max={max}
+            step={step}
+            title={label}
+            placeholder={placeholder}
+          />
+        ))}
       </div>
     </div>
   );
