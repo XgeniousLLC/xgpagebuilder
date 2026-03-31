@@ -40,12 +40,24 @@ class DimensionField extends BaseField
     /** @var bool */
     protected bool $showLabels = true;
 
+    /** @var string CSS property to generate (padding, margin, border-radius, etc.) */
+    protected string $cssProperty = 'padding';
+
     /**
      * Constructor - Set responsive as default for dimension fields
      */
     public function __construct()
     {
         $this->responsive = true;
+    }
+
+    /**
+     * Set the CSS property to generate (e.g. 'margin', 'border-radius')
+     */
+    public function setCssProperty(string $property): static
+    {
+        $this->cssProperty = $property;
+        return $this;
     }
 
     /**
@@ -165,6 +177,7 @@ class DimensionField extends BaseField
      */
     public function asPadding(): static
     {
+        $this->cssProperty = 'padding';
         return $this->setUnits(['px', 'em', 'rem', '%'])
             ->setMin(0)
             ->setMax(200)
@@ -178,6 +191,7 @@ class DimensionField extends BaseField
      */
     public function asMargin(): static
     {
+        $this->cssProperty = 'margin';
         return $this->setUnits(['px', 'em', 'rem', '%'])
             ->setAllowNegative(true)
             ->setMin(-200)
@@ -192,6 +206,7 @@ class DimensionField extends BaseField
      */
     public function asBorderRadius(): static
     {
+        $this->cssProperty = 'border-radius';
         return $this->setUnits(['px', 'em', 'rem', '%'])
             ->setMin(0)
             ->setMax(100)
@@ -221,6 +236,7 @@ class DimensionField extends BaseField
             'allow_negative' => $this->allowNegative,
             'step' => $this->step,
             'show_labels' => $this->showLabels,
+            'css_property' => $this->cssProperty,
         ];
 
         if ($this->min !== null) {

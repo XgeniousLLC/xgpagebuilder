@@ -12,6 +12,7 @@ All fields are created via the `FieldManager` static factory class. Every field 
 
 ## Table of Contents
 
+- [CSS Selectors](#css-selectors)
 - [Common Base Methods](#common-base-methods)
 - [Basic Input](#basic-input)
   - [TEXT](#text)
@@ -69,6 +70,180 @@ All fields are created via the `FieldManager` static factory class. Every field 
 
 ---
 
+## CSS Selectors
+
+`setSelectors()` tells the page builder how to turn a field's value into live CSS. The array maps one or more CSS selectors to a property declaration that uses token placeholders.
+
+### Tokens
+
+| Token | Replaced with |
+|---|---|
+| `{{WRAPPER}}` | The unique selector wrapping this widget instance (e.g. `.xg-widget-abc123`) |
+| `{{VALUE}}` | The field's current value |
+| `{{UNIT}}` | The selected unit (`px`, `em`, `%`, etc.) — used with numeric/dimension fields |
+| `{{VALUE.TOP}}` | Top side of a dimension field |
+| `{{VALUE.RIGHT}}` | Right side of a dimension field |
+| `{{VALUE.BOTTOM}}` | Bottom side of a dimension field |
+| `{{VALUE.LEFT}}` | Left side of a dimension field |
+
+### Single property — COLOR
+
+```php
+FieldManager::COLOR()
+    ->setLabel('Text Color')
+    ->setDefault('#333333')
+    ->setSelectors([
+        '{{WRAPPER}} .card-title' => 'color: {{VALUE}};'
+    ])
+```
+
+### Single property with unit — NUMBER
+
+```php
+FieldManager::NUMBER()
+    ->setLabel('Font Size')
+    ->setDefault(16)
+    ->setUnit('px')
+    ->setResponsive(true)
+    ->setSelectors([
+        '{{WRAPPER}} .card-title' => 'font-size: {{VALUE}}{{UNIT}};'
+    ])
+```
+
+### Hover state selector
+
+```php
+FieldManager::COLOR()
+    ->setLabel('Hover Color')
+    ->setDefault('#007cba')
+    ->setSelectors([
+        '{{WRAPPER}} .btn:hover' => 'color: {{VALUE}};'
+    ])
+```
+
+### SELECT — value maps directly
+
+```php
+FieldManager::SELECT()
+    ->setLabel('Object Fit')
+    ->setDefault('cover')
+    ->setOptions(['fill' => 'Fill', 'contain' => 'Contain', 'cover' => 'Cover'])
+    ->setSelectors([
+        '{{WRAPPER}} .image-element' => 'object-fit: {{VALUE}};'
+    ])
+```
+
+### DIMENSION — four-sided shorthand
+
+```php
+FieldManager::DIMENSION()
+    ->setLabel('Padding')
+    ->asPadding()
+    ->setSelectors([
+        '{{WRAPPER}} .card' => 'padding: {{VALUE.TOP}}{{UNIT}} {{VALUE.RIGHT}}{{UNIT}} {{VALUE.BOTTOM}}{{UNIT}} {{VALUE.LEFT}}{{UNIT}};'
+    ])
+```
+
+### Multiple selectors at once
+
+You can target several elements in one `setSelectors()` call:
+
+```php
+FieldManager::COLOR()
+    ->setLabel('Icon Color')
+    ->setDefault('#444')
+    ->setSelectors([
+        '{{WRAPPER}} .icon-element'       => 'color: {{VALUE}};',
+        '{{WRAPPER}} .icon-element svg'   => 'fill: {{VALUE}};',
+    ])
+```
+
+### Multiple CSS properties on one selector
+
+Separate declarations with a semicolon inside the same string:
+
+```php
+FieldManager::COLOR()
+    ->setLabel('Overlay Color')
+    ->setSelectors([
+        '{{WRAPPER}} .overlay' => 'background-color: {{VALUE}}; border-color: {{VALUE}};'
+    ])
+```
+
+### BACKGROUND_GROUP
+
+The group field outputs a full `background` shorthand value:
+
+```php
+FieldManager::BACKGROUND_GROUP()
+    ->setLabel('Section Background')
+    ->setSelectors([
+        '{{WRAPPER}}.widget-section' => 'background: {{VALUE}};'
+    ])
+```
+
+### BORDER_SHADOW_GROUP
+
+Border and shadow groups emit their own CSS; the selector targets the element to apply it to:
+
+```php
+FieldManager::BORDER_SHADOW_GROUP()
+    ->setLabel('Card Border & Shadow')
+    ->setSelectors([
+        '{{WRAPPER}} .card' => '{{VALUE}}'
+    ])
+```
+
+### TYPOGRAPHY_GROUP
+
+Typography groups output a block of CSS declarations:
+
+```php
+FieldManager::TYPOGRAPHY_GROUP()
+    ->setLabel('Heading Typography')
+    ->setSelectors([
+        '{{WRAPPER}} .card-title' => '{{VALUE}}'
+    ])
+```
+
+### ALIGNMENT
+
+Alignment maps to `text-align` or `justify-content` depending on context:
+
+```php
+// Text alignment
+FieldManager::ALIGNMENT()
+    ->setLabel('Text Align')
+    ->asTextAlign()
+    ->setSelectors([
+        '{{WRAPPER}} .card-body' => 'text-align: {{VALUE}};'
+    ])
+
+// Flex alignment
+FieldManager::ALIGNMENT()
+    ->setLabel('Content Align')
+    ->asFlexAlign()
+    ->setSelectors([
+        '{{WRAPPER}} .card-inner' => 'justify-content: {{VALUE}};'
+    ])
+```
+
+### RANGE / NUMBER with custom unit
+
+```php
+FieldManager::RANGE()
+    ->setLabel('Opacity')
+    ->setDefault(100)
+    ->setMin(0)
+    ->setMax(100)
+    ->setUnit('')
+    ->setSelectors([
+        '{{WRAPPER}} .card' => 'opacity: calc({{VALUE}} / 100);'
+    ])
+```
+
+---
+
 ## Common Base Methods
 
 Every field type inherits these chainable methods from `BaseField`:
@@ -82,7 +257,7 @@ Every field type inherits these chainable methods from `BaseField`:
 | `setDescription(string)` | Help text shown below the field |
 | `setCondition(array)` | Conditional display rules |
 | `dependsOn(string $field, mixed $value, string $operator)` | Show field only when another field matches. Operators: `=`, `!=`, `in`, `not_in`, `not_empty`, `empty` |
-| `setValidation(array)` | Validation rules |
+| `setValidation(array)` | Validation rules — e.g. `['min_length' => 3, 'max_length' => 100]` |
 | `setSelectors(array)` | CSS selector map for style fields |
 | `setAttributes(array)` | Extra HTML attributes |
 | `setCssClass(string)` | CSS class on the field element |
@@ -98,6 +273,56 @@ FieldManager::TEXT()
     ->setPlaceholder('Enter text...')
     ->dependsOn('show_label', true)
 ```
+
+**Example — `setValidation()`:**
+```php
+FieldManager::TEXT()
+    ->setLabel('Username')
+    ->setValidation([
+        'min_length' => 3,
+        'max_length' => 20,
+        'pattern'    => '^[a-zA-Z0-9_]+$',
+    ])
+
+FieldManager::NUMBER()
+    ->setLabel('Price')
+    ->setValidation([
+        'min'      => 0,
+        'max'      => 99999,
+        'numeric'  => true,
+    ])
+```
+
+**Example — `setSelectors()`:**
+```php
+// Color field writes to a CSS property on a scoped element
+FieldManager::COLOR()
+    ->setLabel('Button Color')
+    ->setDefault('#007cba')
+    ->setSelectors([
+        '{{WRAPPER}} .btn'       => 'background-color: {{VALUE}};',
+        '{{WRAPPER}} .btn:hover' => 'border-color: {{VALUE}};',
+    ])
+
+// Number field with unit token
+FieldManager::NUMBER()
+    ->setLabel('Icon Size')
+    ->setDefault(24)
+    ->setUnit('px')
+    ->setSelectors([
+        '{{WRAPPER}} .icon' => 'font-size: {{VALUE}}{{UNIT}};'
+    ])
+
+// Dimension field — four-sided shorthand
+FieldManager::DIMENSION()
+    ->setLabel('Padding')
+    ->asPadding()
+    ->setSelectors([
+        '{{WRAPPER}} .card' => 'padding: {{VALUE.TOP}}{{UNIT}} {{VALUE.RIGHT}}{{UNIT}} {{VALUE.BOTTOM}}{{UNIT}} {{VALUE.LEFT}}{{UNIT}};'
+    ])
+```
+
+> See the [CSS Selectors](#css-selectors) section for the full token reference and all field-type examples.
 
 ---
 
@@ -378,6 +603,16 @@ FieldManager::GRADIENT()
     ->setDefaultGradient('linear-gradient(135deg, #667eea 0%, #764ba2 100%)')
 ```
 
+**With selector:**
+```php
+FieldManager::GRADIENT()
+    ->setLabel('Button Gradient')
+    ->setAllowedTypes(['linear'])
+    ->setSelectors([
+        '{{WRAPPER}} .btn' => 'background: {{VALUE}};'
+    ])
+```
+
 | Method | Description |
 |---|---|
 | `setDefaultGradient(string)` | Default CSS gradient value |
@@ -399,6 +634,15 @@ FieldManager::IMAGE()
     ->setAllowedTypes(['jpg', 'jpeg', 'png', 'webp', 'gif'])
     ->setMaxSize(5242880)   // bytes — default 5MB
     ->setMultiple(false)
+```
+
+**With selector** (use the image URL as a CSS background):
+```php
+FieldManager::IMAGE()
+    ->setLabel('Background Image')
+    ->setSelectors([
+        '{{WRAPPER}} .hero' => 'background-image: url({{VALUE}});'
+    ])
 ```
 
 | Method | Description |
@@ -424,6 +668,15 @@ FieldManager::VIDEO()
     ->setMuted(true)
     ->setPreload('auto')      // 'none', 'metadata', 'auto'
     ->setAllowPoster(true)
+```
+
+**With selector** (set video dimensions via CSS):
+```php
+FieldManager::VIDEO()
+    ->setLabel('Promo Video')
+    ->setSelectors([
+        '{{WRAPPER}} .video-element' => 'width: 100%; height: auto;'
+    ])
 ```
 
 | Method | Description |
@@ -457,6 +710,22 @@ FieldManager::ICON_INPUT()         // alias
     ->setCategories(['arrows', 'social', 'interface'])
 ```
 
+**With selector** (icon font-size via the wrapper):
+```php
+FieldManager::ICON()
+    ->setLabel('Feature Icon')
+    ->setDefaultIcon('la-star')
+    ->setSelectors([
+        '{{WRAPPER}} .icon-element' => 'font-size: 32px;'
+    ])
+```
+
+The stored value is a Line Awesome class name (e.g. `la-star`). Use it in your template like:
+```php
+$icon = $settings['icon'] ?? 'la-star';
+echo "<i class=\"la {$icon}\"></i>";
+```
+
 | Method | Description |
 |---|---|
 | `setDefaultIcon(string)` | Default icon class |
@@ -488,12 +757,14 @@ FieldManager::DATE()
 
 ### TIME
 
-Time picker.
+Time picker. No type-specific methods — inherits all [Common Base Methods](#common-base-methods) only.
 
 ```php
 FieldManager::TIME()
     ->setLabel('Start Time')
     ->setDefault('09:00')
+    ->setRequired(true)
+    ->setDescription('24-hour format HH:MM')
 ```
 
 ---
@@ -537,7 +808,7 @@ FieldManager::URL()
 | Method | Description |
 |---|---|
 | `setValidateUrl(bool)` | Validate URL format |
-| `setAllowedSchemes(array)` | Allowed URL schemes |
+| `setAllowedSchemes(array)` | Allowed URL schemes — default `['http','https','mailto','tel']` |
 | `setAllowRelative(bool)` | Allow relative URLs |
 | `setAllowAnchors(bool)` | Allow `#anchor` links |
 | `setShowTargetOptions(bool)` | Show `_blank`/`_self` target selector |
@@ -547,62 +818,74 @@ FieldManager::URL()
 | `setEnableAccessibility(bool)` | Show aria-label field |
 | `setEnableTracking(bool)` | Show UTM/tracking options |
 | `setAutoDetectType(bool)` | Auto-detect URL type |
+| `setDefaultTarget(string)` | Default target — `_self`, `_blank`, `_parent`, `_top` |
+| `setDefaultRel(array)` | Default rel attributes — e.g. `['noopener', 'noreferrer']` |
 
 ---
 
 ### WEB_LINK
 
-Preset for external web links.
+Preset for external web links. Enables: `target`, `rel`, `accessibility`. Schemes: `http`, `https`.
 
 ```php
 FieldManager::WEB_LINK()
     ->setLabel('External Link')
+    ->setDefault('https://example.com')
+    ->setDefaultTarget('_blank')
+    ->setDefaultRel(['noopener', 'noreferrer'])
 ```
 
 ---
 
 ### EMAIL_LINK
 
-Preset for `mailto:` links.
+Preset for `mailto:` links. Restricts scheme to `mailto`, hides target/rel options.
 
 ```php
 FieldManager::EMAIL_LINK()
-    ->setLabel('Email Link')
+    ->setLabel('Email Address')
     ->setDefault('mailto:hello@example.com')
+    ->setPlaceholder('mailto:you@example.com')
 ```
 
 ---
 
 ### PHONE_LINK
 
-Preset for `tel:` links.
+Preset for `tel:` links. Restricts scheme to `tel`, hides target/rel options.
 
 ```php
 FieldManager::PHONE_LINK()
     ->setLabel('Phone Number')
     ->setDefault('tel:+1234567890')
+    ->setPlaceholder('tel:+1234567890')
 ```
 
 ---
 
 ### DOWNLOAD_LINK
 
-Preset for file download links.
+Preset for file download links. Enables the `download` attribute option.
 
 ```php
 FieldManager::DOWNLOAD_LINK()
     ->setLabel('Download File')
+    ->setDefault('/files/brochure.pdf')
+    ->setDescription('Link to a downloadable file')
 ```
 
 ---
 
 ### INTERNAL_LINK
 
-Preset for internal navigation links.
+Preset for internal navigation. Allows relative URLs and anchor links, disables external schemes.
 
 ```php
 FieldManager::INTERNAL_LINK()
     ->setLabel('Internal Page')
+    ->setDefault('/about')
+    ->setAllowRelative(true)
+    ->setAllowAnchors(true)
 ```
 
 ---
@@ -653,10 +936,20 @@ FieldManager::CODE()
     ->setRows(10)
 ```
 
+**With selector** (inject custom CSS directly into the page):
+```php
+FieldManager::CODE()
+    ->setLabel('Custom CSS')
+    ->setLanguage('css')
+    ->setSelectors([
+        '{{WRAPPER}}' => '{{VALUE}}'   // raw CSS output
+    ])
+```
+
 | Method | Description |
 |---|---|
-| `setLanguage(string)` | Syntax language — default `html` |
-| (Inherits all TEXTAREA methods) | `setRows()`, `setCols()`, etc. |
+| `setLanguage(string)` | Syntax language — default `html`. Common values: `html`, `css`, `js`, `php`, `json`, `markdown` |
+| (Inherits all TEXTAREA methods) | `setRows()`, `setCols()`, `setResize()`, `setAllowHtml()` |
 
 ---
 
@@ -672,10 +965,29 @@ FieldManager::WYSIWYG()
     ->setAllowHtml(true)
 ```
 
+Available toolbar buttons:
+
+| Button | Description |
+|---|---|
+| `bold` | Bold text |
+| `italic` | Italic text |
+| `underline` | Underline text |
+| `strikethrough` | Strikethrough text |
+| `link` | Insert hyperlink |
+| `ul` | Unordered list |
+| `ol` | Ordered list |
+| `blockquote` | Blockquote |
+| `h1`–`h6` | Heading levels |
+| `image` | Insert image |
+| `code` | Inline code |
+| `hr` | Horizontal rule |
+| `undo` | Undo |
+| `redo` | Redo |
+
 | Method | Description |
 |---|---|
 | `setToolbar(array)` | Toolbar buttons — default `['bold','italic','underline','link']` |
-| (Inherits all TEXTAREA methods) | `setRows()`, etc. |
+| (Inherits all TEXTAREA methods) | `setRows()`, `setCols()`, `setResize()`, `setAllowHtml()` |
 
 ---
 
@@ -700,6 +1012,18 @@ FieldManager::DIMENSION()
     ->asBorderRadius()                 // preset: sides top-left/top-right/bottom-right/bottom-left
     ->setMin(0)
     ->setMax(500)
+
+// Restrict to specific sides (only left/right inputs shown)
+FieldManager::DIMENSION()
+    ->setLabel('Horizontal Padding')
+    ->asPadding()
+    ->setSides(['left', 'right'])
+
+// Only top/bottom
+FieldManager::DIMENSION()
+    ->setLabel('Vertical Margin')
+    ->asMargin()
+    ->setSides(['top', 'bottom'])
 
 // Single value
 FieldManager::DIMENSION()
@@ -736,11 +1060,21 @@ FieldManager::ALIGNMENT()
     ->asTextAlign()        // left / center / right / justify
     ->setDefault('left')
 
-// Flex alignment
+// Flex alignment — maps to justify-content
 FieldManager::ALIGNMENT()
     ->setLabel('Content Align')
-    ->asFlexAlign()        // flex-start / center / flex-end / space-between / space-around
-    ->setProperty('justify-content')
+    ->asFlexAlign()        // flex-start / center / flex-end
+    ->setSelectors([
+        '{{WRAPPER}} .card-inner' => 'justify-content: {{VALUE}};'
+    ])
+
+// Element alignment — maps to align-items
+FieldManager::ALIGNMENT()
+    ->setLabel('Vertical Align')
+    ->asElementAlign()     // flex-start / center / flex-end (align-items)
+    ->setSelectors([
+        '{{WRAPPER}} .card-inner' => 'align-items: {{VALUE}};'
+    ])
 
 // Custom alignments
 FieldManager::ALIGNMENT()
@@ -757,9 +1091,9 @@ FieldManager::ALIGNMENT()
 | `setShowJustify(bool)` | Include "justify" option |
 | `setAllowDisable(bool)` | Allow disabling alignment |
 | `setProperty(string)` | CSS property this maps to |
-| `asTextAlign()` | Preset: text-align values |
-| `asFlexAlign()` | Preset: flexbox alignment values |
-| `asElementAlign()` | Preset: element alignment |
+| `asTextAlign()` | Preset: `text-align` — values `left`, `center`, `right`, `justify` |
+| `asFlexAlign()` | Preset: `justify-content` — values `flex-start`, `center`, `flex-end` |
+| `asElementAlign()` | Preset: `align-items` — values `flex-start`, `center`, `flex-end` |
 
 ---
 
@@ -777,6 +1111,35 @@ FieldManager::BACKGROUND_GROUP()
     ->setDefaultBackground(['type' => 'color', 'color' => '#ffffff'])
     ->setEnableHover(true)
     ->setEnableImage(true)
+```
+
+Full default structure for each background type:
+
+```php
+FieldManager::BACKGROUND_GROUP()
+    ->setLabel('Section Background')
+    ->setDefaultBackground([
+        'type'     => 'color',         // active type: 'none' | 'color' | 'gradient' | 'image'
+        'color'    => '#ffffff',        // used when type = 'color'
+        'gradient' => [
+            'type'       => 'linear',  // 'linear' | 'radial'
+            'angle'      => 135,
+            'colorStops' => [
+                ['color' => '#667EEA', 'position' => 0],
+                ['color' => '#764BA2', 'position' => 100],
+            ],
+        ],
+        'image' => [
+            'url'        => '',
+            'size'       => 'cover',          // 'cover' | 'contain' | 'auto'
+            'position'   => 'center center',
+            'repeat'     => 'no-repeat',      // 'no-repeat' | 'repeat' | 'repeat-x' | 'repeat-y'
+            'attachment' => 'scroll',         // 'scroll' | 'fixed'
+        ],
+        'hover' => [
+            'color' => '',             // hover overlay color
+        ],
+    ])
 ```
 
 | Method | Description |
@@ -823,6 +1186,19 @@ FieldManager::TYPOGRAPHY_GROUP()
 FieldManager::TYPOGRAPHY_GROUP()
     ->setLabel('Caption')
     ->disableControls(['word_spacing', 'text_decoration'])
+```
+
+Replace the entire font list (overrides all built-in fonts):
+
+```php
+FieldManager::TYPOGRAPHY_GROUP()
+    ->setLabel('Brand Typography')
+    ->setFontFamilies([
+        'Inter'     => "'Inter', sans-serif",
+        'Roboto'    => "'Roboto', sans-serif",
+        'Playfair'  => "'Playfair Display', serif",
+        'Mono'      => "'Courier New', monospace",
+    ])
 ```
 
 | Method | Description |
@@ -889,7 +1265,8 @@ FieldManager::GROUP()
 
 | Method | Description |
 |---|---|
-| `setFields(array)` | Keyed array of field instances |
+| `setFields(array)` | Set all fields at once (keyed array) |
+| `addField(string $key, BaseField)` | Add a single field to the group |
 | `setCollapsible(bool)` | Make group collapsible |
 
 ---
@@ -909,6 +1286,19 @@ FieldManager::REPEATER()
     ->addField('role', FieldManager::TEXT()->setLabel('Role'))
     ->addField('photo', FieldManager::IMAGE()->setLabel('Photo'))
     ->addField('bio', FieldManager::TEXTAREA()->setLabel('Bio')->setRows(3))
+```
+
+**With conditional fields inside repeater items:**
+```php
+FieldManager::REPEATER()
+    ->setLabel('Features')
+    ->setItemLabel('Feature')
+    ->setMax(6)
+    ->addField('title',    FieldManager::TEXT()->setLabel('Title')->setRequired(true))
+    ->addField('has_icon', FieldManager::TOGGLE()->setLabel('Show Icon')->setDefault(false))
+    ->addField('icon',     FieldManager::ICON()->setLabel('Icon')->dependsOn('has_icon', true))
+    ->addField('has_link', FieldManager::TOGGLE()->setLabel('Add Link')->setDefault(false))
+    ->addField('link',     FieldManager::URL()->setLabel('Link')->dependsOn('has_link', true))
 ```
 
 | Method | Description |
