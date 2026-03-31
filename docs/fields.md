@@ -12,6 +12,7 @@ All fields are created via the `FieldManager` static factory class. Every field 
 
 ## Table of Contents
 
+- [CSS Selectors](#css-selectors)
 - [Common Base Methods](#common-base-methods)
 - [Basic Input](#basic-input)
   - [TEXT](#text)
@@ -69,6 +70,180 @@ All fields are created via the `FieldManager` static factory class. Every field 
 
 ---
 
+## CSS Selectors
+
+`setSelectors()` tells the page builder how to turn a field's value into live CSS. The array maps one or more CSS selectors to a property declaration that uses token placeholders.
+
+### Tokens
+
+| Token | Replaced with |
+|---|---|
+| `{{WRAPPER}}` | The unique selector wrapping this widget instance (e.g. `.xg-widget-abc123`) |
+| `{{VALUE}}` | The field's current value |
+| `{{UNIT}}` | The selected unit (`px`, `em`, `%`, etc.) — used with numeric/dimension fields |
+| `{{VALUE.TOP}}` | Top side of a dimension field |
+| `{{VALUE.RIGHT}}` | Right side of a dimension field |
+| `{{VALUE.BOTTOM}}` | Bottom side of a dimension field |
+| `{{VALUE.LEFT}}` | Left side of a dimension field |
+
+### Single property — COLOR
+
+```php
+FieldManager::COLOR()
+    ->setLabel('Text Color')
+    ->setDefault('#333333')
+    ->setSelectors([
+        '{{WRAPPER}} .card-title' => 'color: {{VALUE}};'
+    ])
+```
+
+### Single property with unit — NUMBER
+
+```php
+FieldManager::NUMBER()
+    ->setLabel('Font Size')
+    ->setDefault(16)
+    ->setUnit('px')
+    ->setResponsive(true)
+    ->setSelectors([
+        '{{WRAPPER}} .card-title' => 'font-size: {{VALUE}}{{UNIT}};'
+    ])
+```
+
+### Hover state selector
+
+```php
+FieldManager::COLOR()
+    ->setLabel('Hover Color')
+    ->setDefault('#007cba')
+    ->setSelectors([
+        '{{WRAPPER}} .btn:hover' => 'color: {{VALUE}};'
+    ])
+```
+
+### SELECT — value maps directly
+
+```php
+FieldManager::SELECT()
+    ->setLabel('Object Fit')
+    ->setDefault('cover')
+    ->setOptions(['fill' => 'Fill', 'contain' => 'Contain', 'cover' => 'Cover'])
+    ->setSelectors([
+        '{{WRAPPER}} .image-element' => 'object-fit: {{VALUE}};'
+    ])
+```
+
+### DIMENSION — four-sided shorthand
+
+```php
+FieldManager::DIMENSION()
+    ->setLabel('Padding')
+    ->asPadding()
+    ->setSelectors([
+        '{{WRAPPER}} .card' => 'padding: {{VALUE.TOP}}{{UNIT}} {{VALUE.RIGHT}}{{UNIT}} {{VALUE.BOTTOM}}{{UNIT}} {{VALUE.LEFT}}{{UNIT}};'
+    ])
+```
+
+### Multiple selectors at once
+
+You can target several elements in one `setSelectors()` call:
+
+```php
+FieldManager::COLOR()
+    ->setLabel('Icon Color')
+    ->setDefault('#444')
+    ->setSelectors([
+        '{{WRAPPER}} .icon-element'       => 'color: {{VALUE}};',
+        '{{WRAPPER}} .icon-element svg'   => 'fill: {{VALUE}};',
+    ])
+```
+
+### Multiple CSS properties on one selector
+
+Separate declarations with a semicolon inside the same string:
+
+```php
+FieldManager::COLOR()
+    ->setLabel('Overlay Color')
+    ->setSelectors([
+        '{{WRAPPER}} .overlay' => 'background-color: {{VALUE}}; border-color: {{VALUE}};'
+    ])
+```
+
+### BACKGROUND_GROUP
+
+The group field outputs a full `background` shorthand value:
+
+```php
+FieldManager::BACKGROUND_GROUP()
+    ->setLabel('Section Background')
+    ->setSelectors([
+        '{{WRAPPER}}.widget-section' => 'background: {{VALUE}};'
+    ])
+```
+
+### BORDER_SHADOW_GROUP
+
+Border and shadow groups emit their own CSS; the selector targets the element to apply it to:
+
+```php
+FieldManager::BORDER_SHADOW_GROUP()
+    ->setLabel('Card Border & Shadow')
+    ->setSelectors([
+        '{{WRAPPER}} .card' => '{{VALUE}}'
+    ])
+```
+
+### TYPOGRAPHY_GROUP
+
+Typography groups output a block of CSS declarations:
+
+```php
+FieldManager::TYPOGRAPHY_GROUP()
+    ->setLabel('Heading Typography')
+    ->setSelectors([
+        '{{WRAPPER}} .card-title' => '{{VALUE}}'
+    ])
+```
+
+### ALIGNMENT
+
+Alignment maps to `text-align` or `justify-content` depending on context:
+
+```php
+// Text alignment
+FieldManager::ALIGNMENT()
+    ->setLabel('Text Align')
+    ->asTextAlign()
+    ->setSelectors([
+        '{{WRAPPER}} .card-body' => 'text-align: {{VALUE}};'
+    ])
+
+// Flex alignment
+FieldManager::ALIGNMENT()
+    ->setLabel('Content Align')
+    ->asFlexAlign()
+    ->setSelectors([
+        '{{WRAPPER}} .card-inner' => 'justify-content: {{VALUE}};'
+    ])
+```
+
+### RANGE / NUMBER with custom unit
+
+```php
+FieldManager::RANGE()
+    ->setLabel('Opacity')
+    ->setDefault(100)
+    ->setMin(0)
+    ->setMax(100)
+    ->setUnit('')
+    ->setSelectors([
+        '{{WRAPPER}} .card' => 'opacity: calc({{VALUE}} / 100);'
+    ])
+```
+
+---
+
 ## Common Base Methods
 
 Every field type inherits these chainable methods from `BaseField`:
@@ -98,6 +273,37 @@ FieldManager::TEXT()
     ->setPlaceholder('Enter text...')
     ->dependsOn('show_label', true)
 ```
+
+**Example — `setSelectors()`:**
+```php
+// Color field writes to a CSS property on a scoped element
+FieldManager::COLOR()
+    ->setLabel('Button Color')
+    ->setDefault('#007cba')
+    ->setSelectors([
+        '{{WRAPPER}} .btn'       => 'background-color: {{VALUE}};',
+        '{{WRAPPER}} .btn:hover' => 'border-color: {{VALUE}};',
+    ])
+
+// Number field with unit token
+FieldManager::NUMBER()
+    ->setLabel('Icon Size')
+    ->setDefault(24)
+    ->setUnit('px')
+    ->setSelectors([
+        '{{WRAPPER}} .icon' => 'font-size: {{VALUE}}{{UNIT}};'
+    ])
+
+// Dimension field — four-sided shorthand
+FieldManager::DIMENSION()
+    ->setLabel('Padding')
+    ->asPadding()
+    ->setSelectors([
+        '{{WRAPPER}} .card' => 'padding: {{VALUE.TOP}}{{UNIT}} {{VALUE.RIGHT}}{{UNIT}} {{VALUE.BOTTOM}}{{UNIT}} {{VALUE.LEFT}}{{UNIT}};'
+    ])
+```
+
+> See the [CSS Selectors](#css-selectors) section for the full token reference and all field-type examples.
 
 ---
 
@@ -700,6 +906,18 @@ FieldManager::DIMENSION()
     ->asBorderRadius()                 // preset: sides top-left/top-right/bottom-right/bottom-left
     ->setMin(0)
     ->setMax(500)
+
+// Restrict to specific sides (only left/right inputs shown)
+FieldManager::DIMENSION()
+    ->setLabel('Horizontal Padding')
+    ->asPadding()
+    ->setSides(['left', 'right'])
+
+// Only top/bottom
+FieldManager::DIMENSION()
+    ->setLabel('Vertical Margin')
+    ->asMargin()
+    ->setSides(['top', 'bottom'])
 
 // Single value
 FieldManager::DIMENSION()
