@@ -12,7 +12,7 @@ class AssetController extends Controller
      */
     public function serve($path)
     {
-        $assetPath = public_path('vendor/page-builder/' . $path);
+        $assetPath = base_path('../assets/vendor/page-builder/' . $path);
         
         if (!file_exists($assetPath)) {
             abort(404);
