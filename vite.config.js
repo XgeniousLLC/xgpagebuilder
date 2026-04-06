@@ -5,7 +5,7 @@ import { resolve } from 'path';
 
 export default defineConfig({
     plugins: [react(), tailwindcss()],
-    base: '/vendor/page-builder/',
+    base: '/assets/vendor/page-builder/',
     build: {
         outDir: 'public/build',
         manifest: true,
