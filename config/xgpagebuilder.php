@@ -78,6 +78,19 @@ return [
     |
     */
 
+    /*
+    |--------------------------------------------------------------------------
+    | Demo Mode
+    |--------------------------------------------------------------------------
+    |
+    | When enabled, the editor displays a "Demo Mode" ribbon and intercepts
+    | API save requests to show a warning instead of persisting changes.
+    | Set PAGE_BUILDER_DEMO_MODE=true in your .env to activate.
+    |
+    */
+
+    'demo_mode' => env('PAGE_BUILDER_DEMO_MODE', false),
+
     'enable_legacy_addons' => env('PAGE_BUILDER_LEGACY_ADDONS', false),
 
     'legacy_addon_paths' => [

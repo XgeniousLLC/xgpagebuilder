@@ -54,6 +54,7 @@ class PageBuilderUIController extends Controller
             'contentId' => $content->id,
             'apiUrl' => url('/api/page-builder'),
             'routes' => $routes,
+            'isDemoMode' => (bool) config('xgpagebuilder.demo_mode', false),
         ]);
     }
     

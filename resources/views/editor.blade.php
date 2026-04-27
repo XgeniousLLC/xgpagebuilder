@@ -177,6 +177,7 @@
     };
 </script>
 
+@if($isDemoMode)
 {{-- Demo mode: persistent ribbon + toastr warning + toolbar cleanup --}}
 <style>
     /* Persistent "Demo Mode" ribbon — hangs from top-center */
@@ -273,6 +274,7 @@
         };
     })();
 </script>
+@endif
 
 {{-- Load host app JavaScript files for widget interactivity --}}
 @foreach (config('xgpagebuilder.editor_frontend_js', []) as $jsPath)
