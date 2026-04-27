@@ -177,7 +177,7 @@
     };
 </script>
 
-@if($isDemoMode)
+@if(config('xgpagebuilder.demo_mode', false))
 {{-- Demo mode: persistent ribbon + toastr warning + toolbar cleanup --}}
 <style>
     /* Persistent "Demo Mode" ribbon — hangs from top-center */
