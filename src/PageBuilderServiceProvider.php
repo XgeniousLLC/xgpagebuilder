@@ -117,7 +117,7 @@ class PageBuilderServiceProvider extends ServiceProvider
 
             // Publish built assets (after npm run build)
             $this->publishes([
-                __DIR__ . '/../public/build' => public_path('vendor/page-builder'),
+                __DIR__ . '/../public/build' => base_path('../assets/vendor/page-builder'),
             ], 'page-builder-assets');
 
             // Publish everything

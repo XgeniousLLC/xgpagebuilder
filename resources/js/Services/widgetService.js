@@ -132,7 +132,8 @@ class WidgetService {
       const data = await response.json();
       console.log(`[DEBUG] widgetService.getWidgetFields: Response data:`, data);
 
-      return data.success ? data.data : null;
+      // Wrap in { fields } so callers can use fieldsData.fields consistently
+      return data.success ? { fields: data.data } : null;
     } catch (error) {
       console.error(`[DEBUG] widgetService.getWidgetFields: Error fetching widget fields for ${type}/${tab}:`, error);
       return null;
