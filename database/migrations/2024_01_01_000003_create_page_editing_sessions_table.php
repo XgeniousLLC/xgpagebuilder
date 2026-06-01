@@ -17,8 +17,8 @@ return new class extends Migration
             $table->unsignedBigInteger('admin_id');
             $table->string('session_token', 64)->unique();
             $table->string('editing_section', 50)->default('full_page'); // 'full_page', 'widget_123', 'section_456'
-            $table->timestamp('last_activity');
-            $table->timestamp('started_at');
+            $table->timestamp('last_activity')->useCurrent();
+            $table->timestamp('started_at')->useCurrent();
             $table->json('metadata')->nullable(); // browser, IP, current widget being edited
             $table->timestamps();
 
