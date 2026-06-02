@@ -13,7 +13,7 @@
 
     @php
         $manifestPaths = [
-            public_path('assets/page-builder/.vite/manifest.json'),
+            public_path('assets/vendor/page-builder/.vite/manifest.json'),
         ];
 
         $manifestPath = null;
@@ -34,7 +34,7 @@
 
     @if ($jsEntry && isset($jsEntry['css']))
         @foreach ($jsEntry['css'] as $cssFile)
-            <link rel="stylesheet" href="{{ asset('assets/page-builder/' . $cssFile) }}">
+            <link rel="stylesheet" href="{{ asset('assets/vendor/page-builder/' . $cssFile) }}">
         @endforeach
     @endif
 
@@ -292,7 +292,7 @@
 @endforeach
 
 @if ($jsEntry && isset($jsEntry['file']))
-    <script type="module" src="{{ asset('assets/page-builder/' . $jsEntry['file']) }}?v={{ time() }}"></script>
+    <script type="module" src="{{ asset('assets/vendor/page-builder/' . $jsEntry['file']) }}?v={{ time() }}"></script>
 @else
     <div style="padding: 40px; text-align: center; font-family: sans-serif;">
         <h2>⚠️ Page Builder Assets Not Built</h2>
