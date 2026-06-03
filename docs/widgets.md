@@ -4,91 +4,75 @@ title: Widget Development
 nav_order: 4
 ---
 
-# Widget Development Guide
+# Widget Development
 
-Learn how to create custom widgets for XgPageBuilder.
+> For the full guide with all field types, real-world examples, and legacy migration, see [WIDGET-DEVELOPMENT.md](WIDGET-DEVELOPMENT.md).
 
 ---
 
-## Creating a Widget
-
-Create a widget class that extends `BaseWidget`:
+## Quick Example
 
 ```php
-// Plugins/PageBuilder/Widgets/CallToActionWidget.php
 namespace Plugins\PageBuilder\Widgets;
 
 use Xgenious\PageBuilder\Core\BaseWidget;
 use Xgenious\PageBuilder\Core\ControlManager;
 use Xgenious\PageBuilder\Core\FieldManager;
+use Xgenious\PageBuilder\Core\WidgetCategory;
 
 class CallToActionWidget extends BaseWidget
 {
-    protected string $addon_name = 'call-to-action';
-    protected string $addon_title = 'Call to Action';
-    protected string $addon_description = 'A call to action section';
-    protected string $icon = 'la-bullhorn';
-    protected string $category = 'marketing';
+    protected function getWidgetType(): string       { return 'call_to_action'; }
+    protected function getWidgetName(): string       { return 'Call to Action'; }
+    protected function getWidgetIcon(): string|array { return 'las la-bullhorn'; }
+    protected function getCategory(): string         { return WidgetCategory::MARKETING; }
 
     public function getGeneralFields(): array
     {
         $control = new ControlManager();
-        
+
         $control->addGroup('content', 'Content')
-            ->registerField('title', FieldManager::TEXT()
-                ->setLabel('Title')
-                ->setDefault('Get Started Today')
-            )
-            ->registerField('button_text', FieldManager::TEXT()
-                ->setLabel('Button Text')
-                ->setDefault('Sign Up')
-            )
-            ->registerField('button_url', FieldManager::TEXT()
-                ->setLabel('Button URL')
-            )
+            ->registerField('title',       FieldManager::TEXT()->setLabel('Title')->setDefault('Get Started Today'))
+            ->registerField('button_text', FieldManager::TEXT()->setLabel('Button Text')->setDefault('Sign Up'))
+            ->registerField('button_url',  FieldManager::URL()->setLabel('Button URL')->setDefault('#'))
             ->endGroup();
-        
+
         return $control->getFields();
     }
 
+    public function getStyleFields(): array { return []; }
+
     public function render(array $settings = []): string
     {
-        $title = $settings['general']['content']['title'] ?? '';
-        $buttonText = $settings['general']['content']['button_text'] ?? '';
-        $buttonUrl = $settings['general']['content']['button_url'] ?? '#';
-        
-        return view('pagebuilder::widgets.cta', compact('title', 'buttonText', 'buttonUrl'))->render();
+        $content = $settings['general']['content'] ?? [];
+
+        return view('pagebuilder::widgets.cta', [
+            'title'      => $content['title']       ?? '',
+            'buttonText' => $content['button_text'] ?? '',
+            'buttonUrl'  => $content['button_url']  ?? '#',
+        ])->render();
     }
 }
 ```
 
----
-
-## Create Widget View
+**Blade view:**
 
 ```blade
-{{-- core/plugins/PageBuilder/views/widgets/cta.blade.php --}}
+{{-- plugins/PageBuilder/views/widgets/cta.blade.php --}}
 <div class="cta-section">
-    <div class="container">
-        <h2>{{ $title }}</h2>
-        <a href="{{ $buttonUrl }}" class="btn btn-primary">{{ $buttonText }}</a>
-    </div>
+    <h2>{{ $title }}</h2>
+    <a href="{{ $buttonUrl }}" class="btn btn-primary">{{ $buttonText }}</a>
 </div>
 ```
 
----
-
-## Register Widget
-
-Add to `config/xgpagebuilder.php`:
+**Register:**
 
 ```php
+// config/xgpagebuilder.php
 'custom_widgets' => [
     \Plugins\PageBuilder\Widgets\CallToActionWidget::class,
 ],
 ```
-
-Clear cache:
 
 ```bash
 php artisan config:clear
@@ -96,247 +80,41 @@ php artisan config:clear
 
 ---
 
-## Field Types
+## Key Field Types
 
-### Text Field
+| Field | Usage |
+|-------|-------|
+| `FieldManager::TEXT()` | Single-line text |
+| `FieldManager::TEXTAREA()` | Multi-line text |
+| `FieldManager::WYSIWYG()` | Rich text editor |
+| `FieldManager::NUMBER()` | Number input |
+| `FieldManager::TOGGLE()` | Boolean switch |
+| `FieldManager::SELECT()` | Dropdown |
+| `FieldManager::COLOR()` | Color picker |
+| `FieldManager::IMAGE()` | Image upload → returns `['url'=>..., 'id'=>...]` |
+| `FieldManager::VIDEO()` | Video upload → returns `['url'=>..., 'poster'=>...]` |
+| `FieldManager::URL()` | Link field |
+| `FieldManager::ICON()` | Icon picker |
+| `FieldManager::REPEATER()` | Repeatable group of fields |
+| `FieldManager::DIMENSION()` | Margin/padding with CSS selector binding |
 
-```php
-FieldManager::TEXT()
-    ->setLabel('Title')
-    ->setPlaceholder('Enter title')
-    ->setDefault('Default value')
-```
+> IMAGE and VIDEO fields return **arrays**. Extract the URL with `$value['url'] ?? ''`.
 
-### Textarea
+---
 
-```php
-FieldManager::TEXTAREA()
-    ->setLabel('Description')
-    ->setRows(5)
-```
-
-### Rich Text Editor
-
-```php
-FieldManager::RICH_TEXT()
-    ->setLabel('Content')
-```
-
-### Number
+## Widget Categories
 
 ```php
-FieldManager::NUMBER()
-    ->setLabel('Count')
-    ->setMin(0)
-    ->setMax(100)
-    ->setDefault(10)
-```
+use Xgenious\PageBuilder\Core\WidgetCategory;
 
-### Color Picker
-
-```php
-FieldManager::COLOR()
-    ->setLabel('Background Color')
-    ->setDefault('#ffffff')
-```
-
-### Image Upload
-
-```php
-FieldManager::IMAGE()
-    ->setLabel('Featured Image')
-```
-
-### Select Dropdown
-
-```php
-FieldManager::SELECT()
-    ->setLabel('Layout')
-    ->setOptions([
-        'left' => 'Left Aligned',
-        'center' => 'Center Aligned',
-        'right' => 'Right Aligned',
-    ])
-    ->setDefault('center')
-```
-
-### Checkbox
-
-```php
-FieldManager::CHECKBOX()
-    ->setLabel('Show Icon')
-    ->setDefault(true)
-```
-
-### Icon Picker
-
-```php
-FieldManager::ICON()
-    ->setLabel('Icon')
-    ->setDefault('la-star')
-```
-
-### Repeater
-
-```php
-FieldManager::REPEATER()
-    ->setLabel('Features')
-    ->setFields([
-        'title' => FieldManager::TEXT()->setLabel('Title'),
-        'description' => FieldManager::TEXTAREA()->setLabel('Description'),
-    ])
+WidgetCategory::THEME        // theme-specific sections
+WidgetCategory::BASIC        // basic content
+WidgetCategory::CONTENT      // content widgets
+WidgetCategory::MEDIA        // image, video, gallery
+WidgetCategory::INTERACTIVE  // tabs, accordion, slider
+WidgetCategory::MARKETING    // CTA, pricing, testimonials
 ```
 
 ---
 
-## Style Controls
-
-Add style fields:
-
-```php
-public function getStyleFields(): array
-{
-    $control = new ControlManager();
-    
-    $control->addGroup('colors', 'Colors')
-        ->registerField('background_color', FieldManager::COLOR()
-            ->setLabel('Background Color')
-            ->setDefault('#f8f9fa')
-        )
-        ->registerField('text_color', FieldManager::COLOR()
-            ->setLabel('Text Color')
-            ->setDefault('#212529')
-        )
-        ->endGroup();
-    
-    return $control->getFields();
-}
-```
-
----
-
-## Widget Properties
-
-### Required Properties
-
-```php
-protected string $addon_name = 'my-widget';      // Unique identifier
-protected string $addon_title = 'My Widget';     // Display name
-```
-
-### Optional Properties
-
-```php
-protected string $addon_description = 'Widget description';
-protected string $icon = 'la-star';              // Line Awesome icon
-protected string $category = 'content';          // Widget category
-```
-
-### Categories
-
-- `theme` - Theme-specific widgets
-- `content` - Content widgets
-- `media` - Media widgets
-- `interactive` - Interactive widgets
-- `marketing` - Marketing widgets
-- `custom` - Custom widgets
-
----
-
-## Best Practices
-
-### 1. Use Descriptive Names
-
-```php
-// ✅ Good
-protected string $addon_name = 'call-to-action';
-
-// ❌ Bad
-protected string $addon_name = 'widget1';
-```
-
-### 2. Group Related Fields
-
-```php
-$control->addGroup('content', 'Content')
-    ->registerField('title', FieldManager::TEXT()->setLabel('Title'))
-    ->registerField('description', FieldManager::TEXTAREA()->setLabel('Description'))
-    ->endGroup();
-```
-
-### 3. Provide Defaults
-
-```php
-FieldManager::TEXT()
-    ->setLabel('Title')
-    ->setDefault('Default Title')
-```
-
-### 4. Handle Missing Data
-
-```php
-$title = $settings['general']['content']['title'] ?? 'Default Title';
-```
-
-### 5. Sanitize Output
-
-```php
-$title = e($settings['general']['content']['title'] ?? '');
-```
-
----
-
-## Complete Example
-
-```php
-namespace Plugins\PageBuilder\Widgets;
-
-use Xgenious\PageBuilder\Core\BaseWidget;
-use Xgenious\PageBuilder\Core\ControlManager;
-use Xgenious\PageBuilder\Core\FieldManager;
-
-class FeatureGridWidget extends BaseWidget
-{
-    protected string $addon_name = 'feature-grid';
-    protected string $addon_title = 'Feature Grid';
-    protected string $icon = 'la-th';
-    protected string $category = 'content';
-
-    public function getGeneralFields(): array
-    {
-        $control = new ControlManager();
-        
-        $control->addGroup('content', 'Content')
-            ->registerField('heading', FieldManager::TEXT()
-                ->setLabel('Heading')
-                ->setDefault('Our Features')
-            )
-            ->registerField('features', FieldManager::REPEATER()
-                ->setLabel('Features')
-                ->setFields([
-                    'icon' => FieldManager::ICON()->setLabel('Icon'),
-                    'title' => FieldManager::TEXT()->setLabel('Title'),
-                    'description' => FieldManager::TEXTAREA()->setLabel('Description'),
-                ])
-            )
-            ->endGroup();
-        
-        return $control->getFields();
-    }
-
-    public function render(array $settings = []): string
-    {
-        $heading = $settings['general']['content']['heading'] ?? 'Our Features';
-        $features = $settings['general']['content']['features'] ?? [];
-        
-        return view('pagebuilder::widgets.feature-grid', compact('heading', 'features'))->render();
-    }
-}
-```
-
----
-
-## Next Steps
-
-- [Configuration Guide](configuration.html) - Configure the package
-- [Installation Guide](installation.html) - Installation instructions
+For all field types, style CSS generation, and complete examples → [WIDGET-DEVELOPMENT.md](WIDGET-DEVELOPMENT.md)

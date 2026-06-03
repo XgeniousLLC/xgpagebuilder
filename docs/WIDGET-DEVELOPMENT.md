@@ -1,422 +1,411 @@
 # Widget Development Guide
 
-Learn how to create custom widgets for XgPageBuilder and migrate legacy addons.
+How to create custom widgets for XgPageBuilder.
 
 ---
 
 ## Table of Contents
 
-1. [Creating Custom Widgets](#creating-custom-widgets)
-2. [Field Types Reference](#field-types-reference)
-3. [Style Controls](#style-controls)
-4. [Migrating Legacy Addons](#migrating-legacy-addons)
-5. [Best Practices](#best-practices)
+1. [Widget Structure](#widget-structure)
+2. [Minimal Widget Example](#minimal-widget-example)
+3. [Real-World Example (Header with Slider)](#real-world-example-header-with-slider)
+4. [Field Types Reference](#field-types-reference)
+5. [Style Fields & CSS Generation](#style-fields--css-generation)
+6. [Registering Widgets](#registering-widgets)
+7. [Migrating Legacy Addons](#migrating-legacy-addons)
 
 ---
 
-## Creating Custom Widgets
+## Widget Structure
 
-### Real-World Example: Hero Section Widget
-
-Here's a complete example of a production-ready hero section widget with background image, trusted users, and call-to-action buttons:
+Every widget extends `BaseWidget` and implements three methods:
 
 ```php
-// plugins/PageBuilder/Widgets/HeroSectionWidget.php
-namespace plugins\PageBuilder\Widgets;
+namespace Plugins\PageBuilder\Widgets;
 
 use Xgenious\PageBuilder\Core\BaseWidget;
 use Xgenious\PageBuilder\Core\ControlManager;
 use Xgenious\PageBuilder\Core\FieldManager;
-use plugins\PageBuilder\Traits\ExtractsImageIds;
+use Xgenious\PageBuilder\Core\WidgetCategory;
 
-class HeroSectionWidget extends BaseWidget
+class MyWidget extends BaseWidget
 {
-    use ExtractsImageIds;
-    
-    protected function getWidgetType(): string
+    protected function getWidgetType(): string        { return 'my_widget'; }
+    protected function getWidgetName(): string        { return 'My Widget'; }
+    protected function getWidgetIcon(): string|array  { return 'las la-star'; }
+    protected function getWidgetDescription(): string { return 'A short description'; }
+    protected function getCategory(): string          { return WidgetCategory::THEME; }
+    protected function getWidgetTags(): array         { return ['my', 'widget']; }
+
+    // Editor fields — General tab
+    public function getGeneralFields(): array
     {
-        return 'hero-section';
+        $control = new ControlManager();
+
+        $control->addGroup('content', 'Content')
+            ->registerField('title', FieldManager::TEXT()->setLabel('Title')->setDefault('Hello'))
+            ->endGroup();
+
+        return $control->getFields();
     }
 
-    protected function getWidgetName(): string
+    // Editor fields — Style tab (optional)
+    public function getStyleFields(): array
     {
-        return 'Hero Section';
+        return []; // return [] to hide the Style tab
     }
 
-    protected function getWidgetDescription(): string
+    // Frontend + editor preview render
+    public function render(array $settings = []): string
     {
-        return 'Create an impactful hero section with title, subtitle, trusted users, and call-to-action buttons';
-    }
+        $title = $settings['general']['content']['title'] ?? 'Hello';
 
-    protected function getCategory(): string
-    {
-        return 'theme';
+        return view('pagebuilder::widgets.my-widget', compact('title'))->render();
     }
+}
+```
 
-    protected function getWidgetIcon(): string
-    {
-        return 'las la-rocket';
-    }
+**Settings structure** inside `render()`:
+```php
+$settings = [
+    'general' => [
+        'group_key' => [
+            'field_key' => 'value',
+        ],
+    ],
+    'style' => [ ... ],
+]
+```
+
+**Widget categories** (`WidgetCategory::*`):
+`THEME`, `BASIC`, `CONTENT`, `MEDIA`, `INTERACTIVE`, `MARKETING`
+
+---
+
+## Minimal Widget Example
+
+The simplest working widget:
+
+```php
+class SimpleCardWidget extends BaseWidget
+{
+    protected function getWidgetType(): string { return 'simple_card'; }
+    protected function getWidgetName(): string { return 'Simple Card'; }
+    protected function getWidgetIcon(): string|array { return 'las la-credit-card'; }
+    protected function getCategory(): string   { return WidgetCategory::CONTENT; }
 
     public function getGeneralFields(): array
     {
         $control = new ControlManager();
 
-        // Background Section
-        $control->addGroup('background', 'Background')
-            ->registerField(
-                'background_image',
-                FieldManager::IMAGE()
-                    ->setLabel('Background Image')
-                    ->setDescription('Recommended: 1905x820')
+        $control->addGroup('content', 'Content')
+            ->registerField('title',       FieldManager::TEXT()->setLabel('Title')->setDefault('Card Title'))
+            ->registerField('description', FieldManager::TEXTAREA()->setLabel('Description'))
+            ->registerField('image',       FieldManager::IMAGE()->setLabel('Image'))
+            ->registerField('link',        FieldManager::URL()->setLabel('Link URL')->setDefault('#'))
+            ->endGroup();
+
+        return $control->getFields();
+    }
+
+    public function getStyleFields(): array { return []; }
+
+    public function render(array $settings = []): string
+    {
+        $content = $settings['general']['content'] ?? [];
+
+        return view('pagebuilder::widgets.simple-card', [
+            'title'       => $content['title']       ?? '',
+            'description' => $content['description'] ?? '',
+            'imageUrl'    => $this->resolveUrl($content['image'] ?? ''),
+            'link'        => $this->resolveUrl($content['link']  ?? '#'),
+        ])->render();
+    }
+
+    // IMAGE and VIDEO fields return arrays — extract the URL safely
+    private function resolveUrl($value): string
+    {
+        return is_array($value) ? ($value['url'] ?? '') : (string)$value;
+    }
+}
+```
+
+> **Important:** `IMAGE` and `VIDEO` fields store an array `['url'=>'...', 'id'=>...]`, not a plain string.
+> Always use a helper like `resolveUrl()` above to extract the URL.
+
+---
+
+## Real-World Example (Header with Slider)
+
+A production widget with background media, CTA buttons, REPEATER images, TOGGLE, DIMENSION, and a JS slider.
+
+```php
+// core/plugins/WidgetBuilder/Widgets/landlord/Header/HeaderOne.php
+namespace Plugins\WidgetBuilder\Widgets\landlord\Header;
+
+use Xgenious\PageBuilder\Core\BaseWidget;
+use Xgenious\PageBuilder\Core\ControlManager;
+use Xgenious\PageBuilder\Core\FieldManager;
+use Xgenious\PageBuilder\Core\WidgetCategory;
+
+class HeaderOne extends BaseWidget
+{
+    protected function getWidgetType(): string        { return 'header_one'; }
+    protected function getWidgetName(): string        { return 'Header One'; }
+    protected function getWidgetIcon(): string|array  { return 'las la-heading'; }
+    protected function getCategory(): string          { return WidgetCategory::THEME; }
+
+    public function getGeneralFields(): array
+    {
+        $control = new ControlManager();
+
+        $control->addGroup('content', 'Content')
+            ->registerField('title', FieldManager::TEXT()
+                ->setLabel('Title')
+                ->setDefault('Build Your <span class="highlighted-text">E-Commerce</span> Store Within Minutes')
+                ->setDescription('Wrap text in <span class="highlighted-text">...</span> to highlight it')
+            )
+            ->registerField('subtitle', FieldManager::TEXT()
+                ->setLabel('Subtitle')
+                ->setDefault('Try Now. No credit card required.')
             )
             ->endGroup();
 
-        // Trusted Users Section
-        $control->addGroup('trusted', 'Trusted Section')
-            ->registerField(
-                'trusted_text',
-                FieldManager::TEXT()
-                    ->setLabel('Trusted Text')
-                    ->setDefault('Trusted by 20k users')
-            )
-            ->registerField(
-                'trusted_images',
-                FieldManager::REPEATER()
-                    ->setLabel('Trusted User Images')
-                    ->setAddButtonText('Add Image')
-                    ->setFields([
-                        'image' => FieldManager::IMAGE()->setLabel('User Image'),
-                    ])
-            )
-            ->endGroup();
-
-        // Hero Content
-        $control->addGroup('content', 'Hero Content')
-            ->registerField(
-                'title',
-                FieldManager::TEXT()
-                    ->setLabel('Main Title')
-                    ->setDefault('Transform Customer Support with Intelligent AI')
-            )
-            ->registerField(
-                'subtitle',
-                FieldManager::TEXTAREA()
-                    ->setLabel('Subtitle / Description')
-                    ->setRows(3)
-                    ->setDefault('Provide instant accurate and personalized support smarter faster and always available')
-            )
-            ->endGroup();
-
-        // Call-to-Action Buttons
         $control->addGroup('buttons', 'Buttons')
-            ->registerField(
-                'button_title_one',
-                FieldManager::TEXT()
-                    ->setLabel('Button One Title')
-                    ->setDefault('Explore Demos')
-            )
-            ->registerField(
-                'button_link_one',
-                FieldManager::URL()
-                    ->setLabel('Button One Link')
-                    ->setDefault('#')
-            )
-            ->registerField(
-                'button_title_two',
-                FieldManager::TEXT()
-                    ->setLabel('Button Two Title')
-                    ->setDefault('Get Started')
-            )
-            ->registerField(
-                'button_link_two',
-                FieldManager::URL()
-                    ->setLabel('Button Two Link')
-                    ->setDefault('#')
+            ->registerField('primary_button_text', FieldManager::TEXT()->setLabel('Primary Button Text')->setDefault('Start Free Trial'))
+            ->registerField('primary_button_url',  FieldManager::TEXT()->setLabel('Primary Button URL')->setDefault('#'))
+            ->registerField('secondary_button_text', FieldManager::TEXT()->setLabel('Secondary Button Text')->setDefault('Watch Demo'))
+            ->registerField('secondary_button_url',  FieldManager::TEXT()->setLabel('Secondary Button URL')->setDefault('#'))
+            ->endGroup();
+
+        $control->addGroup('background', 'Background')
+            ->registerField('background_image', FieldManager::IMAGE()->setLabel('Background Image'))
+            ->registerField('background_video', FieldManager::VIDEO()->setLabel('Background Video')->setDescription('Replaces background image if set'))
+            ->endGroup();
+
+        $control->addGroup('showcase', 'Showcase Slider')
+            ->registerField('showcase_images', FieldManager::REPEATER()
+                ->setLabel('Showcase Images')
+                ->setMin(1)
+                ->setMax(20)
+                ->setFields([
+                    'image' => FieldManager::IMAGE()->setLabel('Image')->setRequired(true),
+                ])
             )
             ->endGroup();
 
-        // Banner Image
-        $control->addGroup('banner', 'Banner Image')
-            ->registerField(
-                'banner_image',
-                FieldManager::IMAGE()
-                    ->setLabel('Hero Banner Image')
-                    ->setDescription('Recommended: 500x550')
+        $control->addGroup('slider_settings', 'Slider Settings')
+            ->registerField('autoplay',        FieldManager::TOGGLE()->setLabel('Auto Play')->setDefault(true))
+            ->registerField('autoplay_speed',  FieldManager::NUMBER()->setLabel('Auto Play Speed (ms)')->setDefault(4000)->setMin(1000)->setMax(15000)->setStep(500))
+            ->registerField('transition_speed', FieldManager::NUMBER()->setLabel('Transition Speed (ms)')->setDefault(500)->setMin(200)->setMax(2000)->setStep(100))
+            ->endGroup();
+
+        return $control->getFields();
+    }
+
+    public function getStyleFields(): array
+    {
+        $control = new ControlManager();
+
+        $control->addGroup('section_style', 'Section')
+            ->registerField('section_margin', FieldManager::DIMENSION()
+                ->setLabel('Margin')
+                ->setSides(['top', 'bottom'])
+                ->asMargin()
+                ->setDefault(['top' => '0', 'right' => '0', 'bottom' => '0', 'left' => '0', 'unit' => 'px'])
+                ->setLinked(true)
+                ->setAllowNegative(false)
+                ->setSelectors(['{{WRAPPER}} .header_one_container_outer'])
             )
             ->endGroup();
 
         return $control->getFields();
     }
 
+    private function resolveUrl($value): string
+    {
+        return is_array($value) ? ($value['url'] ?? '') : (string)$value;
+    }
+
     public function render(array $settings = []): string
     {
-        $general = $settings['general'] ?? [];
+        $general        = $settings['general'] ?? [];
+        $content        = $general['content'] ?? [];
+        $buttons        = $general['buttons'] ?? [];
+        $bg             = $general['background'] ?? [];
+        $showcase       = $general['showcase'] ?? [];
+        $sliderSettings = $general['slider_settings'] ?? [];
 
-        $background = $general['background'] ?? [];
-        $trusted = $general['trusted'] ?? [];
-        $content = $general['content'] ?? [];
-        $buttons = $general['buttons'] ?? [];
-        $banner = $general['banner'] ?? [];
-
-        // Transform trusted_images repeater to match blade view format
-        $trustedImages = ['image_' => []];
-        if (!empty($trusted['trusted_images']) && is_array($trusted['trusted_images'])) {
-            foreach ($trusted['trusted_images'] as $item) {
-                $trustedImages['image_'][] = $this->extractImageId($item['image'] ?? '');
-            }
+        $images = [];
+        foreach ($showcase['showcase_images'] ?? [] as $item) {
+            $url = $this->resolveUrl($item['image'] ?? '');
+            if ($url) $images[] = $url;
         }
 
-        return view('pagebuilder::home.hero-section', [
-            'background_image' => $this->extractImageId($background['background_image'] ?? ''),
-            'banner_image' => $this->extractImageId($banner['banner_image'] ?? ''),
-            'title' => $content['title'] ?? '',
-            'subtitle' => $content['subtitle'] ?? '',
-            'button_title_one' => $buttons['button_title_one'] ?? '',
-            'button_link_one' => $this->extractUrl($buttons['button_link_one'] ?? '#'),
-            'button_title_two' => $buttons['button_title_two'] ?? '',
-            'button_link_two' => $this->extractUrl($buttons['button_link_two'] ?? '#'),
-            'trusted_text' => $trusted['trusted_text'] ?? '',
-            'trusted_images' => $trustedImages,
+        return view('widgetbuilder::landlord.header.header_one', [
+            'uid'              => 'ho_' . uniqid(),   // unique ID for slider JS
+            'title'            => $content['title']    ?? '',
+            'subtitle'         => $content['subtitle'] ?? '',
+            'primaryBtnText'   => $buttons['primary_button_text']   ?? 'Start Free Trial',
+            'primaryBtnUrl'    => $buttons['primary_button_url']    ?? '#',
+            'secondaryBtnText' => $buttons['secondary_button_text'] ?? 'Watch Demo',
+            'secondaryBtnUrl'  => $buttons['secondary_button_url']  ?? '#',
+            'bgImage'          => $this->resolveUrl($bg['background_image'] ?? ''),
+            'bgVideo'          => $this->resolveUrl($bg['background_video'] ?? ''),
+            'images'           => $images,
+            'autoplay'         => (bool)($sliderSettings['autoplay'] ?? true),
+            'autoplaySpeed'    => (int)($sliderSettings['autoplay_speed'] ?? 4000),
+            'transitionSpeed'  => (int)($sliderSettings['transition_speed'] ?? 500),
         ])->render();
     }
 }
 ```
 
-### Create Widget View
+**Blade view** (`views/landlord/header/header_one.blade.php`):
 
 ```blade
-{{-- core/plugins/PageBuilder/views/home/hero-section.blade.php --}}
-@php
-    $img_tag = render_image_markup_by_attachment_id($background_image, '', 'thumb');
-    preg_match('/src="([^"]+)"/', $img_tag, $matches);
-    $background_image_url = $matches[1];
-@endphp
+{{--
+  Inline <style> block — scoped to #{{ $uid }}.
+  Use this for layout / colour values passed from render().
+  For user-configurable spacing/style values, use getStyleFields() instead.
+--}}
+<style>
+    #{{ $uid }} .header_one_container_outer { padding-top: 80px; padding-bottom: 80px; }
+</style>
 
-<section class="banner-section" style="background-image: url('{{ $background_image_url }}');">
-    <div class="header-cover"></div>
-    <div class="custom-container">
-        <div class="hero-area">
-            <div class="hero-content-part text-center">
-                <div class="trusted-users flex-center">
-                    <div class="images">
-                        @foreach ($trusted_images['image_'] as $key => $data)
-                            <div class="img rounded-image base-20">
-                                {!! render_image_markup_by_attachment_id($data) !!}
-                            </div>
-                        @endforeach
-                    </div>
-                    <div class="text">
-                        <span>{{ $trusted_text ?? 'Trusted by 20k users' }}</span>
-                    </div>
-                </div>
-                <h1 class="main-title white-text">
-                    {{ $title ?? __('Transform Customer Support with Intelligent AI') }}
-                </h1>
-                <p class="hero-para">
-                    {{ $subtitle ?? __('Provide instant accurate and personalized support smarter faster and always available') }}
-                </p>
-                <div class="btn-wrapper d-flex justify-content-center gap-4">
-                    <a href="{{ $button_link_one }}" class="cmn-btn white-btn-outline">
-                        {{ $button_title_one ?? __('Explore Demos') }}
-                    </a>
-                    <a href="{{ $button_link_two }}" class="cmn-btn white-btn">
-                        {{ $button_title_two ?? __('Get Started') }}
-                    </a>
-                </div>
-            </div>
-            <div class="hero-img">
-                {!! render_image_markup_by_attachment_id($banner_image) !!}
-            </div>
+<section id="{{ $uid }}" class="header__one_section_wrapper">
+    <div class="relative overflow-hidden w-full">
+
+        {{-- Background --}}
+        <div class="absolute inset-0 -z-1">
+            @if(!empty($bgVideo))
+                <video class="w-full h-full object-cover" autoplay muted loop>
+                    <source src="{{ $bgVideo }}" type="video/mp4">
+                </video>
+            @elseif(!empty($bgImage))
+                <img src="{{ $bgImage }}" class="w-full h-full object-cover" alt="">
+            @endif
+            <div class="absolute inset-0 bg-gradient-to-br from-black/30 to-black"></div>
         </div>
+
+        {{-- Hero content --}}
+        <div class="header_one_container_outer container mx-auto px-4 flex flex-col items-center relative z-10">
+            <h1 class="text-white font-bold text-center">{!! $title !!}</h1>
+            <div class="flex gap-6 mt-8">
+                <a href="{{ $primaryBtnUrl }}" class="secondary-btn">{{ $primaryBtnText }}</a>
+                <a href="{{ $secondaryBtnUrl }}" class="primary-btn">{{ $secondaryBtnText }}</a>
+            </div>
+            <span class="mt-6">{{ $subtitle }}</span>
+        </div>
+
+        {{-- Owl Carousel slider --}}
+        @if(!empty($images))
+            <div class="slider-wrap">
+                <div class="owl-carousel"
+                     data-autoplay="{{ $autoplay ? 'true' : 'false' }}"
+                     data-speed="{{ $autoplaySpeed }}"
+                     data-transition="{{ $transitionSpeed }}">
+                    @foreach($images as $image)
+                        <div><img class="w-full h-full object-fill" src="{{ $image }}" alt=""></div>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+
     </div>
 </section>
 ```
 
-### Register Widget
-
-Add to `config/xgpagebuilder.php`:
-
-```php
-'custom_widgets' => [
-    \Plugins\PageBuilder\Widgets\HeroSectionWidget::class,
-],
-```
-
-Clear cache:
-
-```bash
-php artisan config:clear
-```
+> **`uid`** — `'uid' => 'ho_' . uniqid()` in `render()` gives each widget instance a unique HTML ID. Scope inline `<style>` rules to `#{{ $uid }}` so multiple instances on the same page don't clash.
 
 ---
 
 ## Field Types Reference
 
-### Text Field
+All fields are created via `FieldManager::*()` and chained with options.
+
+### Text
 
 ```php
 FieldManager::TEXT()
     ->setLabel('Title')
     ->setPlaceholder('Enter title')
     ->setDefault('Default value')
+    ->setRequired(true)
 ```
 
-### Textarea Field
+### Textarea
 
 ```php
 FieldManager::TEXTAREA()
     ->setLabel('Description')
-    ->setPlaceholder('Enter description')
-    ->setRows(5)
+    ->setRows(4)
+    ->setDefault('Default text')
 ```
 
-### Rich Text Editor
+### WYSIWYG (Rich Text Editor)
 
 ```php
-FieldManager::RICH_TEXT()
+FieldManager::WYSIWYG()
     ->setLabel('Content')
     ->setDefault('<p>Default content</p>')
 ```
 
-### Number Field
+### Number
 
 ```php
 FieldManager::NUMBER()
-    ->setLabel('Count')
-    ->setMin(0)
-    ->setMax(100)
-    ->setDefault(10)
+    ->setLabel('Speed (ms)')
+    ->setMin(100)
+    ->setMax(10000)
+    ->setStep(100)
+    ->setDefault(500)
 ```
 
-### Color Picker
+### Toggle (Switch)
+
+Boolean on/off switch.
 
 ```php
-FieldManager::COLOR()
-    ->setLabel('Background Color')
-    ->setDefault('#ffffff')
+FieldManager::TOGGLE()
+    ->setLabel('Auto Play')
+    ->setDefault(true)
 ```
 
-### Image Upload
-
+Value in `render()` is a plain `bool`:
 ```php
-FieldManager::IMAGE()
-    ->setLabel('Featured Image')
-    ->setDefault('')
+$autoplay = (bool)($settings['general']['group']['autoplay'] ?? true);
 ```
 
-### Video Upload
-
-Upload and preview self-hosted video files (mp4, webm, mov, avi).
-
-```php
-FieldManager::VIDEO()
-    ->setLabel('Product Demo Video')
-    ->setDescription('Upload an MP4 or WebM file (max 100 MB)')
-    ->setDefault('')
-```
-
-**All available options:**
-
-```php
-FieldManager::VIDEO()
-    ->setLabel('Demo Video')
-    ->setRequired(true)
-    ->setDescription('Supports mp4, webm, mov, avi — max 100 MB by default')
-
-    // Restrict accepted MIME types (default: all four video types)
-    ->setAllowedTypes(['video/mp4', 'video/webm'])
-
-    // Maximum file size in bytes (default: 104857600 = 100 MB)
-    ->setMaxSize(52428800)   // 50 MB
-
-    // Allow selecting multiple videos (default: false)
-    ->setMultiple(false)
-
-    // Show native browser controls in preview (default: true)
-    ->setControls(true)
-
-    // Autoplay in preview (default: false — pair with setMuted(true) for browsers)
-    ->setAutoplay(false)
-
-    // Loop the preview (default: false)
-    ->setLoop(false)
-
-    // Start muted — required for autoplay to work in most browsers (default: false)
-    ->setMuted(false)
-
-    // HTML preload hint: 'auto' | 'metadata' | 'none' (default: 'metadata')
-    ->setPreload('metadata')
-
-    // Show the poster/thumbnail URL input in the editor (default: true)
-    ->setAllowPoster(true)
-```
-
-**Stored value shape** — the field saves a JSON object into widget settings:
-
-```php
-[
-    'id'        => 42,                    // media record ID (or null)
-    'url'       => 'https://…/video.mp4', // public URL
-    'poster'    => 'https://…/thumb.jpg', // optional thumbnail
-    'title'     => 'Demo Video',
-    'caption'   => '',
-    'filename'  => 'video.mp4',
-    'size'      => 5242880,               // bytes
-    'mime_type' => 'video/mp4',
-]
-```
-
-**Rendering the stored value in a widget:**
-
-```php
-public function render(array $settings = []): string
-{
-    $videoField = $settings['general']['media']['video'] ?? [];
-
-    $videoUrl   = $videoField['url']    ?? '';
-    $posterUrl  = $videoField['poster'] ?? '';
-    $videoTitle = $videoField['title']  ?? '';
-
-    return view('pagebuilder::widgets.my-video-widget', compact(
-        'videoUrl', 'posterUrl', 'videoTitle'
-    ))->render();
-}
-```
-
-```blade
-{{-- core/plugins/PageBuilder/views/widgets/my-video-widget.blade.php --}}
-@if($videoUrl)
-    <video
-        src="{{ $videoUrl }}"
-        @if($posterUrl) poster="{{ $posterUrl }}" @endif
-        controls
-        preload="metadata"
-        class="w-full rounded"
-    >
-        Your browser does not support the video tag.
-    </video>
-    @if($videoTitle)
-        <p class="video-caption">{{ $videoTitle }}</p>
-    @endif
-@endif
-```
-
-> **Note:** Videos are uploaded to the same host-app media endpoint used by `ImageField`
-> (`config('xgpagebuilder.media.upload_route')`). The `VideoField` applies its own
-> MIME-type and size validation independently of the global `media.allowed_types` config key.
-
-### Select Dropdown
+### Select
 
 ```php
 FieldManager::SELECT()
-    ->setLabel('Layout')
+    ->setLabel('Alignment')
     ->setOptions([
-        'left' => 'Left Aligned',
-        'center' => 'Center Aligned',
-        'right' => 'Right Aligned',
+        'left'   => 'Left',
+        'center' => 'Center',
+        'right'  => 'Right',
     ])
     ->setDefault('center')
+```
+
+### Multi-Select
+
+```php
+FieldManager::MULTISELECT()
+    ->setLabel('Tags')
+    ->setOptions(['php' => 'PHP', 'js' => 'JavaScript'])
+    ->setDefault(['php'])
+```
+
+### Radio
+
+```php
+FieldManager::RADIO()
+    ->setLabel('Layout')
+    ->setOptions(['grid' => 'Grid', 'list' => 'List'])
+    ->setDefault('grid')
 ```
 
 ### Checkbox
@@ -427,220 +416,309 @@ FieldManager::CHECKBOX()
     ->setDefault(true)
 ```
 
-### Icon Picker
+### Range Slider
+
+```php
+FieldManager::RANGE()
+    ->setLabel('Opacity')
+    ->setMin(0)
+    ->setMax(100)
+    ->setStep(5)
+    ->setDefault(100)
+```
+
+### Color
+
+```php
+FieldManager::COLOR()
+    ->setLabel('Text Color')
+    ->setDefault('#ffffff')
+```
+
+### Image
+
+Returns an **array** — use `$value['url']` to get the URL.
+
+```php
+FieldManager::IMAGE()
+    ->setLabel('Featured Image')
+    ->setRequired(false)
+```
+
+```php
+// In render() — IMAGE returns ['url'=>'...', 'id'=>...]
+$imageUrl = $settings['general']['content']['image']['url'] ?? '';
+```
+
+### Video
+
+Returns an **array** — use `$value['url']` to get the URL.
+
+```php
+FieldManager::VIDEO()
+    ->setLabel('Demo Video')
+    ->setDescription('MP4 or WebM, max 100 MB')
+    ->setAllowedTypes(['video/mp4', 'video/webm'])
+    ->setMaxSize(104857600)   // bytes (100 MB)
+    ->setControls(true)
+    ->setAutoplay(false)
+    ->setMuted(false)
+    ->setLoop(false)
+    ->setPreload('metadata')  // 'auto' | 'metadata' | 'none'
+    ->setAllowPoster(true)
+```
+
+```php
+// In render() — VIDEO returns ['url'=>'...', 'poster'=>'...', 'mime_type'=>'...', ...]
+$videoUrl  = $settings['general']['media']['video']['url']    ?? '';
+$posterUrl = $settings['general']['media']['video']['poster'] ?? '';
+```
+
+```blade
+@if($videoUrl)
+    <video src="{{ $videoUrl }}" poster="{{ $posterUrl }}" controls preload="metadata">
+        Your browser does not support video.
+    </video>
+@endif
+```
+
+### URL / Link
+
+```php
+FieldManager::URL()
+    ->setLabel('Button URL')
+    ->setDefault('#')
+```
+
+Variant helpers (same field, different defaults/labels):
+`URL()`, `ENHANCED_URL()`, `WEB_LINK()`, `EMAIL_LINK()`, `PHONE_LINK()`, `DOWNLOAD_LINK()`, `INTERNAL_LINK()`
+
+### Icon
 
 ```php
 FieldManager::ICON()
     ->setLabel('Icon')
-    ->setDefault('la-star')
+    ->setDefaultIcon('las la-star')
+    ->setAllowEmpty(true)
 ```
 
-### Repeater Field
+(`ICON_INPUT()` is an alias for `ICON()`.)
+
+### Repeater
 
 ```php
 FieldManager::REPEATER()
     ->setLabel('Features')
+    ->setMin(1)
+    ->setMax(10)
+    ->setAddButtonText('Add Feature')
     ->setFields([
-        'title' => FieldManager::TEXT()->setLabel('Feature Title'),
+        'icon'        => FieldManager::ICON()->setLabel('Icon'),
+        'title'       => FieldManager::TEXT()->setLabel('Title'),
         'description' => FieldManager::TEXTAREA()->setLabel('Description'),
-        'icon' => FieldManager::ICON()->setLabel('Icon'),
     ])
+```
+
+```php
+// In render() — repeater returns an array of items
+foreach ($settings['general']['content']['features'] ?? [] as $item) {
+    $title = $item['title'] ?? '';
+    $icon  = $item['icon']  ?? '';
+}
+```
+
+### Dimension (Margin / Padding)
+
+Used in `getStyleFields()` to bind spacing to a CSS selector. CSS is auto-generated.
+
+```php
+FieldManager::DIMENSION()
+    ->setLabel('Padding')
+    ->setSides(['top', 'right', 'bottom', 'left'])  // which sides to show
+    ->asPadding()                                    // or ->asMargin()
+    ->setDefault(['top'=>'20','right'=>'20','bottom'=>'20','left'=>'20','unit'=>'px'])
+    ->setLinked(false)          // true = lock all sides together
+    ->setAllowNegative(false)
+    ->setSelectors(['{{WRAPPER}} .my-section'])  // {{WRAPPER}} = .pb-widget-{id}
+```
+
+### Gradient
+
+```php
+FieldManager::GRADIENT()
+    ->setLabel('Background Gradient')
+```
+
+### Alignment
+
+```php
+FieldManager::ALIGNMENT()
+    ->setLabel('Text Alignment')
+    ->setDefault('center')
+```
+
+### Pre-built Group Fields
+
+These bundle multiple related controls into one field:
+
+```php
+FieldManager::BACKGROUND_GROUP()  // background color, image, gradient, position, size
+FieldManager::TYPOGRAPHY_GROUP()  // font family, size, weight, line-height, letter-spacing
+FieldManager::BORDER_SHADOW_GROUP() // border width/color/radius + box shadow
 ```
 
 ---
 
-## Style Controls
+## Style Fields & CSS Generation
 
-### Spacing Controls
+Fields registered in `getStyleFields()` with `.setSelectors([...])` automatically generate CSS.
+
+`{{WRAPPER}}` in the selector is replaced with `.pb-widget-{widgetId}` so each widget instance is isolated.
 
 ```php
 public function getStyleFields(): array
 {
     $control = new ControlManager();
-    
-    $control->addGroup('spacing', 'Spacing')
-        ->registerField('padding_top', FieldManager::NUMBER()
-            ->setLabel('Padding Top')
-            ->setDefault(20)
+
+    $control->addGroup('section', 'Section')
+        ->registerField('margin', FieldManager::DIMENSION()
+            ->setLabel('Margin')
+            ->setSides(['top', 'bottom'])
+            ->asMargin()
+            ->setDefault(['top'=>'0','right'=>'0','bottom'=>'0','left'=>'0','unit'=>'px'])
+            ->setLinked(true)
+            ->setSelectors(['{{WRAPPER}} .my-outer-class'])
         )
-        ->registerField('padding_bottom', FieldManager::NUMBER()
-            ->setLabel('Padding Bottom')
-            ->setDefault(20)
-        )
-        ->registerField('margin_top', FieldManager::NUMBER()
-            ->setLabel('Margin Top')
-            ->setDefault(0)
-        )
-        ->registerField('margin_bottom', FieldManager::NUMBER()
-            ->setLabel('Margin Bottom')
-            ->setDefault(0)
+        ->registerField('bg_color', FieldManager::COLOR()
+            ->setLabel('Background Color')
+            ->setDefault('#ffffff')
+            ->setSelectors(['{{WRAPPER}} .my-outer-class' => 'background-color: {{VALUE}};'])
         )
         ->endGroup();
-    
+
     return $control->getFields();
 }
 ```
 
-### Typography Controls
-
-```php
-$control->addGroup('typography', 'Typography')
-    ->registerField('font_size', FieldManager::NUMBER()
-        ->setLabel('Font Size')
-        ->setDefault(16)
-    )
-    ->registerField('font_weight', FieldManager::SELECT()
-        ->setLabel('Font Weight')
-        ->setOptions([
-            '300' => 'Light',
-            '400' => 'Normal',
-            '500' => 'Medium',
-            '600' => 'Semi Bold',
-            '700' => 'Bold',
-        ])
-        ->setDefault('400')
-    )
-    ->registerField('text_align', FieldManager::SELECT()
-        ->setLabel('Text Align')
-        ->setOptions([
-            'left' => 'Left',
-            'center' => 'Center',
-            'right' => 'Right',
-        ])
-        ->setDefault('left')
-    )
-    ->endGroup();
+Generated output (per widget instance):
+```css
+.pb-widget-abc123 .my-outer-class {
+    margin-top: 40px;
+    margin-bottom: 40px;
+    background-color: #f5f5f5;
+}
 ```
 
-### Border Controls
+Responsive breakpoints are handled automatically when users set values per device (Desktop / Tablet / Mobile) in the editor.
+
+---
+
+## Registering Widgets
 
 ```php
-$control->addGroup('border', 'Border')
-    ->registerField('border_width', FieldManager::NUMBER()
-        ->setLabel('Border Width')
-        ->setDefault(0)
-    )
-    ->registerField('border_color', FieldManager::COLOR()
-        ->setLabel('Border Color')
-        ->setDefault('#000000')
-    )
-    ->registerField('border_radius', FieldManager::NUMBER()
-        ->setLabel('Border Radius')
-        ->setDefault(0)
-    )
-    ->endGroup();
+// config/xgpagebuilder.php
+'custom_widgets' => [
+    \Plugins\PageBuilder\Widgets\MyWidget::class,
+    \Plugins\PageBuilder\Widgets\AnotherWidget::class,
+],
 ```
+
+```bash
+php artisan config:clear
+```
+
+To auto-discover widgets from a folder, add a path:
+```php
+'widget_paths' => [
+    [
+        'path'      => base_path('plugins/PageBuilder/Widgets'),
+        'namespace' => 'Plugins\\PageBuilder\\Widgets',
+    ],
+],
+```
+
+### Register the view namespace
+
+Widget `render()` methods use `view('pagebuilder::...')`. Register the namespace in `AppServiceProvider`:
+
+```php
+// app/Providers/AppServiceProvider.php
+public function boot(): void
+{
+    $this->loadViewsFrom(base_path('plugins/PageBuilder/views'), 'pagebuilder');
+}
+```
+
+Adjust the path to wherever your widget blade files live.
 
 ---
 
 ## Migrating Legacy Addons
 
-### Why Migrate?
-
-Legacy addons (extending `PageBuilderBase` or `LegacyAddonAdapter`) have limitations:
-- ❌ Harder to maintain
-- ❌ Less flexible field system
-- ❌ May have rendering issues
-- ❌ Not portable across projects
-
-**New widgets (extending `BaseWidget`) are:**
-- ✅ Easier to maintain
-- ✅ More flexible
-- ✅ Better data structure
-- ✅ Portable and reusable
-
-### Migration Steps
-
-#### Before (Legacy Addon)
+### Before (Legacy)
 
 ```php
-namespace Plugins\PageBuilder\Addons\Home;
-
-use Plugins\PageBuilder\PageBuilderBase;
-
 class HeroSection extends PageBuilderBase
 {
-    protected $addon_name = 'hero-section';
+    protected $addon_name  = 'hero-section';
     protected $addon_title = 'Hero Section';
-    
+
     public function admin_render()
     {
-        $output = Text::get([
-            'name' => 'title',
-            'label' => 'Title',
-        ]);
-        
-        $output .= Textarea::get([
-            'name' => 'description',
-            'label' => 'Description',
-        ]);
-        
-        return $output;
+        return Text::get(['name' => 'title', 'label' => 'Title'])
+             . Textarea::get(['name' => 'description', 'label' => 'Description']);
     }
-    
+
     public function frontend_render()
     {
         $settings = $this->get_settings();
-        $title = $settings['title'] ?? '';
-        $description = $settings['description'] ?? '';
-        
-        return view('pagebuilder::hero-section', compact('title', 'description'))->render();
+        return view('pagebuilder::hero-section', $settings)->render();
     }
 }
 ```
 
-#### After (New Widget)
+### After (New)
 
 ```php
-namespace Plugins\PageBuilder\Widgets;
-
-use Xgenious\PageBuilder\Core\BaseWidget;
-use Xgenious\PageBuilder\Core\ControlManager;
-use Xgenious\PageBuilder\Core\FieldManager;
-
 class HeroSectionWidget extends BaseWidget
 {
-    protected string $addon_name = 'hero-section';
-    protected string $addon_title = 'Hero Section';
-    protected string $addon_description = 'Homepage hero section';
-    protected string $icon = 'la-home';
-    protected string $category = 'theme';
-    
+    protected function getWidgetType(): string { return 'hero-section'; }
+    protected function getWidgetName(): string { return 'Hero Section'; }
+    protected function getWidgetIcon(): string|array { return 'las la-rocket'; }
+    protected function getCategory(): string   { return WidgetCategory::THEME; }
+
     public function getGeneralFields(): array
     {
         $control = new ControlManager();
-        
+
         $control->addGroup('content', 'Content')
-            ->registerField('title', FieldManager::TEXT()
-                ->setLabel('Title')
-                ->setPlaceholder('Enter title')
-            )
-            ->registerField('description', FieldManager::TEXTAREA()
-                ->setLabel('Description')
-                ->setPlaceholder('Enter description')
-            )
+            ->registerField('title',       FieldManager::TEXT()->setLabel('Title'))
+            ->registerField('description', FieldManager::TEXTAREA()->setLabel('Description'))
             ->endGroup();
-        
+
         return $control->getFields();
     }
-    
+
+    public function getStyleFields(): array { return []; }
+
     public function render(array $settings = []): string
     {
-        $title = $settings['general']['content']['title'] ?? '';
-        $description = $settings['general']['content']['description'] ?? '';
-        
-        return view('pagebuilder::widgets.hero-section', compact('title', 'description'))->render();
+        $content = $settings['general']['content'] ?? [];
+        return view('pagebuilder::widgets.hero-section', [
+            'title'       => $content['title']       ?? '',
+            'description' => $content['description'] ?? '',
+        ])->render();
     }
 }
 ```
 
-### Field Type Mapping
+### Field type mapping
 
 | Legacy | New |
 |--------|-----|
 | `Text::get()` | `FieldManager::TEXT()` |
 | `Textarea::get()` | `FieldManager::TEXTAREA()` |
-| `Summernote::get()` | `FieldManager::RICH_TEXT()` |
+| `Summernote::get()` | `FieldManager::WYSIWYG()` |
 | `Number::get()` | `FieldManager::NUMBER()` |
 | `ColorPicker::get()` | `FieldManager::COLOR()` |
 | `Image::get()` | `FieldManager::IMAGE()` |
@@ -650,275 +728,18 @@ class HeroSectionWidget extends BaseWidget
 | `IconPicker::get()` | `FieldManager::ICON()` |
 | `Repeater::get()` | `FieldManager::REPEATER()` |
 
-### Settings Data Structure
+### Settings structure change
 
-**Legacy:**
 ```php
-$settings = [
-    'title' => 'My Title',
-    'description' => 'My Description',
-];
-```
+// Legacy
+$settings['title']
 
-**New:**
-```php
-$settings = [
-    'general' => [
-        'content' => [
-            'title' => 'My Title',
-            'description' => 'My Description',
-        ],
-    ],
-    'style' => [
-        'colors' => [
-            'background_color' => '#ffffff',
-        ],
-    ],
-];
+// New — grouped by tab > group > field
+$settings['general']['content']['title']
+$settings['style']['colors']['background_color']
 ```
 
 ---
 
-## Best Practices
-
-### 1. Use Descriptive Names
-
-```php
-// ❌ Bad
-protected string $addon_name = 'widget1';
-
-// ✅ Good
-protected string $addon_name = 'call-to-action';
-```
-
-### 2. Group Related Fields
-
-```php
-$control->addGroup('content', 'Content')
-    ->registerField('title', FieldManager::TEXT()->setLabel('Title'))
-    ->registerField('description', FieldManager::TEXTAREA()->setLabel('Description'))
-    ->endGroup();
-
-$control->addGroup('button', 'Button Settings')
-    ->registerField('button_text', FieldManager::TEXT()->setLabel('Button Text'))
-    ->registerField('button_url', FieldManager::TEXT()->setLabel('Button URL'))
-    ->endGroup();
-```
-
-### 3. Provide Default Values
-
-```php
-FieldManager::TEXT()
-    ->setLabel('Title')
-    ->setDefault('Default Title') // Always provide defaults
-```
-
-### 4. Use Placeholders
-
-```php
-FieldManager::TEXT()
-    ->setLabel('Email')
-    ->setPlaceholder('example@domain.com') // Help users understand expected format
-```
-
-### 5. Sanitize Output
-
-```php
-public function render(array $settings = []): string
-{
-    $title = e($settings['general']['content']['title'] ?? ''); // Escape HTML
-    $description = strip_tags($settings['general']['content']['description'] ?? ''); // Remove tags
-    
-    return view('pagebuilder::widgets.my-widget', compact('title', 'description'))->render();
-}
-```
-
-### 6. Handle Missing Data Gracefully
-
-```php
-// ✅ Good - Always provide fallback
-$title = $settings['general']['content']['title'] ?? 'Default Title';
-
-// ❌ Bad - May cause errors
-$title = $settings['general']['content']['title'];
-```
-
-### 7. Use Blade Components
-
-```blade
-{{-- core/plugins/PageBuilder/views/widgets/call-to-action.blade.php --}}
-<div class="cta-section">
-    <div class="container">
-        <h2>{{ $title }}</h2>
-        <p>{{ $description }}</p>
-        
-        @if($buttonText && $buttonUrl)
-            <a href="{{ $buttonUrl }}" class="btn btn-primary">
-                {{ $buttonText }}
-            </a>
-        @endif
-    </div>
-</div>
-```
-
-### 8. Add Widget Categories
-
-```php
-protected string $category = 'marketing'; // Groups widgets in sidebar
-
-// Available categories:
-// - 'theme' - Theme-specific widgets
-// - 'content' - Content widgets
-// - 'media' - Media widgets
-// - 'interactive' - Interactive widgets
-// - 'marketing' - Marketing widgets
-// - 'custom' - Custom widgets
-```
-
-### 9. Use Appropriate Icons
-
-```php
-protected string $icon = 'la-bullhorn'; // Line Awesome icon class
-
-// Common icons:
-// - 'la-home' - Home/Hero sections
-// - 'la-image' - Image widgets
-// - 'la-video' - Video widgets
-// - 'la-star' - Features/Testimonials
-// - 'la-code' - Code blocks
-// - 'la-bullhorn' - Call to action
-```
-
-### 10. Test Widget Rendering
-
-```bash
-php artisan tinker
-
-$page = \App\Models\Backend\Page::find(1);
-$service = app(\Xgenious\PageBuilder\Services\PageBuilderRenderService::class);
-echo $service->renderPage($page);
-```
-
----
-
-## Example: Complete Widget
-
-Here's a complete example of a feature grid widget:
-
-```php
-// Plugins/PageBuilder/Widgets/FeatureGridWidget.php
-namespace Plugins\PageBuilder\Widgets;
-
-use Xgenious\PageBuilder\Core\BaseWidget;
-use Xgenious\PageBuilder\Core\ControlManager;
-use Xgenious\PageBuilder\Core\FieldManager;
-
-class FeatureGridWidget extends BaseWidget
-{
-    protected string $addon_name = 'feature-grid';
-    protected string $addon_title = 'Feature Grid';
-    protected string $addon_description = 'Display features in a grid layout';
-    protected string $icon = 'la-th';
-    protected string $category = 'content';
-
-    public function getGeneralFields(): array
-    {
-        $control = new ControlManager();
-        
-        $control->addGroup('content', 'Content')
-            ->registerField('heading', FieldManager::TEXT()
-                ->setLabel('Section Heading')
-                ->setDefault('Our Features')
-            )
-            ->registerField('features', FieldManager::REPEATER()
-                ->setLabel('Features')
-                ->setFields([
-                    'icon' => FieldManager::ICON()->setLabel('Icon'),
-                    'title' => FieldManager::TEXT()->setLabel('Title'),
-                    'description' => FieldManager::TEXTAREA()->setLabel('Description'),
-                ])
-            )
-            ->endGroup();
-        
-        return $control->getFields();
-    }
-
-    public function getStyleFields(): array
-    {
-        $control = new ControlManager();
-        
-        $control->addGroup('layout', 'Layout')
-            ->registerField('columns', FieldManager::SELECT()
-                ->setLabel('Columns')
-                ->setOptions([
-                    '2' => '2 Columns',
-                    '3' => '3 Columns',
-                    '4' => '4 Columns',
-                ])
-                ->setDefault('3')
-            )
-            ->endGroup();
-        
-        $control->addGroup('colors', 'Colors')
-            ->registerField('heading_color', FieldManager::COLOR()
-                ->setLabel('Heading Color')
-                ->setDefault('#212529')
-            )
-            ->registerField('icon_color', FieldManager::COLOR()
-                ->setLabel('Icon Color')
-                ->setDefault('#007bff')
-            )
-            ->endGroup();
-        
-        return $control->getFields();
-    }
-
-    public function render(array $settings = []): string
-    {
-        $heading = $settings['general']['content']['heading'] ?? 'Our Features';
-        $features = $settings['general']['content']['features'] ?? [];
-        $columns = $settings['style']['layout']['columns'] ?? '3';
-        $headingColor = $settings['style']['colors']['heading_color'] ?? '#212529';
-        $iconColor = $settings['style']['colors']['icon_color'] ?? '#007bff';
-        
-        return view('pagebuilder::widgets.feature-grid', compact(
-            'heading',
-            'features',
-            'columns',
-            'headingColor',
-            'iconColor'
-        ))->render();
-    }
-}
-```
-
-```blade
-{{-- core/plugins/PageBuilder/views/widgets/feature-grid.blade.php --}}
-<div class="feature-grid">
-    <h2 style="color: {{ $headingColor }};">{{ $heading }}</h2>
-    
-    <div class="row">
-        @foreach($features as $feature)
-            <div class="col-md-{{ 12 / $columns }}">
-                <div class="feature-item">
-                    <i class="las {{ $feature['icon'] ?? 'la-star' }}" 
-                       style="color: {{ $iconColor }};"></i>
-                    <h3>{{ $feature['title'] ?? '' }}</h3>
-                    <p>{{ $feature['description'] ?? '' }}</p>
-                </div>
-            </div>
-        @endforeach
-    </div>
-</div>
-```
-
----
-
-## Next Steps
-
-- Create your first custom widget
-- Test in the page builder editor
-- Share widgets across projects
-- Contribute widgets to the community
-
-For more information, see [DOCUMENTATION.md](DOCUMENTATION.md).
+For frontend rendering, see [FRONTEND-INTEGRATION.md](FRONTEND-INTEGRATION.md).
+For installation, see [DOCUMENTATION.md](DOCUMENTATION.md).

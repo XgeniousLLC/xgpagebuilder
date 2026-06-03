@@ -1,6 +1,4 @@
-# XgPageBuilder - Complete Documentation
-
-A comprehensive guide to installing, configuring, and using the XgPageBuilder package in your Laravel application.
+# XgPageBuilder Documentation
 
 ---
 
@@ -14,268 +12,174 @@ A comprehensive guide to installing, configuring, and using the XgPageBuilder pa
 6. [Admin Panel Integration](#admin-panel-integration)
 7. [Troubleshooting](#troubleshooting)
 
+**More docs:**
+- [WIDGET-DEVELOPMENT.md](WIDGET-DEVELOPMENT.md) — build custom widgets
+- [FRONTEND-INTEGRATION.md](FRONTEND-INTEGRATION.md) — CSS pipeline, JS, responsive, media
+
 ---
 
 ## Quick Start
 
-Get up and running in 5 minutes:
-
 ```bash
-# 1. Install package
 composer require xgenious/xgpagebuilder
 
-# 2. Publish configuration
 php artisan vendor:publish --tag=page-builder-config
-
-# 3. Run migrations
+php artisan vendor:publish --tag=page-builder-assets
 php artisan migrate
-
-# 4. Clear caches
 php artisan config:clear
 ```
 
-**That's it!** Your page builder is ready to use.
+Open the editor at: `/page-builder/edit/{pageId}`
 
 ---
 
 ## Installation
 
-### Requirements
-
-- PHP 8.2 or higher
-- Laravel 11.0 or 12.0
-- MySQL 5.7+ or PostgreSQL 10+
-
-### Step 1: Install via Composer
+**Requirements:** PHP 8.2+, Laravel 11 or 12, MySQL 5.7+ / PostgreSQL 10+
 
 ```bash
+# 1. Install
 composer require xgenious/xgpagebuilder
-```
 
-The package will be auto-discovered by Laravel.
-
-### Step 2: Publish Configuration
-
-```bash
+# 2. Publish config
 php artisan vendor:publish --tag=page-builder-config
-```
 
-This creates `config/xgpagebuilder.php` with all configuration options.
+# 3. Publish built frontend assets
+php artisan vendor:publish --tag=page-builder-assets
 
-### Step 3: Run Migrations
-
-```bash
+# 4. Run migrations (creates page_builder_content, page_builder_widgets, page_editing_sessions)
 php artisan migrate
 ```
 
-This creates the following tables:
-- `page_builder_content` - Stores page content
-- `page_builder_widgets` - Stores widget data
-- `page_editing_sessions` - Manages concurrent editing
-
-### Step 4: Publish Assets (Optional)
-
-Publish views for customization:
-
-```bash
-php artisan vendor:publish --tag=page-builder-views
-```
-
-Publish frontend assets:
-
-```bash
-php artisan vendor:publish --tag=page-builder-assets
-```
+> **First time only:** The editor assets are pre-built and included in the package.
+> If you need to rebuild (e.g. after modifying the package source): `cd vendor/xgenious/xgpagebuilder && npm install && npm run build`, then re-publish.
 
 ---
 
 ## Configuration
 
-After publishing, configure the package in `config/xgpagebuilder.php`:
+Edit `config/xgpagebuilder.php` after publishing.
 
-### Model Configuration
+### Models
 
-Point the package to your application's models:
+Point to your app's Page and Admin models:
 
 ```php
 'models' => [
-    'page' => \App\Models\Backend\Page::class,
+    'page'  => \App\Models\Backend\Page::class,
     'admin' => \App\Models\Backend\Admin::class,
 ],
 ```
 
-### Route Configuration
-
-Customize route prefix and middleware:
+### Routes
 
 ```php
-'route_prefix' => env('PAGE_BUILDER_ROUTE_PREFIX', 'page-builder'),
+'route_prefix'     => env('PAGE_BUILDER_ROUTE_PREFIX', 'page-builder'),
 'route_middleware' => ['web', 'auth:admin'],
+
+'routes' => [
+    'preview'       => 'page.show',           // "Preview" button in editor
+    'back_to_pages' => 'admin.pages.index',   // "Back" button in editor
+],
 ```
 
-Routes will be available at:
-- Editor: `/page-builder/edit/{pageId}`
-- API: `/api/page-builder/*`
+Editor URL: `/{route_prefix}/edit/{pageId}`
 
-### Frontend CSS Files
-
-Add your application's CSS files to load in the editor:
+### Host App CSS & JS (shown in editor canvas)
 
 ```php
+// CSS scoped to canvas — your theme styles appear in edit preview
 'editor_frontend_css' => [
     'assets/frontend/css/bootstrap.css',
-    'assets/frontend/css/your-styles.css',
+    'assets/frontend/css/theme.css',
 ],
-```
 
-These files are scoped to the canvas content only to avoid conflicts with the editor UI.
-
-### Frontend JavaScript Files
-
-Add JavaScript files for widget interactivity:
-
-```php
+// JS loaded in editor + needed on frontend for interactive widgets
 'editor_frontend_js' => [
-    'assets/frontend/js/your-app.js',
+    'assets/frontend/website/js/plugin.js',
 ],
 ```
 
-These files load in both the editor canvas and frontend pages.
-
-### Media Upload Integration
-
-Configure media library integration:
+### Media Upload
 
 ```php
 'media' => [
-    'upload_route' => 'admin.upload.media.file',
+    'upload_route'  => 'admin.upload.media.file',
     'library_route' => 'admin.upload.media.file.all',
-    'delete_route' => 'admin.upload.media.file.delete',
-    'base_path' => 'assets/uploads',
-    'allowed_types' => ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
-    'max_size' => 5120, // 5MB in KB
+    'delete_route'  => 'admin.upload.media.file.delete',
+    'base_path'     => 'assets/uploads',
+    'allowed_types' => ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'],
+    'max_size'      => 5120,  // KB
 ],
 ```
 
-> **Video uploads** use the same `upload_route` endpoint as images. The `VideoField`
-> defines its own accepted MIME types (`video/mp4`, `video/webm`, `video/quicktime`,
-> `video/x-msvideo`) and size limit (100 MB default) at the **field level**, independently
-> of the `media.allowed_types` key above. Ensure your host app's upload route accepts
-> video MIME types and a suitably large `upload_max_filesize` / `post_max_size` in
-> `php.ini`. See the [Video Upload field reference](WIDGET-DEVELOPMENT.md#video-upload)
-> for per-field configuration options.
-
-### Widget Configuration
-
-Enable or disable specific widgets:
-
-```php
-'widgets' => [
-    'header' => true,
-    'features' => true,
-    'testimonial' => true,
-    'image' => true,
-    'image-gallery' => true,
-    'video' => true,
-    'icon' => true,
-    'tabs' => true,
-    'code' => true,
-],
-```
+> Video uploads use the same `upload_route`. The `VIDEO` field manages its own MIME types (mp4, webm, mov, avi) and size limit (100 MB default) at the field level.
 
 ### Custom Widgets
 
-Register your custom widget classes:
-
 ```php
 'custom_widgets' => [
-    \plugins\PageBuilder\Widgets\HeroSectionWidget::class,
+    \Plugins\PageBuilder\Widgets\MyWidget::class,
 ],
 ```
 
-See [WIDGET-DEVELOPMENT.md](WIDGET-DEVELOPMENT.md) for creating custom widgets.
+See [WIDGET-DEVELOPMENT.md](WIDGET-DEVELOPMENT.md) to build custom widgets.
 
 ### Legacy Addon Support
 
-If you have existing page builder addons:
-
 ```php
 'enable_legacy_addons' => env('PAGE_BUILDER_LEGACY_ADDONS', false),
-'legacy_addon_paths' => [
-    base_path('plugins/PageBuilder/Addons'),
-],
+'legacy_addon_paths'   => [base_path('plugins/PageBuilder/Addons')],
 ```
-
-> **Note:** Legacy addons are supported for backward compatibility but we recommend migrating to the new widget format. See [WIDGET-DEVELOPMENT.md](WIDGET-DEVELOPMENT.md) for migration guide.
 
 ---
 
 ## Host App Integration
 
-### Step 1: Update Page Model
+### 1. Add columns to pages table
 
-Add the `use_page_builder` column to your pages table:
+Two flags control the page builder — one for the controller, one for the blade:
 
 ```php
-// database/migrations/xxxx_add_page_builder_to_pages.php
 Schema::table('pages', function (Blueprint $table) {
     $table->boolean('use_page_builder')->default(false);
+    $table->string('page_builder_status')->default('off');  // 'on' or 'off'
 });
 ```
 
-### Step 2: Add Relationships to Page Model
+- `use_page_builder` — triggers `renderPage()` in the controller
+- `page_builder_status` — controls display in the blade view; set to `'on'` when page builder content should be shown
+
+### 2. Add relationship to Page model
 
 ```php
-// app/Models/Backend/Page.php
-namespace App\Models\Backend;
-
-use Illuminate\Database\Eloquent\Model;
-
-class Page extends Model
+// App\Models\Backend\Page
+public function pageBuilderContent()
 {
-    protected $fillable = [
-        'title',
-        'slug',
-        'content',
-        'use_page_builder',
-        // ... other fields
-    ];
-
-    /**
-     * Relationship to page builder content
-     */
-    public function pageBuilderContent()
-    {
-        return $this->hasOne(\Xgenious\PageBuilder\Models\PageBuilderContent::class, 'page_id');
-    }
-
-    /**
-     * Relationship to page builder widgets
-     */
-    public function widgets()
-    {
-        return $this->hasManyThrough(
-            \Xgenious\PageBuilder\Models\PageBuilderWidget::class,
-            \Xgenious\PageBuilder\Models\PageBuilderContent::class,
-            'page_id',
-            'page_id'
-        );
-    }
+    return $this->hasOne(\Xgenious\PageBuilder\Models\PageBuilderContent::class, 'page_id');
 }
 ```
 
-### Step 3: Add Navigation Link
+### 3. Register the widget view namespace
 
-In your admin panel, add a link to the page builder:
+In your `AppServiceProvider`, register the view namespace so widgets can use `pagebuilder::` in `view()` calls:
+
+```php
+// app/Providers/AppServiceProvider.php
+public function boot(): void
+{
+    $this->loadViewsFrom(base_path('plugins/PageBuilder/views'), 'pagebuilder');
+}
+```
+
+Adjust the path to wherever your widget blade views live.
+
+### 4. Add editor link in admin
 
 ```blade
-{{-- resources/views/backend/pages/edit.blade.php --}}
-
 @if($page->use_page_builder)
-    <a href="{{ route('admin.page-builder.edit', $page->id) }}" 
-       target="_blank" 
-       class="btn btn-primary">
-        <i class="fas fa-edit"></i> Open Page Builder
+    <a href="{{ route('admin.page-builder.edit', $page->id) }}" target="_blank">
+        Open Page Builder
     </a>
 @endif
 ```
@@ -284,88 +188,88 @@ In your admin panel, add a link to the page builder:
 
 ## Frontend Rendering
 
-### Step 1: Update Page Controller
+Render page builder content on your public pages.
 
-In your frontend page controller, render page builder content:
+### Controller
+
+Attach the rendered output to the page model before passing to the view:
 
 ```php
-// app/Http/Controllers/Frontend/PageController.php
-namespace App\Http\Controllers\Frontend;
-
-use App\Models\Backend\Page;
 use Xgenious\PageBuilder\Services\PageBuilderRenderService;
 
-class PageController extends Controller
+public function show($slug)
 {
-    public function show($slug)
-    {
-        $page = Page::where('slug', $slug)->firstOrFail();
-        
-        // Check if using page builder
-        if ($page->use_page_builder) {
-            $pageBuilderService = app(PageBuilderRenderService::class);
-            $page->rendered_content = $pageBuilderService->renderPage($page);
-        }
-        
-        return view('frontend.pages.show', compact('page'));
+    $page = Page::where('slug', $slug)->firstOrFail();
+
+    if ($page->use_page_builder) {
+        $result = app(PageBuilderRenderService::class)->renderPage($page, true);
+        $page->rendered_content             = $result['html'] ?? '';
+        $page->pagebuilder_generated_styles = $result['css']  ?? '';
     }
+
+    return view('frontend.pages.show', compact('page'));
 }
 ```
 
-### Step 2: Update Blade View
+> `renderPage($page, true)` returns `['html' => '...', 'css' => '...']`.
+> Pass `true` as the second argument — without it, CSS is silently dropped.
+
+### Blade view
 
 ```blade
-{{-- resources/views/frontend/pages/show.blade.php --}}
-@extends('layouts.app')
+@extends('layouts.frontend')
 
 @section('content')
-    @if(isset($page->rendered_content))
-        {{-- Page Builder Content --}}
-        {!! $page->rendered_content !!}
+    @if($page->page_builder_status === 'on')
+        @if(isset($page->rendered_content))
+            <style>{!! $page->pagebuilder_generated_styles !!}</style>
+            {!! $page->rendered_content !!}
+        @endif
     @else
-        {{-- Traditional Content --}}
         {!! $page->content !!}
     @endif
 @endsection
 ```
 
+> Always output `pagebuilder_generated_styles` in a `<style>` tag **before** the HTML — it contains all widget spacing, color, and layout CSS.
+
+### Render service methods
+
+| Method | Input | Returns |
+|--------|-------|---------|
+| `renderPage($page, true)` | Page model | `['html'=>..., 'css'=>...]` |
+| `renderPageBuilderContent($content)` | PageBuilderContent model | `['html'=>..., 'css'=>...]` |
+| `renderPageContent(array $json)` | Raw JSON array | `['html'=>..., 'css'=>..., 'stats'=>...]` |
+| `renderFromJson(string $json)` | JSON string | `['html'=>..., 'css'=>..., 'stats'=>...]` |
+
+Always pass `true` as the second argument to `renderPage()`. The `$css` flag controls whether `CSSManager` collects and returns style-field-generated CSS. Without it, any spacing, colors, or layout values set in the editor Style tab are silently dropped.
+
 ---
 
 ## Admin Panel Integration
 
-### Option 1: Add Button to Page List
+### Toggle page builder on a page
 
 ```blade
-{{-- resources/views/backend/pages/index.blade.php --}}
+{{-- In your page edit form --}}
+<label>
+    <input type="checkbox" name="use_page_builder" value="1"
+           {{ $page->use_page_builder ? 'checked' : '' }}>
+    Use Page Builder
+</label>
 
 @if($page->use_page_builder)
-    <a href="{{ route('admin.page-builder.edit', $page->id) }}" 
-       target="_blank" 
-       class="btn btn-sm btn-primary">
+    <a href="{{ route('admin.page-builder.edit', $page->id) }}" target="_blank" class="btn btn-primary">
         Open Page Builder
     </a>
 @endif
 ```
 
-### Option 2: Add Button to Page Edit Form
+### Button in page list
 
 ```blade
-{{-- resources/views/backend/pages/edit.blade.php --}}
-
-<div class="form-group">
-    <label>
-        <input type="checkbox" name="use_page_builder" value="1" 
-               {{ $page->use_page_builder ? 'checked' : '' }}>
-        Enable Page Builder
-    </label>
-</div>
-
 @if($page->use_page_builder)
-    <a href="{{ route('admin.page-builder.edit', $page->id) }}" 
-       target="_blank" 
-       class="btn btn-primary">
-        <i class="fas fa-external-link-alt"></i> Open Page Builder
-    </a>
+    <a href="{{ route('admin.page-builder.edit', $page->id) }}" target="_blank">Edit</a>
 @endif
 ```
 
@@ -373,184 +277,112 @@ class PageController extends Controller
 
 ## Troubleshooting
 
-### CSS Not Loading in Editor
+### Editor shows blank page
 
-**Problem:** Styles don't appear in the editor canvas.
-
-**Solution:**
-
-1. Check `config/xgpagebuilder.php`:
-   ```php
-   'editor_frontend_css' => [
-       'assets/frontend/css/your-styles.css', // Verify path is correct
-   ],
-   ```
-
-2. Publish views and clear cache:
-   ```bash
-   php artisan vendor:publish --tag=page-builder-views --force
-   php artisan view:clear
-   php artisan config:clear
-   ```
-
-### Widget Content Not Showing on Frontend
-
-**Problem:** Widgets appear empty on the frontend.
-
-**Solution:**
-
-1. Open the page in the editor
-2. Click each widget and fill in the settings
-3. Click "Save" button
-4. Refresh the frontend page
-
-**Verify data is saved:**
 ```bash
-php artisan tinker
-$page = \App\Models\Backend\Page::find(YOUR_PAGE_ID);
-$service = app(\Xgenious\PageBuilder\Services\PageBuilderRenderService::class);
-echo $service->renderPage($page);
+# Rebuild and re-publish assets
+cd vendor/xgenious/xgpagebuilder && npm install && npm run build
+php artisan vendor:publish --tag=page-builder-assets --force
+php artisan config:clear && php artisan view:clear
 ```
 
-### JavaScript Not Working
+### CSS not showing in editor canvas
 
-**Problem:** Interactive widgets don't work.
-
-**Solution:**
-
-1. Add JavaScript files to config:
-   ```php
-   'editor_frontend_js' => [
-       'assets/frontend/js/your-app.js',
-   ],
-   ```
-
-2. Publish views:
-   ```bash
-   php artisan vendor:publish --tag=page-builder-views --force
-   ```
-
-### Media Upload Not Working
-
-**Problem:** Can't upload images in widgets.
-
-**Solution:**
-
-1. Verify routes exist in your application:
-   ```bash
-   php artisan route:list | grep media
-   ```
-
-2. Configure correct route names:
-   ```php
-   'media' => [
-       'upload_route' => 'your.actual.upload.route',
-       'library_route' => 'your.actual.media.route',
-   ],
-   ```
-
-### Editor Shows Blank Page
-
-**Problem:** Editor doesn't load.
-
-**Solution:**
-
-1. Build package assets:
-   ```bash
-   cd vendor/xgenious/xgpagebuilder
-   npm install
-   npm run build
-   ```
-
-2. Publish assets:
-   ```bash
-   php artisan vendor:publish --tag=page-builder-assets --force
-   ```
-
-3. Clear all caches:
-   ```bash
-   php artisan config:clear
-   php artisan view:clear
-   php artisan cache:clear
-   php artisan optimize:clear
-   ```
-
-### Route Conflicts
-
-**Problem:** Page builder routes conflict with existing routes.
-
-**Solution:**
-
-Change the route prefix:
+Check paths in config:
 ```php
-'route_prefix' => env('PAGE_BUILDER_ROUTE_PREFIX', 'admin/page-builder'),
+'editor_frontend_css' => ['assets/frontend/css/your-file.css'],
+```
+Paths are relative to `public/`. Verify files exist at `public/assets/frontend/css/your-file.css`.
+
+### Widgets empty on frontend
+
+The `$pbCss` must be output — missing CSS causes invisible content. Verify your blade view outputs both:
+```blade
+<style>{!! $pbCss !!}</style>
+{!! $pbHtml !!}
 ```
 
-### Widgets Not Appearing in Editor
+### Media upload not working
 
-**Problem:** Custom widgets don't show in the sidebar.
+```bash
+php artisan route:list | grep media
+```
+Then update route names in config to match your actual routes.
 
-**Solution:**
+### Custom widget not appearing in sidebar
 
-1. Verify widget is registered:
-   ```php
-   'custom_widgets' => [
-       \plugins\PageBuilder\Widgets\HeroSectionWidget::class,
-   ],
-   ```
+```bash
+php artisan config:clear
+```
+Verify the class is in `custom_widgets` and extends `BaseWidget`.
 
-2. Clear config cache:
-   ```bash
-   php artisan config:clear
-   ```
+### Route conflicts
 
-3. Verify widget class extends `BaseWidget`:
-   ```php
-   use Xgenious\PageBuilder\Core\BaseWidget;
-   
-   class MyWidget extends BaseWidget
-   {
-       // ...
-   }
-   ```
+```php
+'route_prefix' => 'admin/page-builder',
+```
+
+---
+
+## Extending the Render Service
+
+If you need to fix or augment rendering behaviour (e.g. column widths stored as percentages instead of integers), extend `PageBuilderRenderService`:
+
+```php
+// app/Services/CustomPageBuilderRenderService.php
+namespace App\Services;
+
+use Xgenious\PageBuilder\Services\PageBuilderRenderService;
+
+class CustomPageBuilderRenderService extends PageBuilderRenderService
+{
+    public function renderPage($page, bool $css = false): array
+    {
+        $result     = parent::renderPage($page, true);
+        $extraCss   = $this->generateColumnWidthFixes($page);
+        $result['css'] .= $extraCss;
+
+        return $css ? $result : ['html' => $result['html'], 'css' => ''];
+    }
+
+    private function generateColumnWidthFixes($page): string
+    {
+        // inspect JSON, build extra CSS rules
+        return '';
+    }
+}
+```
+
+Bind it in `AppServiceProvider`:
+
+```php
+$this->app->bind(
+    \Xgenious\PageBuilder\Services\PageBuilderRenderService::class,
+    \App\Services\CustomPageBuilderRenderService::class,
+);
+```
+
+Now `app(PageBuilderRenderService::class)` resolves your subclass everywhere.
 
 ---
 
 ## Common Commands
 
 ```bash
-# Publish everything
-php artisan vendor:publish --provider="Xgenious\PageBuilder\PageBuilderServiceProvider"
-
-# Publish specific assets
+# Publish
 php artisan vendor:publish --tag=page-builder-config
+php artisan vendor:publish --tag=page-builder-assets
 php artisan vendor:publish --tag=page-builder-views
 php artisan vendor:publish --tag=page-builder-migrations
-php artisan vendor:publish --tag=page-builder-assets
 
 # Clear caches
-php artisan config:clear
-php artisan view:clear
-php artisan cache:clear
-php artisan optimize:clear
+php artisan config:clear && php artisan view:clear && php artisan cache:clear
 
 # Check routes
 php artisan route:list | grep page-builder
+
+# Test render in tinker
+$page = \App\Models\Backend\Page::find(1);
+$result = app(\Xgenious\PageBuilder\Services\PageBuilderRenderService::class)->renderPage($page, true);
+echo $result['html'];
 ```
-
----
-
-## Next Steps
-
-- **Create Custom Widgets:** See [WIDGET-DEVELOPMENT.md](WIDGET-DEVELOPMENT.md)
-- **Migrate Legacy Addons:** See [WIDGET-DEVELOPMENT.md](WIDGET-DEVELOPMENT.md#migrating-legacy-addons)
-- **Customize Editor:** Publish views and modify templates
-
----
-
-## Support
-
-For issues or questions:
-- **Documentation:** This file and [WIDGET-DEVELOPMENT.md](WIDGET-DEVELOPMENT.md)
-- **GitHub Issues:** Report bugs and feature requests
-- **Email:** support@xgenious.com
