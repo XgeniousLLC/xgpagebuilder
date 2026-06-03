@@ -32,7 +32,7 @@ class MyWidget extends BaseWidget
 {
     protected function getWidgetType(): string        { return 'my_widget'; }
     protected function getWidgetName(): string        { return 'My Widget'; }
-    protected function getWidgetIcon(): string|array  { return 'las la-star'; }
+    protected function getWidgetIcon(): string|array  { return 'las la-star'; }  // format: 'las la-ICONNAME'
     protected function getWidgetDescription(): string { return 'A short description'; }
     protected function getCategory(): string          { return WidgetCategory::THEME; }
     protected function getWidgetTags(): array         { return ['my', 'widget']; }
@@ -61,6 +61,8 @@ class MyWidget extends BaseWidget
         $title = $settings['general']['content']['title'] ?? 'Hello';
 
         return view('pagebuilder::widgets.my-widget', compact('title'))->render();
+        // 'pagebuilder::' is the namespace registered in AppServiceProvider via loadViewsFrom()
+        // Use whatever namespace you registered — e.g. 'widgetbuilder::' is another common choice
     }
 }
 ```
@@ -91,7 +93,7 @@ class SimpleCardWidget extends BaseWidget
 {
     protected function getWidgetType(): string { return 'simple_card'; }
     protected function getWidgetName(): string { return 'Simple Card'; }
-    protected function getWidgetIcon(): string|array { return 'las la-credit-card'; }
+    protected function getWidgetIcon(): string|array { return 'las la-credit-card'; }  // format: 'las la-ICONNAME'
     protected function getCategory(): string   { return WidgetCategory::CONTENT; }
 
     public function getGeneralFields(): array
@@ -631,13 +633,15 @@ To auto-discover widgets from a folder, add a path:
 ```php
 'widget_paths' => [
     [
-        'path'      => base_path('plugins/PageBuilder/Widgets'),
-        'namespace' => 'Plugins\\PageBuilder\\Widgets',
+        'path'      => base_path('plugins/PageBuilder/Widgets'),  // filesystem path (lowercase 'plugins')
+        'namespace' => 'Plugins\\PageBuilder\\Widgets',           // PHP namespace (uppercase 'Plugins')
     ],
 ],
 ```
 
-### Register the view namespace
+> **Path casing:** use lowercase `plugins/` for filesystem paths and uppercase `Plugins\` for PHP namespaces. These are different things — the namespace must match your class declarations exactly.
+
+### Register the widget view namespace
 
 Widget `render()` methods use `view('pagebuilder::...')`. Register the namespace in `AppServiceProvider`:
 
@@ -650,6 +654,16 @@ public function boot(): void
 ```
 
 Adjust the path to wherever your widget blade files live.
+
+You can use any namespace name — `'pagebuilder'`, `'widgetbuilder'`, etc. Just use the same name consistently in your widget `render()` calls:
+
+```php
+// registered as 'pagebuilder' → use 'pagebuilder::'
+return view('pagebuilder::widgets.my-widget', [...])->render();
+
+// registered as 'widgetbuilder' → use 'widgetbuilder::'
+return view('widgetbuilder::landlord.header.header_one', [...])->render();
+```
 
 ---
 
@@ -682,10 +696,10 @@ class HeroSection extends PageBuilderBase
 ```php
 class HeroSectionWidget extends BaseWidget
 {
-    protected function getWidgetType(): string { return 'hero-section'; }
-    protected function getWidgetName(): string { return 'Hero Section'; }
+    protected function getWidgetType(): string       { return 'hero-section'; }
+    protected function getWidgetName(): string       { return 'Hero Section'; }
     protected function getWidgetIcon(): string|array { return 'las la-rocket'; }
-    protected function getCategory(): string   { return WidgetCategory::THEME; }
+    protected function getCategory(): string         { return WidgetCategory::THEME; }
 
     public function getGeneralFields(): array
     {
@@ -699,6 +713,7 @@ class HeroSectionWidget extends BaseWidget
         return $control->getFields();
     }
 
+    // Required — return [] to hide the Style tab, or add DIMENSION/COLOR fields for user styling
     public function getStyleFields(): array { return []; }
 
     public function render(array $settings = []): string

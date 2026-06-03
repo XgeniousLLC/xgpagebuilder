@@ -27,31 +27,26 @@ A powerful, self-contained page builder package for Laravel with a modern React/
 
 ## Quick Start
 
-Install the package via Composer:
-
 ```bash
+# 1. Install
 composer require xgenious/xgpagebuilder
-```
 
-Publish configuration:
-
-```bash
+# 2. Publish config + assets, run migrations
 php artisan vendor:publish --tag=page-builder-config
-```
-
-Run migrations:
-
-```bash
+php artisan vendor:publish --tag=page-builder-assets
 php artisan migrate
-```
-
-Clear caches:
-
-```bash
 php artisan config:clear
 ```
 
-**That's it!** Your page builder is ready to use.
+Then complete these required integration steps:
+
+1. **Add columns** to your `pages` table: `use_page_builder` (boolean) + `page_builder_status` (string)
+2. **Register view namespace** in `AppServiceProvider::boot()`: `$this->loadViewsFrom(base_path('plugins/PageBuilder/views'), 'pagebuilder')`
+3. **Add model relationship** and point config to your `Page` + `Admin` models
+4. **Update controller** to call `renderPage($page, true)` and store html/css on the model
+5. **Update blade** to check `page_builder_status === 'on'` and output both html and css
+
+See the [Installation Guide](installation.html) for the full step-by-step walkthrough.
 
 ---
 

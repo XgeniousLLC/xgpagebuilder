@@ -703,7 +703,7 @@ FieldManager::ICON()               // preferred
 FieldManager::ICON_INPUT()         // alias
 
     ->setLabel('Button Icon')
-    ->setDefaultIcon('la-star')
+    ->setDefaultIcon('las la-star')
     ->setPreviewSize(24)
     ->setAllowEmpty(true)
     ->setModalTitle('Choose an Icon')
@@ -714,17 +714,19 @@ FieldManager::ICON_INPUT()         // alias
 ```php
 FieldManager::ICON()
     ->setLabel('Feature Icon')
-    ->setDefaultIcon('la-star')
+    ->setDefaultIcon('las la-star')
     ->setSelectors([
         '{{WRAPPER}} .icon-element' => 'font-size: 32px;'
     ])
 ```
 
-The stored value is a Line Awesome class name (e.g. `la-star`). Use it in your template like:
+The stored value is a full Line Awesome class string (e.g. `las la-star`). Use it directly in your template:
 ```php
-$icon = $settings['icon'] ?? 'la-star';
-echo "<i class=\"la {$icon}\"></i>";
+$icon = $settings['icon'] ?? 'las la-star';
+echo "<i class=\"{$icon}\"></i>";
 ```
+
+> **Icon format:** always use `'las la-ICONNAME'` — the `las` prefix is the Line Awesome style category and is required for icons to render correctly.
 
 | Method | Description |
 |---|---|
