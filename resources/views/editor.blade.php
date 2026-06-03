@@ -12,9 +12,19 @@
     <link rel="stylesheet" href="{{ asset('assets/common/css/toastr.css') }}">
 
     @php
-        $manifestPath = public_path('vendor/page-builder/.vite/manifest.json');
+        $manifestPaths = [
+            public_path('assets/vendor/page-builder/.vite/manifest.json'),
+        ];
 
-        if (file_exists($manifestPath)) {
+        $manifestPath = null;
+        foreach ($manifestPaths as $path) {
+            if (file_exists($path)) {
+                $manifestPath = $path;
+                break;
+            }
+        }
+
+        if ($manifestPath) {
             $manifest = json_decode(file_get_contents($manifestPath), true);
             $jsEntry = $manifest['resources/js/page-builder-standalone.jsx'] ?? null;
         } else {
@@ -24,7 +34,7 @@
 
     @if ($jsEntry && isset($jsEntry['css']))
         @foreach ($jsEntry['css'] as $cssFile)
-            <link rel="stylesheet" href="{{ asset('vendor/page-builder/' . $cssFile) }}">
+            <link rel="stylesheet" href="{{ asset('assets/vendor/page-builder/' . $cssFile) }}">
         @endforeach
     @endif
 
@@ -178,102 +188,102 @@
 </script>
 
 @if(config('xgpagebuilder.demo_mode', false))
-{{-- Demo mode: persistent ribbon + toastr warning + toolbar cleanup --}}
-<style>
-    /* Persistent "Demo Mode" ribbon — hangs from top-center */
-    #pb-demo-ribbon {
-        position: fixed;
-        top: 0;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 99998;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%);
-        color: #fff;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        font-size: 10.5px;
-        font-weight: 700;
-        letter-spacing: 0.07em;
-        text-transform: uppercase;
-        padding: 6px 20px 6px 16px;
-        border-radius: 0 0 12px 12px;
-        box-shadow: 0 2px 10px rgba(99,102,241,0.35);
-        pointer-events: none;
-        user-select: none;
-    }
-    #pb-demo-ribbon svg { width: 11px; height: 11px; flex-shrink: 0; opacity: 0.9; }
-</style>
+    {{-- Demo mode: persistent ribbon + toastr warning + toolbar cleanup --}}
+    <style>
+        /* Persistent "Demo Mode" ribbon — hangs from top-center */
+        #pb-demo-ribbon {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 99998;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%);
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-size: 10.5px;
+            font-weight: 700;
+            letter-spacing: 0.07em;
+            text-transform: uppercase;
+            padding: 6px 20px 6px 16px;
+            border-radius: 0 0 12px 12px;
+            box-shadow: 0 2px 10px rgba(99,102,241,0.35);
+            pointer-events: none;
+            user-select: none;
+        }
+        #pb-demo-ribbon svg { width: 11px; height: 11px; flex-shrink: 0; opacity: 0.9; }
+    </style>
 
-{{-- Toastr JS (loaded before page-builder so it's ready when demo fires) --}}
-<script src="{{ asset('assets/common/js/toastr.min.js') }}"></script>
+    {{-- Toastr JS (loaded before page-builder so it's ready when demo fires) --}}
+    <script src="{{ asset('assets/common/js/toastr.min.js') }}"></script>
 
-<script>
-    (function () {
-        /* 1. Persistent Demo ribbon */
-        var ribbon = document.createElement('div');
-        ribbon.id = 'pb-demo-ribbon';
-        ribbon.innerHTML =
-            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">' +
-            '<rect x="3" y="11" width="18" height="11" rx="2"/>' +
-            '<path d="M7 11V7a5 5 0 0 1 10 0v4"/>' +
-            '</svg>' +
-            '<span>Demo Mode — View Only</span>';
-        document.body.appendChild(ribbon);
+    <script>
+        (function () {
+            /* 1. Persistent Demo ribbon */
+            var ribbon = document.createElement('div');
+            ribbon.id = 'pb-demo-ribbon';
+            ribbon.innerHTML =
+                '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">' +
+                '<rect x="3" y="11" width="18" height="11" rx="2"/>' +
+                '<path d="M7 11V7a5 5 0 0 1 10 0v4"/>' +
+                '</svg>' +
+                '<span>Demo Mode — View Only</span>';
+            document.body.appendChild(ribbon);
 
-        /* 2. MutationObserver: hide React's "Save failed" / "Unsaved changes" */
-        function cleanDemoToolbar() {
-            var spans = document.querySelectorAll('span.text-sm');
-            for (var i = 0; i < spans.length; i++) {
-                var txt = spans[i].textContent;
-                if (txt === 'Save failed' || txt === 'Unsaved changes') {
-                    var row = spans[i].closest('[class*="text-red"], [class*="text-orange"]');
-                    if (row) row.style.cssText = 'display:none!important';
+            /* 2. MutationObserver: hide React's "Save failed" / "Unsaved changes" */
+            function cleanDemoToolbar() {
+                var spans = document.querySelectorAll('span.text-sm');
+                for (var i = 0; i < spans.length; i++) {
+                    var txt = spans[i].textContent;
+                    if (txt === 'Save failed' || txt === 'Unsaved changes') {
+                        var row = spans[i].closest('[class*="text-red"], [class*="text-orange"]');
+                        if (row) row.style.cssText = 'display:none!important';
+                    }
                 }
             }
-        }
-        new MutationObserver(cleanDemoToolbar)
-            .observe(document.documentElement, { childList: true, subtree: true });
+            new MutationObserver(cleanDemoToolbar)
+                .observe(document.documentElement, { childList: true, subtree: true });
 
-        /* 3. Toastr options — same as the rest of the admin panel */
-        function showDemoWarning(msg) {
-            if (typeof toastr === 'undefined') return;
-            toastr.options = {
-                closeButton:     true,
-                progressBar:     true,
-                positionClass:   'toast-top-right',
-                timeOut:         4500,
-                extendedTimeOut: 1500,
-                showDuration:    200,
-                hideDuration:    400,
+            /* 3. Toastr options — same as the rest of the admin panel */
+            function showDemoWarning(msg) {
+                if (typeof toastr === 'undefined') return;
+                toastr.options = {
+                    closeButton:     true,
+                    progressBar:     true,
+                    positionClass:   'toast-top-right',
+                    timeOut:         4500,
+                    extendedTimeOut: 1500,
+                    showDuration:    200,
+                    hideDuration:    400,
+                };
+                toastr.warning(msg);
+            }
+
+            /* 4. Fetch interceptor: show toastr + return fake success */
+            var _fetch = window.fetch;
+            window.fetch = function () {
+                var args = arguments;
+                return _fetch.apply(this, args).then(function (response) {
+                    var url = typeof args[0] === 'string' ? args[0] : (args[0] && args[0].url) || '';
+                    if (url.indexOf('api/page-builder/') !== -1) {
+                        return response.clone().json().then(function (data) {
+                            if (data && data.type === 'warning' && data.msg) {
+                                showDemoWarning(data.msg);
+                                return new Response(
+                                    JSON.stringify({ success: true, message: 'demo', data: {} }),
+                                    { status: 200, headers: { 'Content-Type': 'application/json' } }
+                                );
+                            }
+                            return response;
+                        }).catch(function () { return response; });
+                    }
+                    return response;
+                });
             };
-            toastr.warning(msg);
-        }
-
-        /* 4. Fetch interceptor: show toastr + return fake success */
-        var _fetch = window.fetch;
-        window.fetch = function () {
-            var args = arguments;
-            return _fetch.apply(this, args).then(function (response) {
-                var url = typeof args[0] === 'string' ? args[0] : (args[0] && args[0].url) || '';
-                if (url.indexOf('api/page-builder/') !== -1) {
-                    return response.clone().json().then(function (data) {
-                        if (data && data.type === 'warning' && data.msg) {
-                            showDemoWarning(data.msg);
-                            return new Response(
-                                JSON.stringify({ success: true, message: 'demo', data: {} }),
-                                { status: 200, headers: { 'Content-Type': 'application/json' } }
-                            );
-                        }
-                        return response;
-                    }).catch(function () { return response; });
-                }
-                return response;
-            });
-        };
-    })();
-</script>
+        })();
+    </script>
 @endif
 
 {{-- Load host app JavaScript files for widget interactivity --}}
@@ -282,7 +292,7 @@
 @endforeach
 
 @if ($jsEntry && isset($jsEntry['file']))
-    <script type="module" src="{{ asset('vendor/page-builder/' . $jsEntry['file']) }}?v={{ time() }}"></script>
+    <script type="module" src="{{ asset('assets/vendor/page-builder/' . $jsEntry['file']) }}?v={{ time() }}"></script>
 @else
     <div style="padding: 40px; text-align: center; font-family: sans-serif;">
         <h2>⚠️ Page Builder Assets Not Built</h2>

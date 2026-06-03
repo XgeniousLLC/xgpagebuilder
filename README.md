@@ -294,6 +294,26 @@ Old and new page builders work side-by-side:
 
 ## 🐛 Troubleshooting
 
+### Assets 404 in Production (page-builder.js / page-builder.css)
+
+Assets must be published to `public/assets/vendor/page-builder/` and are served at:
+
+```
+/assets/vendor/page-builder/assets/page-builder.js
+/assets/vendor/page-builder/assets/page-builder.css
+```
+
+Build and publish:
+
+```bash
+cd vendor/xgenious/xgpagebuilder
+npm install && npm run build
+cd ../../..
+php artisan vendor:publish --tag=page-builder-assets --force
+```
+
+> **Important:** The path uses `/assets/vendor/page-builder/` not `/vendor/page-builder/`. nginx commonly blocks `/vendor/` URL paths as a security rule — using `/assets/vendor/` avoids this.
+
 ### CSS Not Loading in Editor
 
 ```bash

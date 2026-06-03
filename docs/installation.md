@@ -150,8 +150,15 @@ php artisan vendor:publish --tag=page-builder-views
 Publish frontend assets:
 
 ```bash
-php artisan vendor:publish --tag=page-builder-assets
+cd vendor/xgenious/xgpagebuilder
+npm install && npm run build
+cd ../../..
+php artisan vendor:publish --tag=page-builder-assets --force
 ```
+
+Assets are published to `public/assets/vendor/page-builder/` and served at `/assets/vendor/page-builder/assets/page-builder.js`.
+
+> **Note:** The package uses `/assets/vendor/page-builder/` as the URL prefix — not `/vendor/page-builder/`. nginx commonly blocks `/vendor/` paths as a security rule.
 
 ---
 
@@ -184,7 +191,7 @@ Check that routes are registered:
 php artisan route:list | grep page-builder
 ```
 
-### Editor Shows Blank Page
+### Editor Shows Blank Page / Assets 404
 
 Build and publish assets:
 
@@ -193,6 +200,19 @@ cd vendor/xgenious/xgpagebuilder
 npm install && npm run build
 cd ../../..
 php artisan vendor:publish --tag=page-builder-assets --force
+```
+
+Verify asset files exist:
+
+```bash
+ls public/assets/vendor/page-builder/assets/
+# Should show: page-builder.js  page-builder.css
+```
+
+Check the URL resolves:
+
+```
+https://yourdomain.com/assets/vendor/page-builder/assets/page-builder.js
 ```
 
 ---
