@@ -24,7 +24,7 @@ class CallToActionWidget extends BaseWidget
 {
     protected function getWidgetType(): string       { return 'call_to_action'; }
     protected function getWidgetName(): string       { return 'Call to Action'; }
-    protected function getWidgetIcon(): string|array { return 'las la-bullhorn'; }
+    protected function getWidgetIcon(): string|array { return 'las la-bullhorn'; }  // format: 'las la-ICONNAME'
     protected function getCategory(): string         { return WidgetCategory::MARKETING; }
 
     public function getGeneralFields(): array
@@ -91,8 +91,8 @@ php artisan config:clear
 | `FieldManager::TOGGLE()` | Boolean switch |
 | `FieldManager::SELECT()` | Dropdown |
 | `FieldManager::COLOR()` | Color picker |
-| `FieldManager::IMAGE()` | Image upload → returns `['url'=>..., 'id'=>...]` |
-| `FieldManager::VIDEO()` | Video upload → returns `['url'=>..., 'poster'=>...]` |
+| `FieldManager::IMAGE()` | Image upload → **returns array** `['url'=>..., 'id'=>...]` |
+| `FieldManager::VIDEO()` | Video upload → **returns array** `['url'=>..., 'poster'=>...]` |
 | `FieldManager::URL()` | Link field |
 | `FieldManager::ICON()` | Icon picker |
 | `FieldManager::REPEATER()` | Repeatable group of fields |
@@ -114,6 +114,45 @@ WidgetCategory::MEDIA        // image, video, gallery
 WidgetCategory::INTERACTIVE  // tabs, accordion, slider
 WidgetCategory::MARKETING    // CTA, pricing, testimonials
 ```
+
+---
+
+---
+
+## CSS in Widgets — Two Approaches
+
+**Approach 1 — Inline `<style>` block in blade** (for fixed layout / values from `render()`)
+
+Scope to `#{{ $uid }}` so multiple instances on the same page don't clash:
+
+```blade
+<style>
+    #{{ $uid }} .my-section { background-color: {{ $bgColor }}; }
+</style>
+<section id="{{ $uid }}" class="my-section">...</section>
+```
+
+Pass `'uid' => 'prefix_' . uniqid()` from `render()`.
+
+**Approach 2 — `getStyleFields()` with `setSelectors()`** (for values the editor user sets in the Style tab)
+
+```php
+public function getStyleFields(): array
+{
+    $control = new ControlManager();
+    $control->addGroup('section', 'Section')
+        ->registerField('margin', FieldManager::DIMENSION()
+            ->setLabel('Margin')->asMargin()
+            ->setSelectors(['{{WRAPPER}} .my-section'])
+        )
+        ->endGroup();
+    return $control->getFields();
+}
+```
+
+`{{WRAPPER}}` is replaced with `.pb-widget-{widgetId}` — each instance is isolated automatically. This CSS lands in `$page->pagebuilder_generated_styles` and is output once in the page `<style>` block.
+
+Use **both together**: inline blade CSS for values you set in `render()`, `getStyleFields()` for spacing/colors the editor user configures.
 
 ---
 

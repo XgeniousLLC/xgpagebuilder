@@ -19,11 +19,17 @@ All settings live in `config/xgpagebuilder.php` after publishing.
 'route_middleware' => ['web', 'auth:admin'],
 
 'routes' => [
-    'preview'          => env('PAGE_BUILDER_PREVIEW_ROUTE', 'page.show'),
-    'back_to_pages'    => env('PAGE_BUILDER_BACK_ROUTE', 'admin.pages.index'),
-    'back_to_pages_url'=> '/admin/dynamic-page/all',  // URL fallback
+    // Route names (used with route())
+    'preview'          => env('PAGE_BUILDER_PREVIEW_ROUTE', 'page.show'),      // "Preview" button
+    'back_to_pages'    => env('PAGE_BUILDER_BACK_ROUTE', 'admin.pages.index'), // "Back" button (route name)
+
+    // Literal URL fallback — used when the route name above doesn't exist
+    'back_to_pages_url'=> '/admin/dynamic-page/all',
 ],
 ```
+
+- `preview` and `back_to_pages` are **Laravel route names** (passed to `route()`).
+- `back_to_pages_url` is a **literal URL path** used as a fallback if the named route doesn't exist in your app.
 
 Editor opens at: `/{route_prefix}/edit/{pageId}`
 

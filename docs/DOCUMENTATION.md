@@ -15,6 +15,7 @@
 **More docs:**
 - [WIDGET-DEVELOPMENT.md](WIDGET-DEVELOPMENT.md) — build custom widgets
 - [FRONTEND-INTEGRATION.md](FRONTEND-INTEGRATION.md) — CSS pipeline, JS, responsive, media
+- [fields.md](fields.md) — every PHP field type with all options
 
 ---
 
@@ -114,6 +115,26 @@ Editor URL: `/{route_prefix}/edit/{pageId}`
 ```
 
 > Video uploads use the same `upload_route`. The `VIDEO` field manages its own MIME types (mp4, webm, mov, avi) and size limit (100 MB default) at the field level.
+
+Your host app's upload/library endpoints must exist. Required routes:
+
+```php
+Route::post  ('/admin/upload/media',        [MediaController::class, 'upload'])->name('admin.upload.media.file');
+Route::get   ('/admin/upload/media/all',    [MediaController::class, 'index']) ->name('admin.upload.media.file.all');
+Route::delete('/admin/upload/media/{id}',   [MediaController::class, 'delete'])->name('admin.upload.media.file.delete');
+```
+
+The upload endpoint must return JSON in this format:
+
+```json
+{
+    "id": 12,
+    "url": "https://yourdomain.com/assets/uploads/photo.jpg",
+    "mime_type": "image/jpeg"
+}
+```
+
+The library endpoint must return a JSON array of the same structure. The page builder's IMAGE and VIDEO fields store the entire response object — this is why those fields return arrays (`['url'=>..., 'id'=>...]`) in widget `render()` methods.
 
 ### Custom Widgets
 

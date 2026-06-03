@@ -28,13 +28,15 @@ The package will be auto-discovered by Laravel.
 
 ---
 
-## Step 2: Publish Configuration
+## Step 2: Publish Config and Assets
 
 ```bash
 php artisan vendor:publish --tag=page-builder-config
+php artisan vendor:publish --tag=page-builder-assets
 ```
 
-This creates `config/xgpagebuilder.php` with all configuration options.
+- `page-builder-config` — creates `config/xgpagebuilder.php`
+- `page-builder-assets` — publishes the pre-built React editor to `public/assets/vendor/page-builder/`
 
 ---
 
@@ -44,38 +46,54 @@ This creates `config/xgpagebuilder.php` with all configuration options.
 php artisan migrate
 ```
 
-This creates the following tables:
-- `page_builder_content` - Stores page content
-- `page_builder_widgets` - Stores widget data
-- `page_editing_sessions` - Manages concurrent editing
+This creates:
+- `page_builder_content` — stores page JSON content
+- `page_builder_widgets` — stores widget data
+- `page_editing_sessions` — manages concurrent editing locks
 
 ---
 
-## Step 4: Configure Models
+## Step 4: Add Columns to Your Pages Table
+
+Create a migration for your existing `pages` table:
+
+```php
+// database/migrations/xxxx_add_page_builder_to_pages.php
+Schema::table('pages', function (Blueprint $table) {
+    $table->boolean('use_page_builder')->default(false);
+    $table->string('page_builder_status')->default('off');
+});
+```
+
+Both columns are required:
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `use_page_builder` | boolean | Triggers `renderPage()` in the controller |
+| `page_builder_status` | string (`'on'`/`'off'`) | Controls display in the blade view |
+
+```bash
+php artisan migrate
+```
+
+---
+
+## Step 5: Configure Models
 
 Update `config/xgpagebuilder.php` to point to your application's models:
 
 ```php
 'models' => [
-    'page' => \App\Models\Backend\Page::class,
+    'page'  => \App\Models\Backend\Page::class,
     'admin' => \App\Models\Backend\Admin::class,
 ],
 ```
 
 ---
 
-## Step 5: Update Page Model
+## Step 6: Update Page Model
 
-Add the `use_page_builder` column to your pages table:
-
-```php
-// database/migrations/xxxx_add_page_builder_to_pages.php
-Schema::table('pages', function (Blueprint $table) {
-    $table->boolean('use_page_builder')->default(false);
-});
-```
-
-Add relationships to your Page model:
+Add the relationship to your Page model:
 
 ```php
 // app/Models/Backend/Page.php
@@ -83,23 +101,28 @@ public function pageBuilderContent()
 {
     return $this->hasOne(\Xgenious\PageBuilder\Models\PageBuilderContent::class, 'page_id');
 }
-
-public function widgets()
-{
-    return $this->hasManyThrough(
-        \Xgenious\PageBuilder\Models\PageBuilderWidget::class,
-        \Xgenious\PageBuilder\Models\PageBuilderContent::class,
-        'page_id',
-        'page_id'
-    );
-}
 ```
 
 ---
 
-## Step 6: Frontend Integration
+## Step 7: Register Widget View Namespace
 
-Update your page controller to render page builder content:
+In `app/Providers/AppServiceProvider.php`, register the view namespace that widgets use for their blade templates:
+
+```php
+public function boot(): void
+{
+    $this->loadViewsFrom(base_path('plugins/PageBuilder/views'), 'pagebuilder');
+}
+```
+
+Adjust the path to wherever your widget blade files live. Without this step, `view('pagebuilder::...')` calls in widget `render()` methods will throw "View not found".
+
+---
+
+## Step 8: Frontend Integration
+
+Update your page controller:
 
 ```php
 use Xgenious\PageBuilder\Services\PageBuilderRenderService;
@@ -107,21 +130,27 @@ use Xgenious\PageBuilder\Services\PageBuilderRenderService;
 public function show($slug)
 {
     $page = Page::where('slug', $slug)->firstOrFail();
-    
+
     if ($page->use_page_builder) {
-        $pageBuilderService = app(PageBuilderRenderService::class);
-        $page->rendered_content = $pageBuilderService->renderPage($page);
+        $result = app(PageBuilderRenderService::class)->renderPage($page, true);
+        $page->rendered_content             = $result['html'] ?? '';
+        $page->pagebuilder_generated_styles = $result['css']  ?? '';
     }
-    
+
     return view('frontend.pages.show', compact('page'));
 }
 ```
 
+> Always pass `true` as the second argument to `renderPage()`. Without it, CSS from style fields is silently dropped and your layout will break.
+
 Update your Blade view:
 
 ```blade
-@if(isset($page->rendered_content))
-    {!! $page->rendered_content !!}
+@if($page->page_builder_status === 'on')
+    @if(isset($page->rendered_content))
+        <style>{!! $page->pagebuilder_generated_styles !!}</style>
+        {!! $page->rendered_content !!}
+    @endif
 @else
     {!! $page->content !!}
 @endif
@@ -129,7 +158,7 @@ Update your Blade view:
 
 ---
 
-## Step 7: Clear Caches
+## Step 9: Clear Caches
 
 ```bash
 php artisan config:clear
@@ -139,61 +168,33 @@ php artisan cache:clear
 
 ---
 
-## Optional: Publish Assets
+## Verification
 
-Publish views for customization:
+Access the page builder editor at:
+
+```
+/{route_prefix}/edit/{pageId}
+```
+
+Default: `/page-builder/edit/1`
+
+If you see the React interface, installation is complete.
+
+---
+
+## Optional: Publish Views
+
+Publish views only if you need to customize the editor blade template:
 
 ```bash
 php artisan vendor:publish --tag=page-builder-views
 ```
 
-Publish frontend assets:
-
-```bash
-cd vendor/xgenious/xgpagebuilder
-npm install && npm run build
-cd ../../..
-php artisan vendor:publish --tag=page-builder-assets --force
-```
-
-Assets are published to `public/assets/vendor/page-builder/` and served at `/assets/vendor/page-builder/assets/page-builder.js`.
-
-> **Note:** The package uses `/assets/vendor/page-builder/` as the URL prefix — not `/vendor/page-builder/`. nginx commonly blocks `/vendor/` paths as a security rule.
-
----
-
-## Verification
-
-Access the page builder at:
-
-```
-/page-builder/edit/{pageId}
-```
-
-If you see the React interface, installation is successful!
-
 ---
 
 ## Troubleshooting
 
-### CSS Not Loading
-
-```bash
-php artisan vendor:publish --tag=page-builder-views --force
-php artisan view:clear
-```
-
-### Routes Not Found
-
-Check that routes are registered:
-
-```bash
-php artisan route:list | grep page-builder
-```
-
-### Editor Shows Blank Page / Assets 404
-
-Build and publish assets:
+### Editor shows blank page / Assets 404
 
 ```bash
 cd vendor/xgenious/xgpagebuilder
@@ -206,18 +207,33 @@ Verify asset files exist:
 
 ```bash
 ls public/assets/vendor/page-builder/assets/
-# Should show: page-builder.js  page-builder.css
+# Should show: page-builder-standalone.[hash].js  page-builder-standalone.[hash].css
 ```
 
-Check the URL resolves:
+> Assets live at `/assets/vendor/page-builder/` — not `/vendor/page-builder/`. nginx commonly blocks `/vendor/` URL paths as a security rule.
 
+### CSS Not Loading in Editor
+
+```bash
+php artisan vendor:publish --tag=page-builder-views --force
+php artisan view:clear && php artisan config:clear
 ```
-https://yourdomain.com/assets/vendor/page-builder/assets/page-builder.js
+
+### Routes Not Found
+
+```bash
+php artisan route:list | grep page-builder
 ```
+
+### Content Not Showing on Frontend
+
+1. Check `page_builder_status` is `'on'` for the page (not just `use_page_builder`)
+2. Verify blade outputs both `pagebuilder_generated_styles` and `rendered_content`
 
 ---
 
 ## Next Steps
 
-- [Configuration Guide](configuration.html) - Configure the package
-- [Widget Development](widgets.html) - Create custom widgets
+- [Configuration Guide](configuration.html) — Configure routes, media, CSS, and more
+- [Widget Development](widgets.html) — Create custom widgets
+- [Frontend Integration](FRONTEND-INTEGRATION.html) — CSS pipeline, JS, responsive modes
