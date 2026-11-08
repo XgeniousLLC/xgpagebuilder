@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import {
@@ -418,6 +418,79 @@ const ensureObject = (val, fallback = {}) => {
   return val;
 };
 
+// Rendered (scaled) visual preview for a widget. The HTML is generated once on
+// the server and cached, then only fetched when the card scrolls into view.
+const THUMB_DESIGN_WIDTH = 1000;
+const THUMB_SCALE = 0.12;
+const THUMB_HEIGHT = 76;
+
+const WidgetThumbnail = ({ widget }) => {
+  const containerRef = useRef(null);
+  const [thumb, setThumb] = useState(null);
+  const [requested, setRequested] = useState(false);
+
+  useEffect(() => {
+    if (requested || !containerRef.current) return;
+
+    let cancelled = false;
+
+    const load = async () => {
+      setRequested(true);
+      const data = await widgetService.getWidgetThumbnail(widget.type);
+      if (!cancelled) setThumb(data);
+    };
+
+    if (typeof IntersectionObserver === 'undefined') {
+      load();
+      return () => { cancelled = true; };
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          observer.disconnect();
+          load();
+        }
+      },
+      { rootMargin: '300px' }
+    );
+
+    observer.observe(containerRef.current);
+    return () => {
+      cancelled = true;
+      observer.disconnect();
+    };
+  }, [widget.type, requested]);
+
+  const hasThumb = thumb && thumb.html;
+
+  return (
+    <div
+      ref={containerRef}
+      className="w-full rounded-md border border-gray-100 bg-white overflow-hidden relative"
+      style={{ height: THUMB_HEIGHT }}
+    >
+      {hasThumb ? (
+        <>
+          {thumb.css ? <style>{thumb.css}</style> : null}
+          <div
+            className="page-builder-canvas absolute top-0 left-0 origin-top-left pointer-events-none select-none"
+            style={{
+              width: `${THUMB_DESIGN_WIDTH}px`,
+              transform: `scale(${THUMB_SCALE})`,
+            }}
+            dangerouslySetInnerHTML={{ __html: thumb.html }}
+          />
+        </>
+      ) : (
+        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-50 to-white">
+          <UniversalIcon icon={widget.icon} type={widget.type} className="w-5 h-5 text-gray-300" />
+        </div>
+      )}
+    </div>
+  );
+};
+
 // New PHP Widget Draggable Component
 const DraggablePhpWidget = ({ widget }) => {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
@@ -450,18 +523,19 @@ const DraggablePhpWidget = ({ widget }) => {
           {...listeners}
           {...attributes}
           style={style}
-          className={`p-3 border border-gray-200 rounded-lg cursor-grab hover:border-blue-300 hover:shadow-sm transition-all duration-200 bg-white relative ${
+          className={`p-2 border border-gray-200 rounded-lg cursor-grab hover:border-blue-300 hover:shadow-sm transition-all duration-200 bg-white relative ${
               widget.is_pro ? 'border-amber-200 bg-gradient-to-br from-amber-50 to-white' : ''
           }`}
       >
         {widget.is_pro && (
-            <div className="absolute -top-1 -right-1 bg-amber-400 text-amber-900 text-xs px-1.5 py-0.5 rounded-full font-medium">
+            <div className="absolute top-0 right-0 z-10 bg-amber-400 text-amber-900 text-[10px] px-1.5 py-0.5 rounded-bl-md rounded-tr-lg font-medium">
               PRO
             </div>
         )}
-        <div className="flex flex-col items-center text-center space-y-2">
-          <UniversalIcon icon={widget.icon} type={widget.type} className="w-6 h-6" />
-          <span className="text-xs font-medium text-gray-700">{widget.name}</span>
+        <WidgetThumbnail widget={widget} />
+        <div className="mt-2 flex items-center justify-center gap-1.5 text-center">
+          <UniversalIcon icon={widget.icon} type={widget.type} className="w-3.5 h-3.5 text-gray-500 shrink-0" />
+          <span className="text-xs font-medium text-gray-700 leading-tight">{widget.name}</span>
         </div>
       </div>
   );
@@ -508,6 +582,30 @@ const DraggableWidget = ({ widget }) => {
   );
 };
 
+// Visual wireframe of a section layout (column proportions + placeholder blocks).
+const SectionWireframe = ({ columns }) => {
+  const cols = columns && columns.length ? columns : [{ width: '100%' }];
+
+  return (
+      <div className="w-full rounded-md border border-gray-200 bg-slate-50 overflow-hidden mb-2" style={{ height: 76 }}>
+        <div className="flex gap-1 w-full h-full p-1.5">
+          {cols.map((column, index) => (
+              <div
+                  key={index}
+                  className="rounded-sm bg-white border border-slate-200 overflow-hidden flex flex-col gap-1 p-1"
+                  style={{ flex: `${parseFloat(column.width) || 100} 1 0` }}
+              >
+                <div className="h-1.5 w-3/4 rounded-sm bg-slate-200" />
+                <div className="h-1 w-full rounded-sm bg-slate-100" />
+                <div className="h-1 w-5/6 rounded-sm bg-slate-100" />
+                <div className="flex-1 rounded-sm bg-slate-100/70" />
+              </div>
+          ))}
+        </div>
+      </div>
+  );
+};
+
 const DraggableSection = ({ section }) => {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: `section-${section.id}`,
@@ -528,16 +626,17 @@ const DraggableSection = ({ section }) => {
           {...listeners}
           {...attributes}
           style={style}
-          className="p-4 border border-gray-200 rounded-lg cursor-grab hover:border-blue-300 hover:shadow-sm transition-all duration-200 bg-white"
+          className="p-2 border border-gray-200 rounded-lg cursor-grab hover:border-blue-300 hover:shadow-sm transition-all duration-200 bg-white"
       >
-        <div className="flex items-center space-x-3">
-          <section.icon className="w-5 h-5 text-gray-600" />
-          <div>
-            <div className="text-sm font-medium text-gray-900">{section.label}</div>
-            <div className="text-xs text-gray-500">
-              {section.columns.length} column{section.columns.length !== 1 ? 's' : ''}
-            </div>
+        <SectionWireframe columns={section.columns} />
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <section.icon className="w-3.5 h-3.5 text-gray-500 shrink-0" />
+            <span className="text-xs font-medium text-gray-900 truncate">{section.label}</span>
           </div>
+          <span className="text-[10px] text-gray-500 shrink-0">
+            {section.columns.length} col
+          </span>
         </div>
       </div>
   );

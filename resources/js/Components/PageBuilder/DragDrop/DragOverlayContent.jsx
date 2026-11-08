@@ -18,14 +18,20 @@ import UniversalIcon from '@/Components/PageBuilder/Icons/UniversalIcon';
 import widgetService from '@/Services/widgetService';
 
 const DragOverlayContent = ({ activeId, widgets, sections }) => {
-  const [phpWidgets, setPhpWidgets] = useState([]);
+  const [phpWidgets, setPhpWidgets] = useState(() =>
+    Array.isArray(widgetService.getCachedWidgets())
+      ? widgetService.formatWidgetsForReactLite(widgetService.getCachedWidgets())
+      : []
+  );
 
-  // Fetch PHP widgets for overlay display
+  // Fetch PHP widgets for overlay display (cached across drags)
   useEffect(() => {
     const fetchPhpWidgets = async () => {
       try {
         const allWidgets = await widgetService.getAllWidgets();
-        const formattedWidgets = widgetService.formatWidgetsForReact(allWidgets);
+        // Lite formatting only — we just need name/icon for the drag ghost.
+        // formatWidgetsForReact() would fire 3 requests per widget (180 widgets = 540 calls).
+        const formattedWidgets = widgetService.formatWidgetsForReactLite(allWidgets);
         setPhpWidgets(Array.isArray(formattedWidgets) ? formattedWidgets : []);
       } catch (error) {
         console.error('Error fetching PHP widgets for drag overlay:', error);

@@ -15,6 +15,10 @@ const PhpWidgetRenderer = ({ widget, className = "", style = {} }) => {
     const [error, setError] = useState(null);
     const [useApiRendering, setUseApiRendering] = useState(true);
 
+    // Re-render only when the widget's actual settings change, not on every
+    // parent render (the store hands out new object references on unrelated updates).
+    const settingsKey = `${widget?.type}|${JSON.stringify(widget?.general || {})}|${JSON.stringify(widget?.style || {})}|${JSON.stringify(widget?.advanced || {})}`;
+
     useEffect(() => {
         if (!widget || !widget.type) {
             setError("Invalid widget data");
@@ -27,7 +31,8 @@ const PhpWidgetRenderer = ({ widget, className = "", style = {} }) => {
         } else {
             renderFallback();
         }
-    }, [widget, useApiRendering]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [settingsKey, useApiRendering]);
 
     const renderWidget = async () => {
         try {

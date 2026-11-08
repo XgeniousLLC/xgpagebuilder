@@ -110,6 +110,9 @@ Route::get('/widgets/search', [Xgenious\PageBuilder\Http\Controllers\WidgetContr
 Route::post('/widgets/{type}/preview', [Xgenious\PageBuilder\Http\Controllers\WidgetController::class, 'preview'])
     ->name('api.page-builder.widgets.preview');
 
+Route::get('/widgets/{type}/thumbnail', [Xgenious\PageBuilder\Http\Controllers\WidgetController::class, 'thumbnail'])
+    ->name('api.page-builder.widgets.thumbnail');
+
 Route::get('/widgets/{type}', [Xgenious\PageBuilder\Http\Controllers\WidgetController::class, 'show'])
     ->name('api.page-builder.widgets.show');
 

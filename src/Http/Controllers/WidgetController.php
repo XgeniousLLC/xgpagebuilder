@@ -4,6 +4,7 @@ namespace Xgenious\PageBuilder\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Cache;
 use Xgenious\PageBuilder\Core\WidgetRegistry;
 
 class WidgetController extends Controller
@@ -148,6 +149,70 @@ class WidgetController extends Controller
             ], 500);
         }
     }
+    /**
+     * Render a scaled-down visual preview of a widget (cached).
+     *
+     * The editor sidebar uses this to show a thumbnail of what each widget
+     * actually looks like instead of a generic icon. Rendering is cached so
+     * browsing the panel does not re-run widget queries on every request.
+     */
+    public function thumbnail($type)
+    {
+        $widget = WidgetRegistry::getWidget($type);
+
+        if (!$widget) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Widget not found'
+            ], 404);
+        }
+
+        $cacheKey = 'xgp_widget_thumbnail:' . md5(implode('|', [
+            $type,
+            app()->getLocale(),
+            request()->getHost(),
+        ]));
+
+        $data = null;
+        try {
+            $data = Cache::get($cacheKey);
+        } catch (\Throwable $e) {
+            // Cache backend unavailable — fall through and render directly.
+        }
+
+        if (!is_array($data)) {
+            $defaults = WidgetRegistry::getWidgetDefaults($type);
+            $rendered = WidgetRegistry::renderWidget($type, $defaults);
+
+            $data = $rendered ?: ['html' => '', 'css' => '', 'failed' => true];
+
+            try {
+                Cache::put(
+                    $cacheKey,
+                    $data,
+                    empty($data['failed']) ? now()->addHours(12) : now()->addMinutes(5)
+                );
+            } catch (\Throwable $e) {
+                // Cache backend unavailable — ignore.
+            }
+        }
+
+        if (empty($data['html']) || !empty($data['failed'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Thumbnail unavailable'
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'html' => $data['html'],
+                'css' => $data['css'] ?? '',
+            ]
+        ]);
+    }
+
     /**
      * Get widget fields
      */

@@ -5,25 +5,51 @@
  * providing a clean interface for the React components.
  */
 
+// Module-level caches. Every widget mount used to re-fetch its field defaults,
+// and the drag overlay used to request defaults for every widget on each drag.
+// These caches make those lookups effectively free after the first hit.
+const WIDGETS_TTL = 5 * 60 * 1000;
+const widgetsCache = { data: null, at: 0 };
+const fieldsCache = new Map();      // `${type}:${tab}` -> fields data
+const fieldsInflight = new Map();   // `${type}:${tab}` -> Promise
+const defaultsCache = new Map();    // type -> { general, style, advanced }
+const defaultsInflight = new Map(); // type -> Promise
+const thumbsCache = new Map();      // type -> { html, css } | null
+const thumbsInflight = new Map();   // type -> Promise
+
 class WidgetService {
   constructor() {
     this.baseUrl = '/api/page-builder';
   }
 
   /**
-   * Get all widgets for the sidebar
+   * Last successfully fetched widget list (synchronous, for drag ghosts).
    */
-  async getAllWidgets() {
+  getCachedWidgets() {
+    return widgetsCache.data;
+  }
+
+  /**
+   * Get all widgets for the sidebar (cached for a short period)
+   */
+  async getAllWidgets(force = false) {
+    const now = Date.now();
+    if (!force && widgetsCache.data && now - widgetsCache.at < WIDGETS_TTL) {
+      return widgetsCache.data;
+    }
     try {
       const response = await fetch(`${this.baseUrl}/widgets`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      return data.success ? data.data : [];
+      const result = data.success ? data.data : [];
+      widgetsCache.data = result;
+      widgetsCache.at = now;
+      return result;
     } catch (error) {
       console.error('Error fetching widgets:', error);
-      return [];
+      return widgetsCache.data || [];
     }
   }
 
@@ -112,32 +138,39 @@ class WidgetService {
    * Get widget fields by tab
    */
   async getWidgetFields(type, tab) {
-    try {
-      const url = `${this.baseUrl}/widgets/${type}/fields/${tab}`;
-      console.log(`[DEBUG] widgetService.getWidgetFields: Making request to ${url}`);
+    const key = `${type}:${tab}`;
 
-      const response = await fetch(url);
-
-      console.log(`[DEBUG] widgetService.getWidgetFields: Response status: ${response.status}`);
-
-      if (!response.ok) {
-        console.log(`[DEBUG] widgetService.getWidgetFields: HTTP error details:`, {
-          status: response.status,
-          statusText: response.statusText,
-          url: url
-        });
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log(`[DEBUG] widgetService.getWidgetFields: Response data:`, data);
-
-      // Wrap in { fields } so callers can use fieldsData.fields consistently
-      return data.success ? { fields: data.data } : null;
-    } catch (error) {
-      console.error(`[DEBUG] widgetService.getWidgetFields: Error fetching widget fields for ${type}/${tab}:`, error);
-      return null;
+    if (fieldsCache.has(key)) {
+      return fieldsCache.get(key);
     }
+    if (fieldsInflight.has(key)) {
+      return fieldsInflight.get(key);
+    }
+
+    const request = (async () => {
+      try {
+        const url = `${this.baseUrl}/widgets/${type}/fields/${tab}`;
+        const response = await fetch(url);
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        // Wrap in { fields } so callers can use fieldsData.fields consistently
+        const result = data.success ? { fields: data.data } : null;
+        if (result) fieldsCache.set(key, result);
+        return result;
+      } catch (error) {
+        console.error(`Error fetching widget fields for ${type}/${tab}:`, error);
+        return null;
+      } finally {
+        fieldsInflight.delete(key);
+      }
+    })();
+
+    fieldsInflight.set(key, request);
+    return request;
   }
 
   /**
@@ -240,6 +273,43 @@ class WidgetService {
   }
 
   /**
+   * Get a cached, server-rendered miniature of a widget for the sidebar.
+   * Results (including "not available") are cached in-memory per type.
+   */
+  async getWidgetThumbnail(type) {
+    if (thumbsCache.has(type)) {
+      return thumbsCache.get(type);
+    }
+    if (thumbsInflight.has(type)) {
+      return thumbsInflight.get(type);
+    }
+
+    const request = (async () => {
+      try {
+        const response = await fetch(`${this.baseUrl}/widgets/${type}/thumbnail`, {
+          headers: { 'Accept': 'application/json' }
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        const result = data.success ? data.data : null;
+        thumbsCache.set(type, result);
+        return result;
+      } catch (error) {
+        console.error(`Error loading thumbnail for ${type}:`, error);
+        thumbsCache.set(type, null);
+        return null;
+      } finally {
+        thumbsInflight.delete(type);
+      }
+    })();
+
+    thumbsInflight.set(type, request);
+    return request;
+  }
+
+  /**
    * Get popular widgets
    */
   async getPopularWidgets(limit = 6) {
@@ -294,44 +364,57 @@ class WidgetService {
    * Get widget default values from field definitions
    */
   async getWidgetDefaults(type) {
-    try {
-      const [generalFields, styleFields, advancedFields] = await Promise.all([
-        this.getWidgetFields(type, 'general'),
-        this.getWidgetFields(type, 'style'),
-        this.getWidgetFields(type, 'advanced')
-      ]);
-
-      const extractDefaults = (fieldsData) => {
-        const defaults = {};
-        if (fieldsData && fieldsData.fields && typeof fieldsData.fields === 'object') {
-          // Preserve the nested group structure that PHP widgets expect
-          Object.entries(fieldsData.fields).forEach(([groupKey, groupData]) => {
-            if (groupData && groupData.fields && typeof groupData.fields === 'object') {
-              defaults[groupKey] = {};
-              Object.entries(groupData.fields).forEach(([fieldKey, fieldConfig]) => {
-                if (fieldConfig && fieldConfig.default !== undefined) {
-                  defaults[groupKey][fieldKey] = fieldConfig.default;
-                }
-              });
-            }
-          });
-        }
-        return defaults;
-      };
-
-      return {
-        general: extractDefaults(generalFields),
-        style: extractDefaults(styleFields),
-        advanced: extractDefaults(advancedFields)
-      };
-    } catch (error) {
-      console.error('Error fetching widget defaults:', error);
-      return {
-        general: {},
-        style: {},
-        advanced: {}
-      };
+    if (defaultsCache.has(type)) {
+      return defaultsCache.get(type);
     }
+    if (defaultsInflight.has(type)) {
+      return defaultsInflight.get(type);
+    }
+
+    const request = (async () => {
+      try {
+        const [generalFields, styleFields, advancedFields] = await Promise.all([
+          this.getWidgetFields(type, 'general'),
+          this.getWidgetFields(type, 'style'),
+          this.getWidgetFields(type, 'advanced')
+        ]);
+
+        const extractDefaults = (fieldsData) => {
+          const defaults = {};
+          if (fieldsData && fieldsData.fields && typeof fieldsData.fields === 'object') {
+            // Preserve the nested group structure that PHP widgets expect
+            Object.entries(fieldsData.fields).forEach(([groupKey, groupData]) => {
+              if (groupData && groupData.fields && typeof groupData.fields === 'object') {
+                defaults[groupKey] = {};
+                Object.entries(groupData.fields).forEach(([fieldKey, fieldConfig]) => {
+                  if (fieldConfig && fieldConfig.default !== undefined) {
+                    defaults[groupKey][fieldKey] = fieldConfig.default;
+                  }
+                });
+              }
+            });
+          }
+          return defaults;
+        };
+
+        const result = {
+          general: extractDefaults(generalFields),
+          style: extractDefaults(styleFields),
+          advanced: extractDefaults(advancedFields)
+        };
+
+        defaultsCache.set(type, result);
+        return result;
+      } catch (error) {
+        console.error('Error fetching widget defaults:', error);
+        return { general: {}, style: {}, advanced: {} };
+      } finally {
+        defaultsInflight.delete(type);
+      }
+    })();
+
+    defaultsInflight.set(type, request);
+    return request;
   }
 
   /**
