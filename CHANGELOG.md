@@ -5,6 +5,21 @@ All notable changes to the Laravel Page Builder package will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.0] - 2026-11-10
+
+### Added
+- `GET /api/page-builder/widgets/{type}/thumbnail` endpoint — renders a widget with its default settings and returns the HTML/CSS for a sidebar preview. Results are cached server-side (12 hours; failures cached briefly) so browsing the panel does not re-run widget queries.
+- Visual widget previews in the editor sidebar: scaled live renders, lazy-loaded with `IntersectionObserver`, with the existing icon as a graceful fallback.
+- Visual wireframe previews for section layouts in the Sections tab.
+
+### Changed
+- The drag overlay now uses the lite widget formatter. It previously called `formatWidgetsForReact()`, which fetched field defaults for every widget on each drag.
+- `widgetService` now caches the widget list, field definitions, and defaults, and de-duplicates in-flight requests.
+- `PhpWidgetRenderer` only re-renders when the widget's settings actually change, not on every parent/store update.
+
+### Fixed
+- Dragging a widget no longer fires hundreds of HTTP requests (previously 3 per widget — roughly 540 calls per drag with 180 widgets).
+
 ## [1.8.0] - 2026-10-21
 
 ### Added
