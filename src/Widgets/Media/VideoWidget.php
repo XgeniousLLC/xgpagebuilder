@@ -750,12 +750,7 @@ class VideoWidget extends BaseWidget
      */
     public function generateCSS(string $widgetId, array $settings, ?string $sectionId = null): string
     {
-        $styleControl = new ControlManager();
-
-        // Register style fields for CSS generation
-        $this->registerStyleFields($styleControl);
-
-        $css = $styleControl->generateCSS($widgetId, $settings['style'] ?? []);
+        $css = parent::generateCSS($widgetId, $settings, $sectionId);
 
         // Add video-specific CSS
         $style = $settings['style'] ?? [];
@@ -799,14 +794,5 @@ class VideoWidget extends BaseWidget
         $css .= "\n}";
 
         return $css;
-    }
-
-    /**
-     * Helper method to register style fields for CSS generation
-     */
-    private function registerStyleFields(ControlManager $control): void
-    {
-        // Re-register fields from getStyleFields() for CSS generation
-        $this->getStyleFields();
     }
 }

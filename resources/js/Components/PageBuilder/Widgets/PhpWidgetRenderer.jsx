@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import widgetService from "@/Services/widgetService";
 import { WidgetIcon } from "@/Components/PageBuilder/Icons/WidgetIcons";
 
@@ -14,6 +14,41 @@ const PhpWidgetRenderer = ({ widget, className = "", style = {} }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [useApiRendering, setUseApiRendering] = useState(true);
+    const contentRef = useRef(null);
+
+    // The editor injects widget HTML through innerHTML, so inline <script>
+    // tags (used by widgets such as Tabs) do not execute. Bind their
+    // behaviour here instead.
+    useEffect(() => {
+        const root = contentRef.current;
+        if (!root) return;
+
+        const handleClick = (event) => {
+            const header = event.target?.closest?.(".tabs-widget .tab-header");
+            if (!header || !root.contains(header)) return;
+
+            event.preventDefault();
+
+            const widget = header.closest(".tabs-widget");
+            if (!widget) return;
+
+            const tab = header.getAttribute("data-tab");
+            widget.querySelectorAll(".tab-header").forEach((item) => {
+                const active = item.getAttribute("data-tab") === tab;
+                item.classList.toggle("active", active);
+                item.setAttribute("aria-selected", active ? "true" : "false");
+            });
+            widget.querySelectorAll(".tab-content").forEach((panel) => {
+                const active = panel.getAttribute("data-tab") === tab;
+                panel.classList.toggle("active", active);
+                panel.style.display = active ? "block" : "none";
+            });
+        };
+
+        root.addEventListener("click", handleClick);
+
+        return () => root.removeEventListener("click", handleClick);
+    }, [renderedContent]);
 
     // Re-render only when the widget's actual settings change, not on every
     // parent render (the store hands out new object references on unrelated updates).
@@ -301,6 +336,7 @@ const PhpWidgetRenderer = ({ widget, className = "", style = {} }) => {
 
             {/* Render the PHP-generated HTML */}
             <div
+                ref={contentRef}
                 className="php-widget-content"
                 dangerouslySetInnerHTML={{ __html: renderedContent }}
             />

@@ -73,26 +73,81 @@ class FeaturesWidget extends BaseWidget
                 ->setPlaceholder('Enter description text')
             )
         ->endGroup();
-        $control->addGroup('list_items','list items')
+        $control->addGroup('list_items','Feature Items')
             ->registerField('cta_list_items',FieldManager::REPEATER()
-                ->setLabel('LIst Items')
+                ->setLabel('Features')
                 ->setFields([
-                    'list_text' => FieldManager::TEXT()->setLabel('list Text'),
+                    'list_icon' => FieldManager::ICON_INPUT()
+                        ->setLabel('Icon')
+                        ->setDefaultIcon('las la-check'),
+                    'list_text' => FieldManager::TEXT()
+                        ->setLabel('Title')
+                        ->setRequired(true),
+                    'list_description' => FieldManager::TEXTAREA()
+                        ->setLabel('Description'),
+                    'list_url' => FieldManager::URL()
+                        ->setLabel('Link URL'),
+                ])
+                ->setDefault([
+                    [
+                        'list_icon' => 'las la-bolt',
+                        'list_text' => 'Real-Time Analytics',
+                        'list_description' => 'Get instant insights from your data streams with real-time processing and visualization capabilities that update every second.',
+                        'list_url' => '',
+                    ],
+                    [
+                        'list_icon' => 'las la-lightbulb',
+                        'list_text' => 'AI-Powered Insights',
+                        'list_description' => 'Leverage advanced machine learning algorithms to uncover hidden patterns, predict trends, and generate actionable recommendations.',
+                        'list_url' => '',
+                    ],
+                    [
+                        'list_icon' => 'las la-heart',
+                        'list_text' => 'Smart Automation',
+                        'list_description' => 'Automate repetitive data tasks, set intelligent alerts, and create custom workflows that trigger based on your business rules.',
+                        'list_url' => '',
+                    ],
+                    [
+                        'list_icon' => 'las la-chart-bar',
+                        'list_text' => 'Interactive Dashboards',
+                        'list_description' => 'Create stunning, customizable dashboards with drag-and-drop widgets that provide clear visibility into your key metrics.',
+                        'list_url' => '',
+                    ],
+                    [
+                        'list_icon' => 'las la-lock',
+                        'list_text' => 'Enterprise Security',
+                        'list_description' => 'Bank-level security with end-to-end encryption, SOC 2 compliance, and granular access controls to protect your sensitive data.',
+                        'list_url' => '',
+                    ],
+                    [
+                        'list_icon' => 'las la-terminal',
+                        'list_text' => 'Easy Integration',
+                        'list_description' => 'Connect with 200+ data sources including databases, APIs, cloud services, and popular business tools in just a few clicks.',
+                        'list_url' => '',
+                    ],
                 ])
                 ->setMin(1)
-                ->setMax(10)
+                ->setMax(12)
             )
             ->endGroup();
 
         $control->addGroup('cta_buttons','Call to Action Buttons')
+            ->registerField('cta_text', FieldManager::TEXT()
+                ->setLabel('CTA Text')
+                ->setDefault('Ready to see these features in action?')
+            )
            ->registerField('cta_buttons_repeater',FieldManager::REPEATER()
-               ->setLabel('Gallery Items')
+               ->setLabel('Buttons')
                ->setFields([
-                   'btn_text' => FieldManager::IMAGE()->setLabel('Btn Text'),
-                   'btn_url' => FieldManager::TEXT()->setLabel('Caption')
+                   'btn_text' => FieldManager::TEXT()->setLabel('Button Text'),
+                   'btn_url' => FieldManager::URL()->setLabel('Button URL')
                ])
-               ->setMin(1)
-               ->setMax(10)
+               ->setDefault([
+                   ['btn_text' => 'Start Free Trial', 'btn_url' => '#'],
+                   ['btn_text' => 'Schedule Demo', 'btn_url' => '#'],
+               ])
+               ->setMin(0)
+               ->setMax(4)
            )
         ->endGroup();
 

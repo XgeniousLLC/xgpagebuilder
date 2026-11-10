@@ -654,12 +654,7 @@ class ImageWidget extends BaseWidget
      */
     public function generateCSS(string $widgetId, array $settings, ?string $sectionId = null): string
     {
-        $styleControl = new ControlManager();
-
-        // Register style fields for CSS generation
-        $this->registerStyleFields($styleControl);
-
-        $css = $styleControl->generateCSS($widgetId, $settings['style'] ?? []);
+        $css = parent::generateCSS($widgetId, $settings, $sectionId);
 
         // Add hover animation CSS
         $style = $settings['style'] ?? [];
@@ -739,14 +734,5 @@ class ImageWidget extends BaseWidget
         }
 
         return $css;
-    }
-
-    /**
-     * Helper method to register style fields for CSS generation
-     */
-    private function registerStyleFields(ControlManager $control): void
-    {
-        // Re-register fields from getStyleFields() for CSS generation
-        $this->getStyleFields();
     }
 }

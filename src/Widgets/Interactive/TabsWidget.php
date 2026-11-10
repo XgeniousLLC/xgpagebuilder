@@ -124,54 +124,104 @@ class TabsWidget extends BaseWidget
         $tabsGroup = $general['tabs'] ?? [];
         $tabsList = $tabsGroup['tabs_list'] ?? $general['tabs_list'] ?? [];
         $activeTab = (int) ($tabsGroup['active_tab'] ?? $general['active_tab'] ?? 1);
-        
+
         if (empty($tabsList)) {
             return '<div class="tabs-placeholder">No tabs defined</div>';
         }
-        
+
+        $uid = 'xgp-tabs-' . substr(md5(uniqid('', true)), 0, 8);
+
         $tabHeaders = '';
         $tabContents = '';
-        
+
         foreach ($tabsList as $index => $tab) {
             $tabIndex = $index + 1;
             $isActive = $tabIndex === $activeTab;
-            $activeClass = $isActive ? ' active' : '';
-            
+
             $title = htmlspecialchars($tab['title'] ?? 'Tab ' . $tabIndex, ENT_QUOTES, 'UTF-8');
-            $content = htmlspecialchars($tab['content'] ?? '', ENT_QUOTES, 'UTF-8');
-            
-            $tabHeaders .= "<div class=\"tab-header{$activeClass}\" data-tab=\"{$tabIndex}\">{$title}</div>";
-            
-            $contentDisplay = $isActive ? 'block' : 'none';
-            $tabContents .= "<div class=\"tab-content\" data-tab=\"{$tabIndex}\" style=\"display: {$contentDisplay};\">{$content}</div>";
+            $content = nl2br(htmlspecialchars($tab['content'] ?? '', ENT_QUOTES, 'UTF-8'));
+
+            $tabHeaders .= sprintf(
+                '<button type="button" class="tab-header%s" data-tab="%d" role="tab" aria-selected="%s" aria-controls="%s-panel-%d">%s</button>',
+                $isActive ? ' active' : '',
+                $tabIndex,
+                $isActive ? 'true' : 'false',
+                $uid,
+                $tabIndex,
+                $title
+            );
+
+            $tabContents .= sprintf(
+                '<div class="tab-content%s" id="%s-panel-%d" data-tab="%d" role="tabpanel" style="display:%s;">%s</div>',
+                $isActive ? ' active' : '',
+                $uid,
+                $tabIndex,
+                $tabIndex,
+                $isActive ? 'block' : 'none',
+                $content
+            );
         }
-        
-        return "<div class=\"tabs-widget\">
-            <div class=\"tabs-headers\">{$tabHeaders}</div>
-            <div class=\"tabs-contents\">{$tabContents}</div>
-        </div>";
+
+        return '<div class="tabs-widget">'
+            . '<div class="tabs-headers" role="tablist">' . $tabHeaders . '</div>'
+            . '<div class="tabs-contents">' . $tabContents . '</div>'
+            . '</div>'
+            . $this->tabsScript();
+    }
+
+    /**
+     * Tab switching for the frontend. The editor injects widget HTML through
+     * innerHTML, where <script> tags do not run, so PhpWidgetRenderer also
+     * binds the same behaviour there.
+     */
+    private function tabsScript(): string
+    {
+        return <<<'HTML'
+<script>
+(function () {
+    if (window.__xgpTabsBound) { return; }
+    window.__xgpTabsBound = true;
+
+    document.addEventListener('click', function (event) {
+        var header = event.target && event.target.closest ? event.target.closest('.tabs-widget .tab-header') : null;
+        if (!header) { return; }
+        event.preventDefault();
+
+        var widget = header.closest('.tabs-widget');
+        if (!widget) { return; }
+
+        var tab = header.getAttribute('data-tab');
+        widget.querySelectorAll('.tab-header').forEach(function (item) {
+            var active = item.getAttribute('data-tab') === tab;
+            item.classList.toggle('active', active);
+            item.setAttribute('aria-selected', active ? 'true' : 'false');
+        });
+        widget.querySelectorAll('.tab-content').forEach(function (panel) {
+            var active = panel.getAttribute('data-tab') === tab;
+            panel.classList.toggle('active', active);
+            panel.style.display = active ? 'block' : 'none';
+        });
+    });
+})();
+</script>
+HTML;
     }
 
     public function generateCSS(string $widgetId, array $settings, ?string $sectionId = null): string
     {
-        $styleControl = new ControlManager();
-        $this->registerStyleFields($styleControl);
-        
-        $css = $styleControl->generateCSS($widgetId, $settings['style'] ?? []);
-        
-        $css .= "
-        #{$widgetId} .tabs-headers { display: flex; border-bottom: 1px solid #dee2e6; }
-        #{$widgetId} .tab-header { padding: 12px 24px; cursor: pointer; border-bottom: 2px solid transparent; }
-        #{$widgetId} .tab-header.active { border-bottom-color: #007cba; }
-        #{$widgetId} .tabs-contents { padding: 20px; }
-        #{$widgetId} .tab-content { display: none; }
-        #{$widgetId} .tab-content.active { display: block; }";
-        
-        return $css;
-    }
+        $css = "
+#{$widgetId} .tabs-widget { width: 100%; }
+#{$widgetId} .tabs-headers { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px; margin: 0; padding: 0; border-bottom: 1px solid #e5e7eb; }
+#{$widgetId} .tab-header { appearance: none; -webkit-appearance: none; margin: 0; padding: 12px 22px; font-size: 15px; font-weight: 600; line-height: 1.2; color: #4b5563; background: #f3f4f6; border: 1px solid #e5e7eb; border-bottom: none; border-radius: 10px 10px 0 0; cursor: pointer; transition: background-color .2s ease, color .2s ease, box-shadow .2s ease; }
+#{$widgetId} .tab-header:hover { background: #e5e7eb; color: #111827; }
+#{$widgetId} .tab-header.active { color: #ffffff; background: #007cba; box-shadow: 0 -2px 10px rgba(0, 124, 186, .2); }
+#{$widgetId} .tab-header:focus-visible { outline: 2px solid #007cba; outline-offset: 2px; }
+#{$widgetId} .tabs-contents { border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px; overflow: hidden; }
+#{$widgetId} .tab-content { display: none; padding: 24px; background: #ffffff; color: #374151; font-size: 16px; line-height: 1.7; }
+#{$widgetId} .tab-content.active { display: block; }
+";
 
-    private function registerStyleFields(ControlManager $control): void
-    {
-        $this->getStyleFields();
+        // Style-field CSS is appended last so user values override the defaults.
+        return $css . parent::generateCSS($widgetId, $settings, $sectionId);
     }
 }

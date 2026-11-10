@@ -176,11 +176,8 @@ class IconWidget extends BaseWidget
 
     public function generateCSS(string $widgetId, array $settings, ?string $sectionId = null): string
     {
-        $styleControl = new ControlManager();
-        $this->registerStyleFields($styleControl);
-        
-        $css = $styleControl->generateCSS($widgetId, $settings['style'] ?? []);
-        
+        $css = parent::generateCSS($widgetId, $settings, $sectionId);
+
         $style = $settings['style'] ?? [];
         $alignment = $style['alignment'] ?? 'center';
         
@@ -188,10 +185,5 @@ class IconWidget extends BaseWidget
         $css .= "\n#{$widgetId} .icon-element { display: inline-block; transition: all 0.3s ease; }";
         
         return $css;
-    }
-
-    private function registerStyleFields(ControlManager $control): void
-    {
-        $this->getStyleFields();
     }
 }

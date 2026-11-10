@@ -185,21 +185,23 @@ class WidgetController extends Controller
 
             $settings = $request->input('settings', []);
 
-            // Render the widget
-            $html = $widget->render($settings);
+            // Render through the registry so the HTML is wrapped with the same
+            // widget id the generated CSS targets. Without the wrapper every
+            // `#widget-id ...` rule is dropped in the editor preview.
+            $rendered = WidgetRegistry::renderWidget($type, $settings);
 
-            // Generate CSS for the widget
-            $css = '';
-            $widgetId = $request->input('widgetId', 'preview-' . $type);
-            if (method_exists($widget, 'generateCSS')) {
-                $css = $widget->generateCSS($widgetId, $settings);
+            if (!$rendered) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error rendering widget'
+                ], 500);
             }
 
             return response()->json([
                 'success' => true,
                 'data' => [
-                    'html' => $html,
-                    'css' => $css
+                    'html' => $rendered['html'],
+                    'css' => $rendered['css']
                 ]
             ]);
         } catch (\Exception $e) {

@@ -148,49 +148,56 @@ class TestimonialWidget extends BaseWidget
             $authorImage = $authorImage['url'] ?? '';
         }
 
-        $rating = (int) ($content['rating'] ?? $general['rating'] ?? 5);
-        
-        $stars = str_repeat('★', $rating) . str_repeat('☆', 5 - $rating);
-        
-        $authorImageHtml = '';
-        if (!empty($authorImage)) {
-            $authorImageHtml = "<img src=\"{$authorImage}\" alt=\"{$authorName}\" class=\"author-image\" />";
+        $rating = max(0, min(5, (int) ($content['rating'] ?? $general['rating'] ?? 5)));
+
+        $stars = '';
+        for ($i = 1; $i <= 5; $i++) {
+            $stars .= '<span class="testimonial-star' . ($i <= $rating ? ' filled' : '') . '">★</span>';
         }
-        
-        return "<div class=\"testimonial-card\">
-            <div class=\"testimonial-rating\">{$stars}</div>
-            <div class=\"testimonial-text\">\"{$testimonialText}\"</div>
-            <div class=\"testimonial-author\">
-                {$authorImageHtml}
-                <div class=\"author-info\">
-                    <div class=\"author-name\">{$authorName}</div>
-                    <div class=\"author-position\">{$authorPosition}</div>
-                </div>
-            </div>
-        </div>";
+
+        $initials = '';
+        if ($authorName !== '') {
+            $parts = preg_split('/\s+/', trim($authorName));
+            $initials = strtoupper(substr($parts[0] ?? '', 0, 1) . substr($parts[1] ?? '', 0, 1));
+        }
+
+        if (!empty($authorImage)) {
+            $avatar = '<img src="' . htmlspecialchars($authorImage, ENT_QUOTES, 'UTF-8') . '" alt="' . $authorName . '" class="author-image" />';
+        } else {
+            $avatar = '<div class="author-image author-image-placeholder">' . htmlspecialchars($initials, ENT_QUOTES, 'UTF-8') . '</div>';
+        }
+
+        return '<figure class="testimonial-card">'
+            . '<div class="testimonial-quote-mark" aria-hidden="true">&ldquo;</div>'
+            . '<div class="testimonial-rating" aria-label="Rating: ' . $rating . ' out of 5">' . $stars . '</div>'
+            . '<blockquote class="testimonial-text">' . $testimonialText . '</blockquote>'
+            . '<figcaption class="testimonial-author">'
+            . $avatar
+            . '<div class="author-info">'
+            . '<div class="author-name">' . $authorName . '</div>'
+            . '<div class="author-position">' . $authorPosition . '</div>'
+            . '</div>'
+            . '</figcaption>'
+            . '</figure>';
     }
 
     public function generateCSS(string $widgetId, array $settings, ?string $sectionId = null): string
     {
-        $styleControl = new ControlManager();
-        $this->registerStyleFields($styleControl);
-        
-        $css = $styleControl->generateCSS($widgetId, $settings['style'] ?? []);
-        
-        $css .= "
-        #{$widgetId} .testimonial-card { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        #{$widgetId} .testimonial-rating { color: #ffc107; margin-bottom: 15px; font-size: 18px; }
-        #{$widgetId} .testimonial-text { font-style: italic; margin-bottom: 20px; font-size: 16px; line-height: 1.6; }
-        #{$widgetId} .testimonial-author { display: flex; align-items: center; gap: 15px; }
-        #{$widgetId} .author-image { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; }
-        #{$widgetId} .author-name { font-weight: 600; margin-bottom: 5px; }
-        #{$widgetId} .author-position { font-size: 14px; opacity: 0.8; }";
-        
-        return $css;
-    }
+        $css = "
+#{$widgetId} .testimonial-card { position: relative; max-width: 680px; margin: 0 auto; padding: 32px; background: #f8f9fa; border: 1px solid #e5e7eb; border-radius: 16px; box-shadow: 0 12px 30px rgba(15, 23, 42, .06); overflow: hidden; }
+#{$widgetId} .testimonial-quote-mark { position: absolute; top: 8px; right: 24px; font-family: Georgia, 'Times New Roman', serif; font-size: 96px; line-height: 1; color: rgba(0, 124, 186, .10); pointer-events: none; }
+#{$widgetId} .testimonial-rating { display: flex; gap: 4px; margin-bottom: 18px; }
+#{$widgetId} .testimonial-star { color: #d1d5db; font-size: 18px; line-height: 1; }
+#{$widgetId} .testimonial-star.filled { color: #f59e0b; }
+#{$widgetId} .testimonial-text { margin: 0 0 26px; padding: 0; border: 0; font-size: 18px; line-height: 1.75; color: #1f2937; font-style: normal; }
+#{$widgetId} .testimonial-author { display: flex; align-items: center; gap: 14px; }
+#{$widgetId} .author-image { width: 56px; height: 56px; border-radius: 999px; object-fit: cover; flex: 0 0 56px; }
+#{$widgetId} .author-image-placeholder { display: flex; align-items: center; justify-content: center; background: #007cba; color: #ffffff; font-size: 18px; font-weight: 700; }
+#{$widgetId} .author-name { margin-bottom: 2px; font-size: 16px; font-weight: 700; color: inherit; }
+#{$widgetId} .author-position { font-size: 14px; color: inherit; opacity: .75; }
+";
 
-    private function registerStyleFields(ControlManager $control): void
-    {
-        $this->getStyleFields();
+        // Style-field CSS is appended last so user values override the defaults.
+        return $css . parent::generateCSS($widgetId, $settings, $sectionId);
     }
 }

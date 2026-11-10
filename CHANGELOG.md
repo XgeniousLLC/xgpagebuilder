@@ -5,6 +5,17 @@ All notable changes to the Laravel Page Builder package will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.4] - 2026-11-10
+
+### Added
+- Tabs widget: proper tab design with accessible buttons/panels and tab-switching JavaScript provided by the page builder (works in the editor and on the frontend).
+
+### Fixed
+- Editor preview now wraps rendered HTML in the CSS-scoped widget container, so widget CSS actually applies in the builder.
+- Style fields now generate CSS for Tabs, Testimonial, Image, Video and Icon widgets (the old `registerStyleFields()` never populated the control).
+- Features widget is now dynamic: title, description, icon, feature items, CTA text and buttons come from its settings, with editable defaults.
+- Testimonial widget renders a real testimonial card: quote mark, star rating, avatar/initials fallback and author details.
+
 ## [1.9.3] - 2026-11-10
 
 ### Fixed
