@@ -204,7 +204,7 @@ class WidgetController extends Controller
                     'css' => $rendered['css']
                 ]
             ]);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Error rendering widget: ' . $e->getMessage()

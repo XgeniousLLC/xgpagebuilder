@@ -565,7 +565,7 @@ class WidgetRegistry
                 'widget_type' => $type,
                 'settings' => $settings
             ];
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             \Log::error("Failed to render widget {$type}: " . $e->getMessage());
             return null;
         }

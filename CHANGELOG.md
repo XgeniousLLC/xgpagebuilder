@@ -5,6 +5,12 @@ All notable changes to the Laravel Page Builder package will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.5] - 2026-11-10
+
+### Fixed
+- Image Gallery no longer drops to fallback rendering: it defensively handles scalar/malformed `layout.columns`, non-array gallery items, missing image URLs and non-array `image_styling`.
+- Widget CSS generation no longer throws a `TypeError` when a style group value is not an array. The registry and preview controller now catch `\Throwable`, so one malformed style value can no longer blank a widget.
+
 ## [1.9.4] - 2026-11-10
 
 ### Added

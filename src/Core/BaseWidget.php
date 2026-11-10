@@ -704,8 +704,12 @@ abstract class BaseWidget
             $styleFields = $this->getStyleFields();
             $styleSettings = $settings['style'] ?? [];
 
+            if (!is_array($styleSettings)) {
+                $styleSettings = [];
+            }
+
             return $this->generateCSSFromFieldsData($styleFields, $styleSettings, $widgetId, $sectionId);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             // Fallback to automatic inline style generation if field processing fails
             $inlineStyles = $this->generateInlineStyles(['style' => $settings['style'] ?? []]);
 
@@ -730,12 +734,21 @@ abstract class BaseWidget
             // Handle groups
             if (isset($fieldConfig['type']) && $fieldConfig['type'] === 'group' && isset($fieldConfig['fields'])) {
                 $groupValues = $values[$fieldKey] ?? [];
+
+                if (!is_array($groupValues)) {
+                    $groupValues = [];
+                }
+
                 $css .= $this->generateCSSFromFieldsData($fieldConfig['fields'], $groupValues, $widgetId, $sectionId);
             }
             // Handle tabs container
             elseif ($fieldKey === '_tabs' && is_array($fieldConfig)) {
                 foreach ($fieldConfig as $tabKey => $tabConfig) {
                     $tabValues = $values[$tabKey] ?? [];
+
+                    if (!is_array($tabValues)) {
+                        $tabValues = [];
+                    }
 
                     // Process direct fields in tab
                     if (isset($tabConfig['fields'])) {
@@ -752,6 +765,10 @@ abstract class BaseWidget
                                 // If no nested data, check if fields are stored directly in tab
                                 if (empty($groupValues)) {
                                     $groupValues = $tabValues; // Use tab values directly for flat structure
+                                }
+
+                                if (!is_array($groupValues)) {
+                                    $groupValues = [];
                                 }
 
                                 $css .= $this->generateCSSFromFieldsData($groupConfig['fields'], $groupValues, $widgetId, $sectionId);

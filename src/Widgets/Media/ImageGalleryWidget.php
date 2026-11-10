@@ -260,72 +260,106 @@ class ImageGalleryWidget extends BaseWidget
     {
         $general = $settings['general'] ?? [];
         $style = $settings['style'] ?? [];
-        
-        $images = $general['images']['gallery_images'] ?? [];
-        $layoutType = $general['layout']['layout_type'] ?? 'grid';
-        $columns = $general['layout']['columns'] ?? ['desktop' => 3, 'tablet' => 2, 'mobile' => 1];
-        $gap = $general['layout']['gap'] ?? 15;
-        
+
+        if (!is_array($general)) {
+            $general = [];
+        }
+        if (!is_array($style)) {
+            $style = [];
+        }
+
+        $imagesGroup = $general['images'] ?? [];
+        $images = is_array($imagesGroup) ? ($imagesGroup['gallery_images'] ?? []) : [];
+        if (!is_array($images)) {
+            $images = [];
+        }
+
+        $layout = $general['layout'] ?? [];
+        if (!is_array($layout)) {
+            $layout = [];
+        }
+
+        $behavior = $general['behavior'] ?? [];
+        if (!is_array($behavior)) {
+            $behavior = [];
+        }
+
+        $layoutType = $layout['layout_type'] ?? 'grid';
+        $columns = $layout['columns'] ?? ['desktop' => 3, 'tablet' => 2, 'mobile' => 1];
+        if (!is_array($columns)) {
+            $columns = ['desktop' => (int) $columns];
+        }
+        $gap = $layout['gap'] ?? 15;
+
         if (empty($images)) {
             return '<div class="gallery-placeholder">Add images to display gallery</div>';
         }
-        
+
         $classes = ['widget-image-gallery', "gallery-{$layoutType}"];
         $classString = implode(' ', $classes);
-        
+
         $styles = [
             '--gallery-gap: ' . $gap . 'px',
             '--gallery-columns-desktop: ' . ($columns['desktop'] ?? 3),
             '--gallery-columns-tablet: ' . ($columns['tablet'] ?? 2),
             '--gallery-columns-mobile: ' . ($columns['mobile'] ?? 1)
         ];
-        
-        if (isset($style['image_styling']['border_radius'])) {
-            $styles[] = '--image-border-radius: ' . $style['image_styling']['border_radius'] . 'px';
+
+        $imageStyling = $style['image_styling'] ?? [];
+        if (is_array($imageStyling) && isset($imageStyling['border_radius'])) {
+            $styles[] = '--image-border-radius: ' . $imageStyling['border_radius'] . 'px';
         }
-        
+
         $styleString = 'style="' . implode('; ', $styles) . '"';
-        
+
         $html = "<div class=\"{$classString}\" {$styleString}>";
-        
+
         foreach ($images as $index => $image) {
+            if (!is_array($image)) {
+                continue;
+            }
+
             $imgSrc = $image['image'] ?? '';
             if (is_array($imgSrc)) {
                 $imgSrc = $imgSrc['url'] ?? '';
             }
             $imgSrc = (string) $imgSrc;
 
-            $altText = $image['alt_text'] ?? '';
-            $caption = $image['caption'] ?? '';
-            $link = $image['link'] ?? '';
-            
+            if ($imgSrc === '') {
+                continue;
+            }
+
+            $altText = htmlspecialchars((string) ($image['alt_text'] ?? ''), ENT_QUOTES, 'UTF-8');
+            $caption = htmlspecialchars((string) ($image['caption'] ?? ''), ENT_QUOTES, 'UTF-8');
+            $link = (string) ($image['link'] ?? '');
+
             $itemClasses = ['gallery-item'];
-            if ($general['behavior']['enable_lightbox'] ?? true) {
+            if ($behavior['enable_lightbox'] ?? true) {
                 $itemClasses[] = 'lightbox-item';
             }
-            
+
             $itemClassString = implode(' ', $itemClasses);
-            
+
             $html .= "<div class=\"{$itemClassString}\">";
-            
-            $imgTag = "<img src=\"{$imgSrc}\" alt=\"{$altText}\" loading=\"" . 
-                     (($general['behavior']['lazy_loading'] ?? true) ? 'lazy' : 'eager') . "\">";
-            
-            if ($link) {
-                $html .= "<a href=\"{$link}\">{$imgTag}</a>";
+
+            $imgTag = "<img src=\"" . htmlspecialchars($imgSrc, ENT_QUOTES, 'UTF-8') . "\" alt=\"{$altText}\" loading=\"" .
+                     (($behavior['lazy_loading'] ?? true) ? 'lazy' : 'eager') . "\">";
+
+            if ($link !== '') {
+                $html .= "<a href=\"" . htmlspecialchars($link, ENT_QUOTES, 'UTF-8') . "\">{$imgTag}</a>";
             } else {
                 $html .= $imgTag;
             }
-            
-            if ($caption && ($general['behavior']['show_captions'] ?? true)) {
+
+            if ($caption !== '' && ($behavior['show_captions'] ?? true)) {
                 $html .= "<div class=\"gallery-caption\">{$caption}</div>";
             }
-            
+
             $html .= "</div>";
         }
-        
+
         $html .= "</div>";
-        
+
         return $html;
     }
 }
