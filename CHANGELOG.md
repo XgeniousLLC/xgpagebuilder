@@ -5,6 +5,13 @@ All notable changes to the Laravel Page Builder package will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.3] - 2026-11-10
+
+### Fixed
+- Tabs widget now reads its fields from the `tabs` group, so the default tabs render instead of "No tabs defined".
+- Testimonial widget reads text, author and rating from the `content` group, and resolves `author_image` objects to their URL.
+- Image and Image Gallery widgets resolve image field objects (`{id, url, ...}`) to their URL instead of outputting an array.
+
 ## [1.9.2] - 2026-11-10
 
 ### Fixed

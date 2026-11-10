@@ -290,6 +290,11 @@ class ImageGalleryWidget extends BaseWidget
         
         foreach ($images as $index => $image) {
             $imgSrc = $image['image'] ?? '';
+            if (is_array($imgSrc)) {
+                $imgSrc = $imgSrc['url'] ?? '';
+            }
+            $imgSrc = (string) $imgSrc;
+
             $altText = $image['alt_text'] ?? '';
             $caption = $image['caption'] ?? '';
             $link = $image['link'] ?? '';

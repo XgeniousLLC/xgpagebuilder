@@ -118,9 +118,12 @@ class TabsWidget extends BaseWidget
     public function render(array $settings = []): string
     {
         $general = $settings['general'] ?? [];
-        
-        $tabsList = $general['tabs_list'] ?? [];
-        $activeTab = $general['active_tab'] ?? 1;
+
+        // Fields are registered inside the `tabs` group; support the flat
+        // shape too for older saved content.
+        $tabsGroup = $general['tabs'] ?? [];
+        $tabsList = $tabsGroup['tabs_list'] ?? $general['tabs_list'] ?? [];
+        $activeTab = (int) ($tabsGroup['active_tab'] ?? $general['active_tab'] ?? 1);
         
         if (empty($tabsList)) {
             return '<div class="tabs-placeholder">No tabs defined</div>';

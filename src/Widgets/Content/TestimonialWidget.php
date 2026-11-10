@@ -134,12 +134,21 @@ class TestimonialWidget extends BaseWidget
     public function render(array $settings = []): string
     {
         $general = $settings['general'] ?? [];
-        
-        $testimonialText = htmlspecialchars($general['testimonial_text'] ?? '', ENT_QUOTES, 'UTF-8');
-        $authorName = htmlspecialchars($general['author_name'] ?? '', ENT_QUOTES, 'UTF-8');
-        $authorPosition = htmlspecialchars($general['author_position'] ?? '', ENT_QUOTES, 'UTF-8');
-        $authorImage = $general['author_image'] ?? '';
-        $rating = $general['rating'] ?? 5;
+
+        // Fields live inside the `content` group; fall back to the flat shape
+        // used by older saved content.
+        $content = $general['content'] ?? [];
+
+        $testimonialText = htmlspecialchars($content['testimonial_text'] ?? $general['testimonial_text'] ?? '', ENT_QUOTES, 'UTF-8');
+        $authorName = htmlspecialchars($content['author_name'] ?? $general['author_name'] ?? '', ENT_QUOTES, 'UTF-8');
+        $authorPosition = htmlspecialchars($content['author_position'] ?? $general['author_position'] ?? '', ENT_QUOTES, 'UTF-8');
+
+        $authorImage = $content['author_image'] ?? $general['author_image'] ?? '';
+        if (is_array($authorImage)) {
+            $authorImage = $authorImage['url'] ?? '';
+        }
+
+        $rating = (int) ($content['rating'] ?? $general['rating'] ?? 5);
         
         $stars = str_repeat('★', $rating) . str_repeat('☆', 5 - $rating);
         

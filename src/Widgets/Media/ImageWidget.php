@@ -527,6 +527,11 @@ class ImageWidget extends BaseWidget
         $behavior = $general['behavior'] ?? [];
 
         $imageSrc = $content['image_source'] ?? '';
+        if (is_array($imageSrc)) {
+            $imageSrc = $imageSrc['url'] ?? '';
+        }
+        $imageSrc = (string) $imageSrc;
+
         $imageAlt = htmlspecialchars($content['image_alt'] ?? '', ENT_QUOTES, 'UTF-8');
         $imageTitle = htmlspecialchars($content['image_title'] ?? '', ENT_QUOTES, 'UTF-8');
 
