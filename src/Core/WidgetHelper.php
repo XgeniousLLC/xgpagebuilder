@@ -144,8 +144,20 @@ class WidgetHelper
      * @param array $processors Array of processors [pattern => replacement]
      * @return string
      */
-    public function processMarkup(string $text, array $processors = []): string
+    public function processMarkup($text, array $processors = []): string
     {
+        // Saved settings can occasionally contain arrays (legacy/malformed
+        // field data). Collapse to a string instead of throwing.
+        if (is_array($text)) {
+            $text = reset($text);
+        }
+
+        if (is_object($text) && method_exists($text, '__toString')) {
+            $text = (string) $text;
+        }
+
+        $text = (string) ($text ?? '');
+
         // Default processors
         $defaultProcessors = [
             '/\{c\}(.*?)\{\/c\}/' => '<span class="text-blue-600">$1</span>',
@@ -175,8 +187,22 @@ class WidgetHelper
     {
         $text = $this->getSettingValue($tab, $fieldPath, $default);
         $text = $this->processMarkup($text);
-        
+
         return $allowHtml ? $text : strip_tags($text);
+    }
+
+    /**
+     * Get a guaranteed string value (arrays collapse to their first value).
+     */
+    public function text(string $fieldPath, $default = ''): string
+    {
+        $value = $this->generalSettings($fieldPath, $default);
+
+        if (is_array($value)) {
+            $value = reset($value);
+        }
+
+        return (string) ($value ?? $default);
     }
 
     /**

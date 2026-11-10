@@ -38,7 +38,7 @@ trait BladeRenderable
             }
 
             return View::make($resolved, $data)->render();
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             \Log::error("Failed to render Blade template '{$template}' for widget: " . $e->getMessage());
             return $this->renderFallback($data);
         }
@@ -82,7 +82,7 @@ trait BladeRenderable
     {
         try {
             return Blade::render($templateString, $data);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             \Log::error("Failed to render Blade string for widget: " . $e->getMessage());
             return $this->renderFallback($data);
         }

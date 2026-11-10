@@ -1,12 +1,33 @@
+@php
+    $toText = function ($value) {
+        if (is_array($value)) {
+            $value = reset($value);
+        }
+
+        return (string) ($value ?? '');
+    };
+
+    $iconClass = function ($icon) use ($toText) {
+        if (is_array($icon)) {
+            $icon = $icon['icon'] ?? '';
+        }
+
+        return $toText($icon);
+    };
+
+    $headerIcon = $iconClass($helper->generalSettings('header_icon', ''));
+    $ctaItems = $helper->getArray('general', 'cta_list_items', []);
+@endphp
+
 <section class="{{ $helper->cssClasses('py-16 bg-gradient-to-r from-blue-50 to-indigo-100') }}" style="{{ $helper->inlineStyles() }}">
     <div class="container mx-auto px-4">
         <div class="grid md:grid-cols-2 gap-8 items-center">
             <!-- Left Content -->
             <div class="space-y-6">
-                @if($helper->generalSettings('header_icon'))
+                @if($headerIcon !== '')
                 <div class="flex items-center space-x-3 mb-4">
                     <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                        <i class="{{ $helper->generalSettings('header_icon') }} text-2xl text-blue-600" aria-hidden="true"></i>
+                        <i class="{{ $headerIcon }} text-2xl text-blue-600" aria-hidden="true"></i>
                     </div>
                 </div>
                 @endif
@@ -14,25 +35,26 @@
                     {!! $helper->getText('general', 'title', 'Turn Raw Data Into <span class="text-blue-600">Actionable Insights</span> Instantly') !!}
                 </h1>
                 <p class="text-lg text-gray-600 leading-relaxed">
-                    {!! $helper->generalSettings('description', 'CogniAI is an advanced AI-powered data analytics platform designed to transform raw data into actionable insights.') !!}
+                    {!! $helper->text('description', 'CogniAI is an advanced AI-powered data analytics platform designed to transform raw data into actionable insights.') !!}
                 </p>
 
                 <!-- CTA Buttons -->
                 <div class="flex flex-col sm:flex-row gap-4">
                     <button class="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
-                        {{ $helper->generalSettings('primary_button_text', 'Get Started Free') }}
+                        {{ $helper->text('primary_button_text', 'Get Started Free') }}
                     </button>
                     <button class="border border-gray-300 text-gray-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors">
-                        {{ $helper->generalSettings('secondary_button_text', 'Watch Demo') }}
+                        {{ $helper->text('secondary_button_text', 'Watch Demo') }}
                     </button>
                 </div>
                 <!-- Trust Indicators -->
-                @if(!empty($helper->generalSettings('cta_list_items')))
+                @if(!empty($ctaItems))
                 <div class="flex flex-wrap gap-4 text-sm text-gray-500">
-                    @foreach($helper->generalSettings('cta_list_items') as $item)
+                    @foreach($ctaItems as $item)
+                        @continue(!is_array($item))
                         <div class="flex items-center">
                             <span class="text-green-500 mr-2">✓</span>
-                            {{$item['list_text']}}
+                            {{ $toText($item['list_text'] ?? '') }}
                         </div>
                     @endforeach
                 </div>

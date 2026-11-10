@@ -1,10 +1,18 @@
 @php
     $title = $helper->getText('general', 'title', 'Unlock the Power of Your Data');
-    $description = $helper->generalSettings('description', 'Transform your business with intelligent analytics that deliver insights, not just data. Our platform combines cutting-edge AI with intuitive design to make data analysis accessible to everyone.');
+    $description = $helper->text('description', 'Transform your business with intelligent analytics that deliver insights, not just data. Our platform combines cutting-edge AI with intuitive design to make data analysis accessible to everyone.');
     $headerIcon = $helper->generalSettings('header_icon', 'las la-star');
     $items = $helper->getArray('general', 'cta_list_items', []);
-    $ctaText = $helper->generalSettings('cta_text', 'Ready to see these features in action?');
+    $ctaText = $helper->text('cta_text', 'Ready to see these features in action?');
     $buttons = $helper->getArray('general', 'cta_buttons_repeater', []);
+
+    $toText = function ($value) {
+        if (is_array($value)) {
+            $value = reset($value);
+        }
+
+        return (string) ($value ?? '');
+    };
 
     $renderIcon = function ($icon, $fallback = 'las la-check') {
         if (is_array($icon)) {
@@ -35,10 +43,11 @@
         @if(!empty($items))
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 @foreach($items as $item)
+                    @continue(!is_array($item))
                     @php
-                        $itemTitle = $item['list_text'] ?? '';
-                        $itemDescription = $item['list_description'] ?? '';
-                        $itemUrl = $item['list_url'] ?? '';
+                        $itemTitle = $toText($item['list_text'] ?? '');
+                        $itemDescription = $toText($item['list_description'] ?? '');
+                        $itemUrl = $toText($item['list_url'] ?? '');
                         $itemIcon = $item['list_icon'] ?? null;
                     @endphp
                     <div class="bg-white p-8 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 group border border-gray-100">
@@ -73,11 +82,12 @@
                 @if(!empty($buttons))
                     <div class="flex flex-col sm:flex-row gap-4 justify-center">
                         @foreach($buttons as $index => $button)
-                            <a href="{{ $button['btn_url'] ?? '#' }}"
+                            @continue(!is_array($button))
+                            <a href="{{ $toText($button['btn_url'] ?? '#') }}"
                                class="{{ $index === 0
                                    ? 'bg-orange-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-orange-600 transition-colors duration-300 shadow-lg'
                                    : 'border-2 border-gray-300 text-gray-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors duration-300' }}">
-                                {{ $button['btn_text'] ?? '' }}
+                                {{ $toText($button['btn_text'] ?? '') }}
                             </a>
                         @endforeach
                     </div>

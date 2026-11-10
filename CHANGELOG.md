@@ -5,6 +5,12 @@ All notable changes to the Laravel Page Builder package will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.6] - 2026-11-10
+
+### Fixed
+- Blade widgets (Header/Features) no longer render the "Widget Render Error" fallback when a saved text field contains an array (legacy or malformed settings). `WidgetHelper` collapses arrays/objects to strings and both templates guard item, button and icon values.
+- `BladeRenderable` now catches `\Throwable`, so any remaining template error falls back cleanly instead of returning a 500.
+
 ## [1.9.5] - 2026-11-10
 
 ### Fixed
