@@ -116,6 +116,25 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Builder Contexts
+    |--------------------------------------------------------------------------
+    |
+    | The same widget registry can serve more than one editor panel (for
+    | example a landlord/central panel and tenant panels). Domains listed in
+    | `central_domains` are treated as the landlord context. Widget classes
+    | whose namespace is listed under a context are hidden from that panel.
+    |
+    */
+
+    'central_domains' => [],
+
+    'context_excluded_widget_namespaces' => [
+        'landlord' => [],
+        'tenant' => [],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Widget Configuration
     |--------------------------------------------------------------------------
     |

@@ -5,6 +5,14 @@ All notable changes to the Laravel Page Builder package will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.1] - 2026-11-10
+
+### Added
+- `central_domains` and `context_excluded_widget_namespaces` config keys. Host apps can hide widget namespaces per editor context (both default to empty/opt-in).
+
+### Fixed
+- The widget API now filters widgets by editor context. The landlord/central panel no longer receives tenant/site widgets, and tenant panels no longer receive landlord-only widgets. Context is determined from the request host against `central_domains` (falling back to `tenancy.central_domains`).
+
 ## [1.9.0] - 2026-11-10
 
 ### Added

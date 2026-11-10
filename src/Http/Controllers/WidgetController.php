@@ -10,6 +10,60 @@ use Xgenious\PageBuilder\Core\WidgetRegistry;
 class WidgetController extends Controller
 {
     /**
+     * Which editor panel is making the request: the landlord/central panel or
+     * a tenant panel. Tenancy is not initialised for these API routes, so the
+     * request host is compared against the configured central domains.
+     */
+    private function currentContext(Request $request): string
+    {
+        $centralDomains = (array) config('xgpagebuilder.central_domains', []);
+
+        if (empty($centralDomains)) {
+            $centralDomains = (array) config('tenancy.central_domains', []);
+        }
+
+        return in_array($request->getHost(), $centralDomains, true) ? 'landlord' : 'tenant';
+    }
+
+    /**
+     * Hide widgets that belong to the other panel's namespace.
+     */
+    private function filterWidgetsForContext(array $widgets, Request $request): array
+    {
+        $context = $this->currentContext($request);
+        $excludedNamespaces = (array) config(
+            "xgpagebuilder.context_excluded_widget_namespaces.{$context}",
+            []
+        );
+
+        if (empty($excludedNamespaces)) {
+            return $widgets;
+        }
+
+        return array_filter($widgets, static function ($widget) use ($excludedNamespaces) {
+            $class = strtolower($widget['class'] ?? '');
+
+            if ($class === '') {
+                return true;
+            }
+
+            foreach ($excludedNamespaces as $namespace) {
+                if (! $namespace) {
+                    continue;
+                }
+
+                $prefix = strtolower(rtrim($namespace, '\\')) . '\\';
+
+                if (str_starts_with($class, $prefix)) {
+                    return false;
+                }
+            }
+
+            return true;
+        });
+    }
+
+    /**
      * Get all widgets
      */
     public function index()
@@ -25,9 +79,12 @@ class WidgetController extends Controller
     /**
      * Get widgets grouped by category
      */
-    public function grouped()
+    public function grouped(Request $request)
     {
-        $allWidgets = WidgetRegistry::getAllWidgets();
+        $allWidgets = $this->filterWidgetsForContext(
+            WidgetRegistry::getAllWidgets(),
+            $request
+        );
         $grouped = [];
 
         foreach ($allWidgets as $widgetType => $widgetData) {
@@ -59,7 +116,10 @@ class WidgetController extends Controller
     public function search(Request $request)
     {
         $query = strtolower($request->input('q', ''));
-        $allWidgets = WidgetRegistry::getAllWidgets();
+        $allWidgets = $this->filterWidgetsForContext(
+            WidgetRegistry::getAllWidgets(),
+            $request
+        );
         $results = [];
 
         if (empty($query)) {
