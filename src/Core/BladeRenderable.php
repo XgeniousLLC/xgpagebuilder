@@ -30,23 +30,45 @@ trait BladeRenderable
     protected function renderBladeTemplate(string $template, array $data = []): string
     {
         try {
-            // Check if the template exists
-            if (!View::exists($template)) {
-                // Try widget-specific template path
-                $widgetTemplate = "widgets.{$this->getWidgetType()}";
-                if (View::exists($widgetTemplate)) {
-                    $template = $widgetTemplate;
-                } else {
-                    // Fallback to default rendering
-                    return $this->renderFallback($data);
-                }
+            $resolved = $this->resolveTemplate($template);
+
+            if ($resolved === null) {
+                // Fallback to default rendering
+                return $this->renderFallback($data);
             }
 
-            return View::make($template, $data)->render();
+            return View::make($resolved, $data)->render();
         } catch (\Exception $e) {
             \Log::error("Failed to render Blade template '{$template}' for widget: " . $e->getMessage());
             return $this->renderFallback($data);
         }
+    }
+
+    /**
+     * Resolve a widget template, checking the package namespace first and then
+     * host-app / legacy namespaces.
+     */
+    private function resolveTemplate(?string $template = null): ?string
+    {
+        $type = $this->getWidgetType();
+
+        $candidates = [];
+
+        if ($template) {
+            $candidates[] = $template;
+        }
+
+        $candidates[] = "page-builder::widgets.{$type}";
+        $candidates[] = "widgets.{$type}";
+        $candidates[] = "pagebuilder::widgets.{$type}";
+
+        foreach (array_unique($candidates) as $candidate) {
+            if (View::exists($candidate)) {
+                return $candidate;
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -74,8 +96,7 @@ trait BladeRenderable
      */
     protected function hasBladeTemplate(?string $template = null): bool
     {
-        $templateName = $template ?? "widgets.{$this->getWidgetType()}";
-        return View::exists($templateName);
+        return $this->resolveTemplate($template) !== null;
     }
 
     /**
@@ -85,7 +106,8 @@ trait BladeRenderable
      */
     protected function getDefaultTemplatePath(): string
     {
-        return "widgets.{$this->getWidgetType()}";
+        return $this->resolveTemplate()
+            ?? "page-builder::widgets.{$this->getWidgetType()}";
     }
 
 

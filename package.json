@@ -1,6 +1,6 @@
 {
   "name": "@xgenious/xgpagebuilder",
-  "version": "1.9.1",
+  "version": "1.9.2",
   "type": "module",
   "description": "Laravel Page Builder Package with React Frontend",
   "scripts": {

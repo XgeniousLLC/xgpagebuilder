@@ -5,6 +5,12 @@ All notable changes to the Laravel Page Builder package will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.2] - 2026-11-10
+
+### Fixed
+- Blade-backed widgets now resolve templates from the package's `page-builder::` view namespace first, then host-app (`widgets.*`) and legacy (`pagebuilder::widgets.*`) namespaces. Fixes Header/Features rendering "no blade template found for widget: ...".
+- FeaturesWidget no longer reports the wrong widget name in its fallback message.
+
 ## [1.9.1] - 2026-11-10
 
 ### Added

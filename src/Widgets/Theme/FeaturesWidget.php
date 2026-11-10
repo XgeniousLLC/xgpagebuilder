@@ -119,7 +119,7 @@ class FeaturesWidget extends BaseWidget
             $templateData = $this->prepareTemplateData($settings);
             return $this->renderBladeTemplate($this->getDefaultTemplatePath(), $templateData);
         }
-        return __('no blade template found for widget: Header');
+        return __('no blade template found for widget: :name', ['name' => $this->getWidgetName()]);
     }
 
 
