@@ -269,6 +269,19 @@ const AdvancedSettings = ({ widget, onUpdate, onWidgetUpdate }) => {
           </p>
         </div>
 
+        {/* Custom JS */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Custom JavaScript</label>
+          <textarea
+            value={widget.advanced?.customJS || ''}
+            onChange={(e) => updateAdvanced('customJS', e.target.value)}
+            rows={6}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+            placeholder={"console.log('widget ready');"}
+          />
+          <p className="text-xs text-gray-500 mt-1">Runs inside an IIFE after the widget renders.</p>
+        </div>
+
         {/* Widget ID */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">

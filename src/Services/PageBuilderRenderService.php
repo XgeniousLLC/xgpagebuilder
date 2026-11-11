@@ -203,8 +203,11 @@ class PageBuilderRenderService
             $classes = array_filter([$widgetId, 'xgp-widget', "xgp-widget-{$widgetType}", $customClasses]);
             $classString = implode(' ', $classes);
 
-            // Extract custom JS if present
-            $customJs = trim($widgetData['advanced']['customJS'] ?? '');
+            // Extract custom JS — check both PHP-field path and legacy key
+            $customJs = trim(
+                $widgetData['advanced']['customJS'] ??
+                ($widgetData['advanced']['custom_js']['custom_js'] ?? '')
+            );
             $jsHtml = '';
             if (!empty($customJs)) {
                 $jsHtml = sprintf(

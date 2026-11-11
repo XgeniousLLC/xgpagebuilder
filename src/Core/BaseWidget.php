@@ -287,6 +287,16 @@ abstract class BaseWidget
             )
             ->endGroup();
 
+        // Custom JavaScript Group
+        $control->addGroup('custom_js', 'Custom JavaScript')
+            ->registerField('custom_js', FieldManager::TEXTAREA()
+                ->setLabel('Custom JavaScript')
+                ->setPlaceholder("console.log('widget ready');")
+                ->setRows(6)
+                ->setDescription('JavaScript executed after this widget renders. Runs inside an IIFE so it cannot pollute the global scope.')
+            )
+            ->endGroup();
+
         return $control->getFields();
     }
 
