@@ -1165,19 +1165,22 @@ abstract class BaseWidget
     protected function getCustomCSS(string $widgetId, array $settings): string
     {
         $advanced = $settings['advanced'] ?? [];
-        $custom = $advanced['custom'] ?? [];
+        $rawCss = $advanced['customCSS'] 
+            ?? $advanced['custom_css']['custom_css'] 
+            ?? $advanced['custom']['custom_css'] 
+            ?? '';
         
-        if (empty($custom['custom_css'])) {
+        if (empty(trim($rawCss))) {
             return '';
         }
 
-        $customCss = $this->sanitizeCSS($custom['custom_css']);
+        $customCss = $this->sanitizeCSS($rawCss);
         
-        return "
-/* Custom CSS for {$widgetId} */
-#{$widgetId} {
-    {$customCss}
-}";
+        if (!str_contains($customCss, '{')) {
+            return "/* Custom CSS for {$widgetId} */\n#{$widgetId} {\n    {$customCss}\n}";
+        }
+
+        return "/* Custom CSS for {$widgetId} */\n" . str_replace('{{WRAPPER}}', "#{$widgetId}", $customCss);
     }
 
     // Validation method for widget settings
