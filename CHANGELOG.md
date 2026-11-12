@@ -5,6 +5,18 @@ All notable changes to the Laravel Page Builder package will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.7] - 2026-11-11
+
+### Added
+- **Custom JavaScript Support:** Added Custom JavaScript settings group in `BaseWidget::registerAdvancedFields()` and a dedicated code editor textarea in `AdvancedSettings.jsx`. Scripts are safely executed in an isolated IIFE with try/catch error logging upon widget render.
+- **`{{WRAPPER}}` Selector in Custom CSS:** `BaseWidget::getCustomCSS()` now supports the `{{WRAPPER}}` placeholder (replaced with `#{$widgetId}`), allowing full scoped CSS rules in custom styling.
+
+### Fixed
+- **Render Pipeline & CSS Persistence:** Prevented calling `renderPageBuilderContent()` redundantly in `PageBuilderRenderService::renderPage()`, which previously triggered `CSSManager::clearCSS()`, wiped accumulated styles, and caused mismatched IDs across runs.
+- **Custom CSS Classes:** Widget wrapper containers now correctly apply user-defined custom CSS classes (`cssClasses` or `custom_attributes.custom_css_class`).
+- **Flexible Custom CSS Keys:** Added fallback checks across multiple key paths (`customCSS`, `custom_css.custom_css`, and `custom.custom_css`) for backward compatibility.
+- Fixed `$reurn_data` typo to `$return_data` in `PageBuilderRenderService::renderPage()`.
+
 ## [1.9.6] - 2026-11-10
 
 ### Fixed

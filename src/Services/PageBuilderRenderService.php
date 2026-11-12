@@ -197,13 +197,33 @@ class PageBuilderRenderService
             // It will flatten them internally in the render() method
             $html = $widgetInstance->render($widgetData);
 
-            // Wrap the HTML in a container with the widget ID to ensure CSS selectors match
+            // Extract custom CSS classes from advanced settings
+            $advanced = $widgetData['advanced'] ?? [];
+            $customClasses = trim($advanced['cssClasses'] ?? $advanced['custom_attributes']['custom_css_class'] ?? '');
+            $classes = array_filter([$widgetId, 'xgp-widget', "xgp-widget-{$widgetType}", $customClasses]);
+            $classString = implode(' ', $classes);
+
+            // Extract custom JS — check both PHP-field path and legacy key
+            $customJs = trim(
+                $widgetData['advanced']['customJS'] ??
+                ($widgetData['advanced']['custom_js']['custom_js'] ?? '')
+            );
+            $jsHtml = '';
+            if (!empty($customJs)) {
+                $jsHtml = sprintf(
+                    '<script>(function(){ try { %s } catch(e) { console.error("Widget [%s] JS error:", e); } })();</script>',
+                    $customJs,
+                    $widgetId
+                );
+            }
+
+            // Wrap the HTML in a container with the widget ID and custom classes
             return sprintf(
-                '<div id="%s" class="%s xgp-widget xgp-widget-%s">%s</div>',
+                '<div id="%s" class="%s">%s%s</div>',
                 $widgetId,
-                $widgetId,
-                $widgetType,
-                $html
+                $classString,
+                $html,
+                $jsHtml
             );
         } catch (\Exception $e) {
             return "<!-- Widget render error: {$e->getMessage()} -->";
@@ -273,17 +293,21 @@ class PageBuilderRenderService
             return '<div class="no-content">Page builder content not found</div>';
         }
 
-        $reurn_data = [
-            'html' => is_array($this->renderPageBuilderContent($content)) ? $this->renderPageBuilderContent($content)['html'] : null,
+        // IMPORTANT: Call renderPageBuilderContent() ONCE only.
+        // Each call starts with CSSManager::clearCSS(), so calling it multiple times
+        // causes the CSS from the HTML render to be wiped before extraction.
+        // Also, widget IDs using uniqid() would differ across calls, breaking CSS selectors.
+        $result = $this->renderPageBuilderContent($content);
+
+        $return_data = [
+            'html' => is_array($result) ? $result['html'] : null,
         ];
 
-        if ($css){
-
-            $reurn_data['css'] =  is_array($this->renderPageBuilderContent($content)) ? $this->renderPageBuilderContent($content)['css'] : null;
+        if ($css) {
+            $return_data['css'] = is_array($result) ? $result['css'] : null;
         }
 
-
-        return $reurn_data;
+        return $return_data;
     }
 
     /**
