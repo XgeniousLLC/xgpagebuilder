@@ -30,6 +30,15 @@ class WidgetService {
   }
 
   /**
+   * Synchronous access to a previously loaded sidebar thumbnail.
+   * The thumbnail is a full render of the widget with its defaults, so the
+   * editor can paint it immediately when the widget is dropped.
+   */
+  getCachedWidgetThumbnail(type) {
+    return thumbsCache.get(type) ?? null;
+  }
+
+  /**
    * Get all widgets for the sidebar (cached for a short period)
    */
   async getAllWidgets(force = false) {

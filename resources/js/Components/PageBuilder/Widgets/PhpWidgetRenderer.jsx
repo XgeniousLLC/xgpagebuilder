@@ -15,6 +15,7 @@ const PhpWidgetRenderer = ({ widget, className = "", style = {} }) => {
     const [error, setError] = useState(null);
     const [useApiRendering, setUseApiRendering] = useState(true);
     const contentRef = useRef(null);
+    const instantPreviewUsed = useRef(false);
 
     // The editor injects widget HTML through innerHTML, so inline <script>
     // tags (used by widgets such as Tabs) do not execute. Bind their
@@ -62,16 +63,34 @@ const PhpWidgetRenderer = ({ widget, className = "", style = {} }) => {
         }
 
         if (useApiRendering) {
-            renderWidget();
+            // A freshly dropped widget can paint instantly from the sidebar
+            // thumbnail (a full render with the widget defaults). The exact
+            // preview replaces it as soon as the API responds.
+            let hasInstantPreview = false;
+
+            if (!instantPreviewUsed.current) {
+                const cachedThumb = widgetService.getCachedWidgetThumbnail(widget.type);
+                if (cachedThumb && cachedThumb.html) {
+                    setRenderedContent(cachedThumb.html);
+                    setRenderedCSS(cachedThumb.css || "");
+                    setIsLoading(false);
+                    hasInstantPreview = true;
+                }
+            }
+
+            instantPreviewUsed.current = true;
+            renderWidget(hasInstantPreview);
         } else {
             renderFallback();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [settingsKey, useApiRendering]);
 
-    const renderWidget = async () => {
+    const renderWidget = async (hasInstantPreview = false) => {
         try {
-            setIsLoading(true);
+            if (!hasInstantPreview) {
+                setIsLoading(true);
+            }
             setError(null);
 
             // Get default values for this widget type
@@ -142,6 +161,11 @@ const PhpWidgetRenderer = ({ widget, className = "", style = {} }) => {
                 setRenderedContent(renderResult.html || "");
                 setRenderedCSS(renderResult.css || "");
             } else {
+                // Keep the cached default render instead of flashing a fallback
+                if (hasInstantPreview) {
+                    return;
+                }
+
                 // API rendering failed, automatically switch to fallback rendering
                 if (useApiRendering) {
                     console.log(
@@ -156,6 +180,11 @@ const PhpWidgetRenderer = ({ widget, className = "", style = {} }) => {
             }
         } catch (err) {
             console.error("Error rendering PHP widget:", err);
+
+            // Keep the cached default render if the API request fails.
+            if (hasInstantPreview) {
+                return;
+            }
 
             // If API rendering fails, automatically switch to fallback rendering
             if (useApiRendering) {

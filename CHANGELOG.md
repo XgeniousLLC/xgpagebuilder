@@ -5,6 +5,11 @@ All notable changes to the Laravel Page Builder package will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.8] - 2026-11-15
+
+### Changed
+- A dropped widget now paints instantly from the cached sidebar thumbnail (a full render with the widget defaults) while the exact preview request completes in the background. The API result replaces it, and the cached render is kept if the preview request fails.
+
 ## [1.9.7] - 2026-11-11
 
 ### Added
