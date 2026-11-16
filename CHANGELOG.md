@@ -5,6 +5,34 @@ All notable changes to the Laravel Page Builder package will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.11.0] - 2026-11-16
+
+Consolidated release of the page-builder improvements delivered across 1.9.0–1.10.0. No functional changes since 1.10.0; this release rolls the whole set into one version for distribution and deployment.
+
+### Added
+- Cached, server-rendered widget thumbnails (`GET /widgets/{type}/thumbnail`) with visual sidebar previews, lazy loading and section wireframes.
+- Instant drop preview: a dropped widget paints from the cached sidebar thumbnail while its exact preview resolves.
+- Bulk widget previews (`POST /widgets/preview-bulk`) for one-request page loads/reloads (up to 100 widgets per call).
+- Context filtering: the landlord/central panel excludes tenant widget namespaces and vice versa, configurable via `central_domains` and `context_excluded_widget_namespaces`.
+- Tabs tab-switching JavaScript and accessible tab design; dynamic Features and Testimonial widgets; custom JavaScript/CSS support (`{{WRAPPER}}` selector included).
+
+### Changed
+- The drag overlay uses lite widget formatting; the widget list, fields, defaults and thumbnails are cached and in-flight requests are de-duplicated.
+- `PhpWidgetRenderer` re-renders only when settings change; single and bulk preview endpoints merge field defaults server-side.
+- Style fields generate CSS for Tabs, Testimonial, Image, Video and Icon widgets; editor previews are wrapped in the CSS-scoped widget id.
+- Blade widgets resolve templates from `page-builder::`, then host/legacy namespaces; `BladeRenderable` catches `\Throwable`.
+- Tenant-only/landlord-only widgets are filtered by panel context.
+
+### Fixed
+- Dragging a widget fired hundreds of HTTP requests (3 per widget); it is now batched/lite.
+- Tabs came up as "No tabs defined"; Testimonial text/author/rating and image URLs; Image/Image Gallery object URLs.
+- Image Gallery fallback from malformed style, columns or items; widget CSS `TypeError` guards.
+- Header/Features "Widget Render Error" with array values; Features fallback name; Blade template resolution.
+- Widget CSS wiped by a duplicate render; custom CSS/JS handling; `{{WRAPPER}}` support.
+
+### Documentation
+- Added a legacy page builder addon migration guide (`PageBuilderBase` → `BaseWidget`) to the docs site.
+
 ## [1.10.0] - 2026-11-15
 
 ### Added
