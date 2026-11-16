@@ -93,62 +93,16 @@ const PhpWidgetRenderer = ({ widget, className = "", style = {} }) => {
             }
             setError(null);
 
-            // Get default values for this widget type
-            const defaults = await widgetService.getWidgetDefaults(widget.type);
-
-            // Ensure defaults has the required structure
-            const safeDefaults = {
-                general: defaults?.general || {},
-                style: defaults?.style || {},
-                advanced: defaults?.advanced || {},
-            };
-
-            // Deep merge helper function that respects nested group structure
-            const deepMerge = (target, source) => {
-                if (!source || typeof source !== "object") return target;
-                if (!target || typeof target !== "object") return source;
-
-                const result = { ...target };
-                for (const key of Object.keys(source)) {
-                    if (
-                        source[key] !== null &&
-                        typeof source[key] === "object" &&
-                        !Array.isArray(source[key])
-                    ) {
-                        result[key] = deepMerge(result[key] || {}, source[key]);
-                    } else if (
-                        source[key] !== undefined &&
-                        source[key] !== null
-                    ) {
-                        result[key] = source[key];
-                    }
-                }
-                return result;
-            };
-
-            // Build settings by deeply merging defaults with widget data
-            // The widget.general should already have the nested group structure from the store
-            // (e.g., { content: { heading_text: 'My Text' }, link: { enhanced_link: {...} } })
-            const settings = {
-                general: deepMerge(safeDefaults.general, widget.general || {}),
-                style: deepMerge(safeDefaults.style, widget.style || {}),
-                advanced: deepMerge(
-                    safeDefaults.advanced,
-                    widget.advanced || {}
-                ),
-            };
-
-            // Enhanced debug logging for all widgets
-            console.log(`[DEBUG] Rendering ${widget.type} widget with:`, {
-                widget: widget,
-                settings: settings,
-                defaults: safeDefaults,
-            });
-
-            // Call the PHP API to render the widget
-            const renderResult = await widgetService.renderWidget(
+            // Batch renders: widgets mounting together (initial page load,
+            // reload) go out as one bulk request. The server merges field
+            // defaults, so only the saved settings are sent.
+            const renderResult = await widgetService.renderWidgetBatched(
                 widget.type,
-                settings
+                {
+                    general: widget.general || {},
+                    style: widget.style || {},
+                    advanced: widget.advanced || {},
+                }
             );
 
             // Enhanced debug logging for all widgets

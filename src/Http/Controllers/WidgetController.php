@@ -183,7 +183,16 @@ class WidgetController extends Controller
                 ], 404);
             }
 
-            $settings = $request->input('settings', []);
+            $settings = is_array($request->input('settings', [])) ? $request->input('settings', []) : [];
+
+            // Merge defaults server-side so clients can send only the saved
+            // settings (no need for three field requests per widget type).
+            $defaults = WidgetRegistry::getWidgetDefaults($type);
+            $settings = [
+                'general' => $this->mergeSettings($defaults['general'] ?? [], is_array($settings['general'] ?? null) ? $settings['general'] : []),
+                'style' => $this->mergeSettings($defaults['style'] ?? [], is_array($settings['style'] ?? null) ? $settings['style'] : []),
+                'advanced' => $this->mergeSettings($defaults['advanced'] ?? [], is_array($settings['advanced'] ?? null) ? $settings['advanced'] : []),
+            ];
 
             // Render through the registry so the HTML is wrapped with the same
             // widget id the generated CSS targets. Without the wrapper every
@@ -211,6 +220,76 @@ class WidgetController extends Controller
             ], 500);
         }
     }
+    /**
+     * Render several widget previews in one request.
+     *
+     * The editor batches the widgets that mount together (initial page load,
+     * reload) instead of firing one preview request per widget. Each entry
+     * carries the saved settings; defaults are merged here.
+     */
+    public function bulkPreview(Request $request)
+    {
+        $payload = $request->validate([
+            'widgets' => 'required|array|max:100',
+            'widgets.*.id' => 'required',
+            'widgets.*.type' => 'required|string',
+            'widgets.*.settings' => 'nullable|array',
+        ]);
+
+        $results = [];
+
+        foreach ($payload['widgets'] as $item) {
+            $id = (string) $item['id'];
+            $type = $item['type'];
+            $settings = is_array($item['settings'] ?? null) ? $item['settings'] : [];
+
+            $defaults = WidgetRegistry::getWidgetDefaults($type);
+            $merged = [
+                'general' => $this->mergeSettings($defaults['general'] ?? [], is_array($settings['general'] ?? null) ? $settings['general'] : []),
+                'style' => $this->mergeSettings($defaults['style'] ?? [], is_array($settings['style'] ?? null) ? $settings['style'] : []),
+                'advanced' => $this->mergeSettings($defaults['advanced'] ?? [], is_array($settings['advanced'] ?? null) ? $settings['advanced'] : []),
+            ];
+
+            $rendered = WidgetRegistry::renderWidget($type, $merged);
+
+            $results[$id] = $rendered ? [
+                'html' => $rendered['html'],
+                'css' => $rendered['css'],
+            ] : null;
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $results,
+        ]);
+    }
+
+    /**
+     * Recursively merge saved settings over defaults.
+     * Associative arrays merge; lists (repeaters) replace defaults.
+     */
+    private function mergeSettings(array $defaults, array $saved): array
+    {
+        foreach ($saved as $key => $value) {
+            if ($value === null) {
+                continue;
+            }
+
+            if (
+                is_array($value)
+                && isset($defaults[$key])
+                && is_array($defaults[$key])
+                && ! array_is_list($value)
+            ) {
+                $defaults[$key] = $this->mergeSettings($defaults[$key], $value);
+            } else {
+                $defaults[$key] = $value;
+            }
+        }
+
+        return $defaults;
+    }
+
     /**
      * Render a scaled-down visual preview of a widget (cached).
      *

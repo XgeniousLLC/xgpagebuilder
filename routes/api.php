@@ -107,6 +107,9 @@ Route::get('/widgets/grouped', [Xgenious\PageBuilder\Http\Controllers\WidgetCont
 Route::get('/widgets/search', [Xgenious\PageBuilder\Http\Controllers\WidgetController::class, 'search'])
     ->name('api.page-builder.widgets.search');
 
+Route::post('/widgets/preview-bulk', [Xgenious\PageBuilder\Http\Controllers\WidgetController::class, 'bulkPreview'])
+    ->name('api.page-builder.widgets.preview-bulk');
+
 Route::post('/widgets/{type}/preview', [Xgenious\PageBuilder\Http\Controllers\WidgetController::class, 'preview'])
     ->name('api.page-builder.widgets.preview');
 

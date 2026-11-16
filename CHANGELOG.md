@@ -5,6 +5,16 @@ All notable changes to the Laravel Page Builder package will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.10.0] - 2026-11-15
+
+### Added
+- `POST /api/page-builder/widgets/preview-bulk` renders up to 100 widget previews in one request.
+
+### Changed
+- The editor batches widgets that mount together (initial page load / reload) into one bulk preview request and renders each result independently. This replaces one preview request per widget.
+- The single and bulk preview endpoints merge field defaults server-side, so the editor no longer needs three field-definition requests per widget type before rendering.
+- Dropped widgets still paint instantly from the cached sidebar thumbnail while their preview resolves.
+
 ## [1.9.8] - 2026-11-15
 
 ### Changed

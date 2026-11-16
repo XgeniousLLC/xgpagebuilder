@@ -17,6 +17,12 @@ const defaultsInflight = new Map(); // type -> Promise
 const thumbsCache = new Map();      // type -> { html, css } | null
 const thumbsInflight = new Map();   // type -> Promise
 
+// Batches widget preview requests that happen together (initial page load /
+// reload). One /widgets/preview-bulk request replaces one request per widget.
+const previewQueue = new Map();     // request id -> { type, settings, resolve }
+let previewBatchTimer = null;
+let previewBatchSeq = 0;
+
 class WidgetService {
   constructor() {
     this.baseUrl = '/api/page-builder';
@@ -229,6 +235,91 @@ class WidgetService {
     } catch (error) {
       console.error(`[DEBUG] widgetService.getWidgetSettings: Error fetching settings for ${widgetId}/${tab}:`, error);
       return null;
+    }
+  }
+
+  /**
+   * Queue a widget preview render.
+   *
+   * Widgets that mount together (page load, reload, a burst of drops) are
+   * flushed as a single POST /widgets/preview-bulk request. The server
+   * merges the widget defaults, so only the saved settings are sent.
+   */
+  renderWidgetBatched(type, settings) {
+    const id = `preview-${Date.now()}-${++previewBatchSeq}`;
+
+    return new Promise((resolve) => {
+      previewQueue.set(id, { type, settings, resolve });
+
+      if (!previewBatchTimer) {
+        previewBatchTimer = setTimeout(() => {
+          this.flushPreviewBatch();
+        }, 50);
+      }
+    });
+  }
+
+  /**
+   * Flush the queued widget renders (chunked to keep requests small).
+   */
+  async flushPreviewBatch() {
+    previewBatchTimer = null;
+
+    const entries = Array.from(previewQueue.entries());
+    previewQueue.clear();
+
+    if (!entries.length) {
+      return;
+    }
+
+    const CHUNK_SIZE = 50;
+
+    for (let offset = 0; offset < entries.length; offset += CHUNK_SIZE) {
+      const chunk = entries.slice(offset, offset + CHUNK_SIZE);
+      const widgets = chunk.map(([id, item]) => ({
+        id,
+        type: item.type,
+        settings: item.settings,
+      }));
+
+      let data = null;
+
+      try {
+        const response = await fetch(`${this.baseUrl}/widgets/preview-bulk`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
+          },
+          body: JSON.stringify({ widgets }),
+        });
+
+        if (response.ok) {
+          const json = await response.json();
+          data = json.success ? json.data : null;
+        }
+      } catch (error) {
+        console.error('Error bulk rendering widgets:', error);
+      }
+
+      await Promise.all(
+        chunk.map(async ([id, item]) => {
+          const result = data && data[id];
+
+          if (result && result.html) {
+            item.resolve(result);
+            return;
+          }
+
+          // Fall back to the single-widget endpoint (it also merges defaults
+          // server-side) if this entry was missing or failed.
+          try {
+            item.resolve(await this.renderWidget(item.type, item.settings));
+          } catch (error) {
+            item.resolve(null);
+          }
+        })
+      );
     }
   }
 
