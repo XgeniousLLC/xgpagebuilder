@@ -73,7 +73,7 @@ class WidgetController extends Controller
         return response()->json([
             'success' => true,
             'data' => $widgets
-        ]);
+        ])->header('Cache-Control', 'public, max-age=3600');
     }
 
     /**
@@ -107,7 +107,7 @@ class WidgetController extends Controller
         return response()->json([
             'success' => true,
             'data' => $grouped
-        ]);
+        ])->header('Cache-Control', 'public, max-age=3600')->header('Vary', 'Host');
     }
 
     /**
@@ -351,7 +351,7 @@ class WidgetController extends Controller
                 'html' => $data['html'],
                 'css' => $data['css'] ?? '',
             ]
-        ]);
+        ])->header('Cache-Control', 'public, max-age=3600');
     }
 
     /**

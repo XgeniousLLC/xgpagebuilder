@@ -52,6 +52,10 @@ const WidgetPanel = ({ widgets, sections, templates, activeTab, onTabChange, col
     };
 
     fetchPhpWidgets();
+
+    // Warm the lite widget list used by the drag overlay so the first drag
+    // does not trigger another API request.
+    widgetService.getAllWidgets().catch(() => {});
   }, []);
 
   // Debounce search query to reduce API calls

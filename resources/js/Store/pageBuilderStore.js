@@ -490,24 +490,23 @@ const usePageBuilderStore = create((set, get) => ({
       if (currentPageId) {
         console.log('[Store] Widget added via DnD, saving to database:', newWidget.id);
 
-        try {
-          // First, save the widget to the database with its initial settings
-          await saveWidgetAllSettings(currentPageId, newWidget.id, {
-            type: newWidget.type,
-            widget_type: newWidget.type,
-            general: newWidget.general || {},  // Use 'general' property
-            style: newWidget.style || {},
-            advanced: newWidget.advanced || {}
+        // Persist in the background so the dropped widget can paint
+        // immediately; the DnD handler should not wait for two writes.
+        saveWidgetAllSettings(currentPageId, newWidget.id, {
+          type: newWidget.type,
+          widget_type: newWidget.type,
+          general: newWidget.general || {},  // Use 'general' property
+          style: newWidget.style || {},
+          advanced: newWidget.advanced || {}
+        })
+          .then(() => autoSave(currentPageId))
+          .then(() => {
+            console.log('[Store] Widget and page saved successfully:', newWidget.id);
+          })
+          .catch((error) => {
+            console.error('[Store] Failed to save widget on DnD:', error);
+            // Don't throw - widget is still in memory, user can save manually
           });
-
-          // Then save the entire page structure
-          await autoSave(currentPageId);
-
-          console.log('[Store] Widget and page saved successfully:', newWidget.id);
-        } catch (error) {
-          console.error('[Store] Failed to save widget on DnD:', error);
-          // Don't throw - widget is still in memory, user can save manually
-        }
       }
     } catch (error) {
       console.error('[PageBuilderStore] Error in addWidgetToColumn:', error);

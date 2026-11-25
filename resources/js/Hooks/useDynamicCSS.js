@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 /**
  * Hook for injecting dynamic CSS into the page builder editor
@@ -7,6 +7,7 @@ import { useEffect, useRef } from 'react';
 export const useDynamicCSS = () => {
   const styleElementRef = useRef(null);
   const injectedCSS = useRef(new Set());
+  const lastPagePayload = useRef('');
 
   // Initialize the style element
   useEffect(() => {
@@ -155,7 +156,7 @@ export const useDynamicCSS = () => {
   };
 
   // Function to inject bulk CSS for entire page
-  const injectPageCSS = async (pageContent) => {
+  const injectPageCSS = useCallback(async (pageContent) => {
     try {
       const components = [];
 
@@ -194,6 +195,13 @@ export const useDynamicCSS = () => {
 
       if (components.length === 0) return;
 
+      // Avoid regenerating identical CSS on unrelated re-renders / save bounces.
+      const payload = JSON.stringify(components);
+      if (payload === lastPagePayload.current) {
+        return;
+      }
+      lastPagePayload.current = payload;
+
       const response = await fetch('/api/page-builder/css/generate-bulk', {
         method: 'POST',
         headers: {
@@ -218,7 +226,7 @@ export const useDynamicCSS = () => {
       console.error('Failed to generate page CSS:', error);
     }
     return null;
-  };
+  }, []);
 
   return {
     injectCSS,

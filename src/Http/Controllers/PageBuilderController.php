@@ -10,6 +10,7 @@ use Xgenious\PageBuilder\Models\PageBuilderContent;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\FacadesLog;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -790,6 +791,15 @@ class PageBuilderController extends Controller
 
         try {
             $components = $request->input('components', []);
+
+            $cacheKey = 'xgp_bulk_css:'.md5(
+                json_encode($components).'|'.request()->getHost().'|'.app()->getLocale()
+            );
+            $cached = Cache::get($cacheKey);
+            if (is_array($cached)) {
+                return response()->json($cached);
+            }
+
             $results = [];
             $combinedCSS = [];
 
@@ -823,13 +833,17 @@ class PageBuilderController extends Controller
                 }
             }
 
-            return response()->json([
+            $payload = [
                 'success' => true,
                 'data' => [
                     'components' => $results,
                     'combinedCSS' => implode("\n\n", $combinedCSS)
                 ]
-            ]);
+            ];
+
+            Cache::put($cacheKey, $payload, now()->addMinutes(10));
+
+            return response()->json($payload);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,

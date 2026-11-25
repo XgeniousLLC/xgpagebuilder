@@ -60,13 +60,13 @@ class PageBuilderServiceProvider extends ServiceProvider
         // Register publishable assets
         $this->registerPublishables();
 
-        // Register built-in widgets
-        $this->registerWidgets();
-
-        // Auto-discover and register widgets from configured paths
-        // This discovers new BaseWidget classes from widget_paths config
-        // and optionally legacy addons if enable_legacy_addons is true
-        LegacyAddonDiscovery::discoverAndRegister();
+        // Loading the full registry (file discovery + instantiating every
+        // widget) is expensive. Build it once and reuse it across requests.
+        if (! WidgetRegistry::loadFromCache()) {
+            $this->registerWidgets();
+            LegacyAddonDiscovery::discoverAndRegister();
+            WidgetRegistry::cache();
+        }
     }
 
     /**

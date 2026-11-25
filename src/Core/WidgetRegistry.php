@@ -430,6 +430,33 @@ class WidgetRegistry
     }
 
     /**
+     * Registry cache key. Landlord and tenant panels register different
+     * widget sets, so they need separate caches.
+     */
+    private static function cacheKey(): string
+    {
+        $context = 'landlord';
+
+        try {
+            if (function_exists('tenant') && tenant()) {
+                $context = 'tenant';
+            } elseif (function_exists('request') && request() && request()->getHost()) {
+                $centralDomains = (array) config('xgpagebuilder.central_domains', []);
+                if (empty($centralDomains)) {
+                    $centralDomains = (array) config('tenancy.central_domains', []);
+                }
+                if (!empty($centralDomains) && !in_array(request()->getHost(), $centralDomains, true)) {
+                    $context = 'tenant';
+                }
+            }
+        } catch (\Throwable $e) {
+            // Fall back to the landlord cache key.
+        }
+
+        return 'widget_registry_'.$context;
+    }
+
+    /**
      * Cache registry data
      */
     public static function cache(): void
@@ -444,7 +471,7 @@ class WidgetRegistry
         ];
 
         try {
-            Cache::put('widget_registry', $cacheData, now()->addHours(24));
+            Cache::put(self::cacheKey(), $cacheData, now()->addHours(24));
         } catch (\Exception $e) {
             // Cache table might not exist during migration, fail gracefully
             // Log the error but don't throw exception
@@ -458,7 +485,7 @@ class WidgetRegistry
     public static function loadFromCache(): bool
     {
         try {
-            $cacheData = Cache::get('widget_registry');
+            $cacheData = Cache::get(self::cacheKey());
 
             if ($cacheData) {
                 self::$registeredWidgets = $cacheData['widgets'];
@@ -479,7 +506,9 @@ class WidgetRegistry
     public static function clearCache(): void
     {
         try {
-            Cache::forget('widget_registry');
+            foreach (['widget_registry_landlord', 'widget_registry_tenant', 'widget_registry'] as $key) {
+                Cache::forget($key);
+            }
         } catch (\Exception $e) {
             // Cache table might not exist, fail gracefully
             \Log::info('Widget registry cache could not be cleared: ' . $e->getMessage());
